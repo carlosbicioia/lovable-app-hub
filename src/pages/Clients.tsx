@@ -54,6 +54,7 @@ export default function Clients() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
@@ -66,6 +67,7 @@ export default function Clients() {
               {filtered.map((c) => (
                 <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.id}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.dni}</td>
                   <td className="px-5 py-3">
                     <p className="font-medium text-card-foreground">{c.name}</p>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
