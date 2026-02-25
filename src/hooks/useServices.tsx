@@ -53,11 +53,20 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchServices = useCallback(async () => {
-    const { data } = await supabase
-      .from("services")
-      .select("*")
-      .order("received_at", { ascending: false });
-    if (data) setServices(data.map(mapDbToService));
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .order("received_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching services:", error);
+        setLoading(false);
+        return;
+      }
+      if (data) setServices(data.map(mapDbToService));
+    } catch (err) {
+      console.error("Unexpected error fetching services:", err);
+    }
     setLoading(false);
   }, []);
 
