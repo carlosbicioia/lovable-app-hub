@@ -92,7 +92,7 @@ export default function BudgetCreate() {
   const totalTax = lines.reduce((s, l) => s + calcLine(l).lineTax, 0);
   const total = subtotal + totalTax;
 
-  const handleSave = (send: boolean) => {
+  const handleSave = async (send: boolean) => {
     if (!serviceId) {
       toast.error("Selecciona un servicio");
       return;
@@ -116,7 +116,7 @@ export default function BudgetCreate() {
       termsAndConditions: terms,
     };
 
-    addBudget(newBudget);
+    await addBudget(newBudget);
     toast.success(send ? "Presupuesto creado y enviado" : "Presupuesto guardado como borrador");
     navigate("/presupuestos");
   };
