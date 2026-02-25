@@ -1,4 +1,4 @@
-import { mockServices } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { Search, Plus, Filter, Image, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,19 +9,21 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useBudgets } from "@/hooks/useBudgets";
+import { Loader2 } from "lucide-react";
 import type { BudgetStatus } from "@/types/urbango";
 
 export default function Services() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { budgets } = useBudgets();
+  const { services, loading } = useServices();
 
   const getBudgetStatusForService = (serviceId: string): BudgetStatus | null => {
     const budget = budgets.find((b) => b.serviceId === serviceId);
     return budget?.status ?? null;
   };
 
-  const filtered = mockServices.filter(
+  const filtered = services.filter(
     (s) =>
       s.clientName.toLowerCase().includes(search.toLowerCase()) ||
       s.id.toLowerCase().includes(search.toLowerCase())
@@ -35,18 +37,20 @@ export default function Services() {
     return "ok";
   };
 
-  const mediaCount = (s: typeof filtered[0]) => {
-    const photos = s.media?.filter(m => m.type === "photo").length ?? 0;
-    const videos = s.media?.filter(m => m.type === "video").length ?? 0;
-    return { photos, videos };
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Servicios</h1>
-          <p className="text-muted-foreground text-sm mt-1">{mockServices.length} servicios en sistema</p>
+          <p className="text-muted-foreground text-sm mt-1">{services.length} servicios en sistema</p>
         </div>
         <Button onClick={() => navigate("/servicios/nuevo")}>
           <Plus className="w-4 h-4 mr-2" /> Nuevo Servicio
@@ -78,7 +82,6 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Prevista</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">SLA</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Urgencia</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Media</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
               </tr>
@@ -86,7 +89,6 @@ export default function Services() {
             <tbody>
               {filtered.map((s) => {
                 const sla = getSlaStatus(s.receivedAt, s.contactedAt);
-                const { photos, videos } = mediaCount(s);
                 return (
                   <tr
                     key={s.id}
@@ -130,21 +132,6 @@ export default function Services() {
                       {!sla && <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="px-5 py-3"><StatusBadge urgency={s.urgency} /></td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {photos > 0 && (
-                          <span className="inline-flex items-center gap-1">
-                            <Image className="w-3.5 h-3.5" /> {photos}
-                          </span>
-                        )}
-                        {videos > 0 && (
-                          <span className="inline-flex items-center gap-1">
-                            <Video className="w-3.5 h-3.5" /> {videos}
-                          </span>
-                        )}
-                        {photos === 0 && videos === 0 && "—"}
-                      </div>
-                    </td>
                     <td className="px-5 py-3">
                       {(() => {
                         const bStatus = getBudgetStatusForService(s.id);

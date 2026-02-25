@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { mockServices } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
@@ -21,6 +21,7 @@ export default function BudgetCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addBudget, budgets } = useBudgets();
+  const { services } = useServices();
 
   const [serviceId, setServiceId] = useState(searchParams.get("serviceId") ?? "");
   const [terms, setTerms] = useState(defaultTerms);
@@ -29,8 +30,8 @@ export default function BudgetCreate() {
   ]);
   const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
 
-  const servicesWithBudget = mockServices.filter((s) => s.serviceType === "Presupuesto");
-  const selectedService = mockServices.find((s) => s.id === serviceId);
+  const servicesWithBudget = services.filter((s) => s.serviceType === "Presupuesto");
+  const selectedService = services.find((s) => s.id === serviceId);
 
   const updateLine = (index: number, field: keyof BudgetLine, value: any) => {
     setLines((prev) =>

@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, BudgetStatus } from "@/types/urbango";
+import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
 
 function mapDbToService(row: any): Service {
   return {
@@ -30,7 +30,6 @@ function mapDbToService(row: any): Service {
     description: row.description ?? "",
     address: row.address ?? "",
     realHours: row.real_hours ? Number(row.real_hours) : null,
-    // These are not stored in DB yet, so defaults:
     media: [],
     internalComments: [],
     managerComments: [],
@@ -39,7 +38,17 @@ function mapDbToService(row: any): Service {
   };
 }
 
-export function useServices() {
+interface ServiceContextValue {
+  services: Service[];
+  loading: boolean;
+  getService: (id: string) => Service | undefined;
+  updateService: (id: string, updates: Record<string, any>) => Promise<{ error: any }>;
+  refetch: () => Promise<void>;
+}
+
+const ServiceContext = createContext<ServiceContextValue | null>(null);
+
+export function ServiceProvider({ children }: { children: React.ReactNode }) {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,32 +79,7 @@ export function useServices() {
     [services]
   );
 
-  const updateService = useCallback(async (id: string, updates: Partial<{
-    client_id: string;
-    client_name: string;
-    operator_id: string | null;
-    operator_name: string | null;
-    collaborator_id: string | null;
-    collaborator_name: string | null;
-    cluster_id: string;
-    origin: string;
-    status: string;
-    urgency: string;
-    specialty: string;
-    service_type: string;
-    service_category: string;
-    claim_status: string;
-    contacted_at: string | null;
-    scheduled_at: string | null;
-    scheduled_end_at: string | null;
-    diagnosis_complete: boolean;
-    nps: number | null;
-    budget_total: number | null;
-    budget_status: string | null;
-    description: string;
-    address: string;
-    real_hours: number | null;
-  }>) => {
+  const updateService = useCallback(async (id: string, updates: Record<string, any>) => {
     const { error } = await supabase
       .from("services")
       .update(updates)
@@ -104,5 +88,15 @@ export function useServices() {
     return { error };
   }, [fetchServices]);
 
-  return { services, loading, getService, updateService, refetch: fetchServices };
+  return (
+    <ServiceContext.Provider value={{ services, loading, getService, updateService, refetch: fetchServices }}>
+      {children}
+    </ServiceContext.Provider>
+  );
+}
+
+export function useServices() {
+  const ctx = useContext(ServiceContext);
+  if (!ctx) throw new Error("useServices must be used within ServiceProvider");
+  return ctx;
 }

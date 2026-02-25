@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { mockServices, mockOperators } from "@/data/mockData";
+import { mockOperators } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import {
   format,
   startOfWeek,
@@ -126,8 +127,9 @@ function ServiceChip({ service, showTime = false }: { service: Service; showTime
 
 // ─── DAY VIEW ──────────────────────────────────────────────
 function DayView({ date }: { date: Date }) {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7:00 - 18:00
-  const scheduledServices = mockServices.filter(
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
+  const { services } = useServices();
+  const scheduledServices = services.filter(
     (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
   );
 
@@ -203,9 +205,10 @@ function DayView({ date }: { date: Date }) {
 
 // ─── WEEK VIEW ─────────────────────────────────────────────
 function WeekView({ date }: { date: Date }) {
+  const { services } = useServices();
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7:00 - 18:00
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
 
   return (
     <div className="h-full flex flex-col">
@@ -239,7 +242,7 @@ function WeekView({ date }: { date: Date }) {
               {String(hour).padStart(2, "0")}:00
             </div>
             {days.map((day) => {
-              const dayServices = mockServices.filter(
+              const dayServices = services.filter(
                 (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), day) && getHours(new Date(s.scheduledAt)) === hour
               );
               return (
@@ -259,6 +262,7 @@ function WeekView({ date }: { date: Date }) {
 
 // ─── MONTH VIEW ────────────────────────────────────────────
 function MonthView({ date }: { date: Date }) {
+  const { services } = useServices();
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
   const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
@@ -282,7 +286,7 @@ function MonthView({ date }: { date: Date }) {
         style={{ gridTemplateRows: `repeat(${weeks}, 1fr)` }}
       >
         {days.map((day) => {
-          const dayServices = getServicesForDate(mockServices, day);
+          const dayServices = getServicesForDate(services, day);
           const isCurrentMonth = isSameMonth(day, date);
           return (
             <div
@@ -325,6 +329,7 @@ function MonthView({ date }: { date: Date }) {
 
 // ─── OPERATOR SUMMARY PANEL ────────────────────────────────
 function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
+  const { services } = useServices();
   const range = useMemo(() => {
     if (view === "day") return { start: date, end: date };
     if (view === "week") {
@@ -339,7 +344,7 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
   return (
     <div className="space-y-2">
       {mockOperators.map((op) => {
-        const assignedCount = mockServices.filter(
+        const assignedCount = services.filter(
           (s) =>
             s.operatorId === op.id &&
             s.scheduledAt &&

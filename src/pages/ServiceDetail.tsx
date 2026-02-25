@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockServices } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
-import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical } from "lucide-react";
+import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -34,8 +34,17 @@ const claimStatusConfig: Record<ClaimStatus, { label: string; className: string;
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const service = mockServices.find((s) => s.id === id);
+  const { services, loading: servicesLoading } = useServices();
+  const service = services.find((s) => s.id === id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  if (servicesLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!service) {
     return (
