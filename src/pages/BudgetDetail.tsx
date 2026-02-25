@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockBudgets } from "@/data/mockData";
 import { ArrowLeft, Send, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -7,18 +6,21 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { BudgetStatus } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
+import { useBudgets } from "@/hooks/useBudgets";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
   Enviado: { label: "Enviado", className: "bg-info/15 text-info" },
   Aprobado: { label: "Aprobado", className: "bg-success/15 text-success" },
   Rechazado: { label: "Rechazado", className: "bg-destructive/15 text-destructive" },
+  Pte_Facturación: { label: "Pte. Facturación", className: "bg-warning/15 text-warning" },
 };
 
 export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const budget = mockBudgets.find((b) => b.id === id);
+  const { getBudget } = useBudgets();
+  const budget = getBudget(id ?? "");
 
   if (!budget) {
     return (
@@ -78,7 +80,6 @@ export default function BudgetDetail() {
 
       {/* Budget document */}
       <div className="bg-card rounded-xl border border-border shadow-sm p-8 max-w-4xl mx-auto print:shadow-none print:border-0 print:p-0">
-        {/* Company header */}
         <div className="flex justify-between items-start mb-8">
           <h2 className="text-3xl font-display font-bold tracking-tight text-foreground">
             URBAN<span className="text-primary">GO</span>
@@ -93,7 +94,6 @@ export default function BudgetDetail() {
 
         <div className="border-t border-border my-6" />
 
-        {/* Budget info */}
         <div className="flex justify-between mb-6">
           <div>
             <p className="font-bold text-card-foreground text-sm">PRESUPUESTO {budget.id}</p>
@@ -104,7 +104,6 @@ export default function BudgetDetail() {
           </p>
         </div>
 
-        {/* Client info */}
         <div className="mb-6">
           <p className="font-bold text-card-foreground text-sm">{budget.collaboratorName || budget.clientName}</p>
           <p className="text-sm text-muted-foreground">{budget.clientAddress}</p>
@@ -112,13 +111,11 @@ export default function BudgetDetail() {
 
         <div className="border-t border-border my-4" />
 
-        {/* Description */}
         <div className="mb-6">
           <p className="text-sm font-semibold text-card-foreground">Descripción del Servicio</p>
           <p className="text-sm text-muted-foreground mt-1">{budget.serviceName}</p>
         </div>
 
-        {/* Lines table */}
         <table className="w-full text-sm mb-6">
           <thead>
             <tr className="border-b-2 border-foreground">
@@ -143,7 +140,6 @@ export default function BudgetDetail() {
           </tbody>
         </table>
 
-        {/* Totals */}
         <div className="flex justify-end">
           <div className="w-64 space-y-1 text-sm">
             <div className="flex justify-between">
@@ -163,7 +159,6 @@ export default function BudgetDetail() {
           </div>
         </div>
 
-        {/* Terms */}
         {budget.termsAndConditions && (
           <div className="mt-10 border-t border-border pt-4">
             <p className="text-sm font-bold text-card-foreground mb-2">Términos y Condiciones</p>
