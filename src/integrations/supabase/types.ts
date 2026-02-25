@@ -226,6 +226,39 @@ export type Database = {
         }
         Relationships: []
       }
+      protocol_checks: {
+        Row: {
+          check_id: string
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          created_at: string
+          id: string
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          check_id: string
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          id?: string
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          check_id?: string
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          id?: string
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           collaborator_id: string | null

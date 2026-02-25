@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, AlertTriangle, Circle, Camera, Phone, UserCheck, ClipboardCheck, Star, Receipt } from "lucide-react";
+import { Phone, Camera, UserCheck, ClipboardCheck, Star, Receipt } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useProtocolChecks } from "@/hooks/useProtocolChecks";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   service: Service;
@@ -18,6 +19,7 @@ interface CheckItem {
 }
 
 export default function ServiceProtocolChecklist({ service }: Props) {
+  const { checkedItems, toggleItem, loading } = useProtocolChecks(service.id);
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
 
   const allItems: CheckItem[] = [
@@ -68,30 +70,25 @@ export default function ServiceProtocolChecklist({ service }: Props) {
     });
   }
 
-  // Manager-controlled check state (local for now — will persist to DB)
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => {
-    // Pre-check items that are obviously done
-    const initial = new Set<string>();
-    if (service.contactedAt) initial.add("contact");
-    if (service.diagnosisComplete) initial.add("diagnosis");
-    if (service.operatorId) initial.add("operator");
-    if ((service.materials?.length ?? 0) > 0 || service.serviceType === "Reparación_Directa") initial.add("materials");
-    if (service.budgetStatus === "Aprobado" || service.budgetStatus === "Enviado") initial.add("budget");
-    if (service.nps !== null) initial.add("nps");
-    return initial;
-  });
-
-  const toggleItem = (id: string) => {
-    setCheckedItems(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const completed = allItems.filter((c) => checkedItems.has(c.id) && !c.warning).length;
   const total = allItems.length;
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ClipboardCheck className="w-4 h-4 text-muted-foreground" /> Protocolo de Gestión
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -149,7 +146,7 @@ export default function ServiceProtocolChecklist({ service }: Props) {
           );
         })}
         <p className="text-xs text-muted-foreground italic pt-2 border-t border-border">
-          El gestor marca cada paso manualmente según el avance del servicio. Los puntos del protocolo se configuran en Ajustes.
+          El gestor marca cada paso manualmente según el avance del servicio. Los cambios se guardan automáticamente.
         </p>
       </CardContent>
     </Card>
