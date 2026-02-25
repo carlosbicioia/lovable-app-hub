@@ -118,6 +118,7 @@ export default function Settings() {
           <TabsTrigger value="documents" className="text-sm gap-1.5"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
           <TabsTrigger value="notifications" className="text-sm gap-1.5"><Bell className="w-3.5 h-3.5" /> Notificaciones</TabsTrigger>
           <TabsTrigger value="appearance" className="text-sm gap-1.5"><Palette className="w-3.5 h-3.5" /> Apariencia</TabsTrigger>
+          <TabsTrigger value="protocol" className="text-sm gap-1.5"><Wrench className="w-3.5 h-3.5" /> Protocolo</TabsTrigger>
         </TabsList>
 
         {/* ===== EMPRESA ===== */}
@@ -483,6 +484,50 @@ export default function Settings() {
                   Guardar preferencias
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ===== PROTOCOLO ===== */}
+        <TabsContent value="protocol" className="space-y-6 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Protocolo de Gestión</CardTitle>
+              <CardDescription>Define los pasos que el gestor debe completar en cada servicio. Estos aparecerán como checklist en la pantalla de detalle del servicio.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(() => {
+                const defaultItems = [
+                  { label: "Contacto con cliente (SLA 12h)", description: "Primer contacto telefónico o por email dentro del SLA establecido" },
+                  { label: "Diagnóstico multimedia", description: "Recibir fotos o vídeos del problema reportado" },
+                  { label: "Técnico asignado (por cluster y especialidad)", description: "Asignar un técnico del cluster correcto con la especialidad adecuada" },
+                  { label: "Material preparado", description: "Confirmar que los materiales necesarios están disponibles" },
+                  { label: "Presupuesto gestionado", description: "Solo para servicios con presupuesto: enviar y obtener aprobación" },
+                  { label: "NPS recogido", description: "Recoger la encuesta de satisfacción al finalizar" },
+                ];
+                return (
+                  <div className="space-y-3">
+                    {defaultItems.map((item, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-card-foreground">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch defaultChecked />
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button variant="outline" className="w-full">
+                      <Plus className="w-4 h-4 mr-2" /> Añadir paso al protocolo
+                    </Button>
+                    <p className="text-xs text-muted-foreground">Los cambios se aplicarán a todos los servicios nuevos. Los servicios existentes mantendrán su protocolo actual.</p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
