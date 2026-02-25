@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Euro, Camera, File } from "lucide-react";
 import { format } from "date-fns";
@@ -19,12 +19,17 @@ import { mockClients, mockCollaborators, mockOperators } from "@/data/mockData";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
+import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, BudgetStatus } from "@/types/urbango";
+
+const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
 export default function ServiceCreate() {
   const { refetch } = useServices();
+  const { budgets } = useBudgets();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
   // ── Client & origin ──
   const [clientId, setClientId] = useState("");
@@ -57,7 +62,35 @@ export default function ServiceCreate() {
   const [budgetTotal, setBudgetTotal] = useState<number | "">("");
   const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | "">("");
   const [realHours, setRealHours] = useState<number | "">("");
-  const [hasBudget, setHasBudget] = useState(false);
+
+  // ── Restore pending service from sessionStorage (returning from budget creation) ──
+  useEffect(() => {
+    const stored = sessionStorage.getItem(PENDING_SERVICE_KEY);
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        setPendingServiceId(data.serviceId);
+        // Restore form state
+        if (data.clientId) setClientId(data.clientId);
+        if (data.origin) setOrigin(data.origin);
+        if (data.collaboratorId) setCollaboratorId(data.collaboratorId);
+        if (data.specialty) setSpecialty(data.specialty);
+        if (data.urgency) setUrgency(data.urgency);
+        if (data.serviceType) setServiceType(data.serviceType);
+        if (data.serviceCategory) setServiceCategory(data.serviceCategory);
+        if (data.claimStatus) setClaimStatus(data.claimStatus);
+        if (data.description) setDescription(data.description);
+        if (data.address) setAddress(data.address);
+        if (data.operatorId) setOperatorId(data.operatorId);
+        if (data.diagnosisComplete) setDiagnosisComplete(data.diagnosisComplete);
+      } catch {}
+    }
+  }, []);
+
+  // Check if pending service has a linked budget
+  const linkedBudget = pendingServiceId
+    ? budgets.find((b) => b.serviceId === pendingServiceId)
+    : null;
 
   // ── Derived data ──
   const selectedClient = mockClients.find((c) => c.id === clientId);
@@ -79,6 +112,138 @@ export default function ServiceCreate() {
     (o) => o.status === "Activo" && o.available && (o.specialty === specialty || o.secondarySpecialty === specialty)
   );
 
+  // Helper: generate next service ID
+  const generateServiceId = async () => {
+    const { data: settings } = await supabase
+      .from("company_settings")
+      .select("service_prefix")
+      .limit(1)
+      .maybeSingle();
+    const prefix = settings?.service_prefix ?? "SRV-";
+    const { data: lastServices } = await supabase
+      .from("services")
+      .select("id")
+      .ilike("id", `${prefix}%`)
+      .order("id", { ascending: false })
+      .limit(1);
+    let nextNum = 1;
+    if (lastServices && lastServices.length > 0) {
+      const numPart = parseInt(lastServices[0].id.replace(prefix, ""), 10);
+      if (!isNaN(numPart)) nextNum = numPart + 1;
+    }
+    return `${prefix}${String(nextNum).padStart(3, "0")}`;
+  };
+
+  // Helper: build the service insert payload
+  const buildServicePayload = (serviceId: string, statusOverride?: string) => {
+    const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
+    let scheduledAtIso: string | null = null;
+    let scheduledEndAtIso: string | null = null;
+    if (scheduledDate) {
+      const [h, m] = scheduledTime.split(":").map(Number);
+      const d = new Date(scheduledDate);
+      d.setHours(h, m, 0, 0);
+      scheduledAtIso = d.toISOString();
+    }
+    if (scheduledEndDate) {
+      const [h, m] = scheduledEndTime.split(":").map(Number);
+      const d = new Date(scheduledEndDate);
+      d.setHours(h, m, 0, 0);
+      scheduledEndAtIso = d.toISOString();
+    }
+    return {
+      id: serviceId,
+      client_id: clientId,
+      client_name: selectedClient?.name ?? "",
+      operator_id: operatorId && operatorId !== "none" ? operatorId : null,
+      operator_name: selectedOperator?.name ?? null,
+      collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
+      collaborator_name: selectedCollab?.companyName ?? null,
+      cluster_id: selectedClient?.clusterId ?? "",
+      origin,
+      status: statusOverride ?? "Pendiente_Contacto",
+      urgency,
+      specialty,
+      service_type: serviceType,
+      service_category: serviceCategory,
+      claim_status: claimStatus,
+      description,
+      address,
+      diagnosis_complete: diagnosisComplete,
+      scheduled_at: scheduledAtIso,
+      scheduled_end_at: scheduledEndAtIso,
+      contacted_at: null as string | null,
+      budget_total: budgetTotal !== "" ? Number(budgetTotal) : null,
+      budget_status: budgetStatus ? (budgetStatus as string) : null,
+      real_hours: realHours !== "" ? Number(realHours) : null,
+    };
+  };
+
+  // "Crear presupuesto" — auto-save service first, then navigate to budget creation
+  const handleCreateBudget = async () => {
+    if (!clientId) {
+      toast({ title: "Error", description: "Selecciona un cliente antes de crear el presupuesto", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const newId = pendingServiceId ?? await generateServiceId();
+      const payload = buildServicePayload(newId);
+
+      if (pendingServiceId) {
+        // Update existing
+        const { id: _, ...updatePayload } = payload;
+        await supabase.from("services").update(updatePayload).eq("id", pendingServiceId);
+      } else {
+        // Insert new
+        const { error } = await supabase.from("services").insert(payload);
+        if (error) {
+          toast({ title: "Error", description: "No se pudo crear el servicio: " + error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      }
+
+      setPendingServiceId(newId);
+      // Save form state to sessionStorage so we can restore on return
+      sessionStorage.setItem(PENDING_SERVICE_KEY, JSON.stringify({
+        serviceId: newId,
+        clientId, origin, collaboratorId, specialty, urgency,
+        serviceType, serviceCategory, claimStatus, description,
+        address, operatorId, diagnosisComplete,
+      }));
+
+      await refetch();
+      navigate(`/presupuestos/nuevo?serviceId=${newId}`);
+    } catch (err) {
+      console.error("Error creating service for budget:", err);
+      toast({ title: "Error", description: "Error inesperado", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Cancel — delete auto-created service + linked budgets
+  const handleCancel = async () => {
+    if (pendingServiceId) {
+      // Delete linked budget lines and budgets first
+      const { data: linkedBudgets } = await supabase
+        .from("budgets")
+        .select("id")
+        .eq("service_id", pendingServiceId);
+      if (linkedBudgets && linkedBudgets.length > 0) {
+        const budgetIds = linkedBudgets.map((b) => b.id);
+        await supabase.from("budget_lines").delete().in("budget_id", budgetIds);
+        await supabase.from("budgets").delete().in("id", budgetIds);
+      }
+      // Delete the service
+      await supabase.from("services").delete().eq("id", pendingServiceId);
+      await refetch();
+      sessionStorage.removeItem(PENDING_SERVICE_KEY);
+    }
+    navigate("/servicios");
+  };
+
   const handleSave = async (andSchedule: boolean) => {
     if (!clientId) {
       toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
@@ -99,91 +264,37 @@ export default function ServiceCreate() {
 
     setSaving(true);
     try {
-      // Generate next service ID
-      const { data: settings } = await supabase
-        .from("company_settings")
-        .select("service_prefix")
-        .limit(1)
-        .single();
-      const prefix = settings?.service_prefix ?? "SRV-";
-
-      // Find the highest existing numeric suffix
-      const { data: lastServices } = await supabase
-        .from("services")
-        .select("id")
-        .ilike("id", `${prefix}%`)
-        .order("id", { ascending: false })
-        .limit(1);
-
-      let nextNum = 1;
-      if (lastServices && lastServices.length > 0) {
-        const lastId = lastServices[0].id;
-        const numPart = parseInt(lastId.replace(prefix, ""), 10);
-        if (!isNaN(numPart)) nextNum = numPart + 1;
-      }
-      const newId = `${prefix}${String(nextNum).padStart(3, "0")}`;
-
-      const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
-
-      // Build scheduled_at / scheduled_end_at with time
-      let scheduledAtIso: string | null = null;
-      let scheduledEndAtIso: string | null = null;
-      if (scheduledDate) {
-        const [h, m] = scheduledTime.split(":").map(Number);
-        const d = new Date(scheduledDate);
-        d.setHours(h, m, 0, 0);
-        scheduledAtIso = d.toISOString();
-      }
-      if (scheduledEndDate) {
-        const [h, m] = scheduledEndTime.split(":").map(Number);
-        const d = new Date(scheduledEndDate);
-        d.setHours(h, m, 0, 0);
-        scheduledEndAtIso = d.toISOString();
-      }
-
+      const serviceId = pendingServiceId ?? await generateServiceId();
       const status = andSchedule ? "Agendado" : "Pendiente_Contacto";
+      const payload = buildServicePayload(serviceId, status);
+      if (andSchedule) payload.contacted_at = new Date().toISOString();
 
-      const { error } = await supabase.from("services").insert({
-        id: newId,
-        client_id: clientId,
-        client_name: selectedClient?.name ?? "",
-        operator_id: operatorId && operatorId !== "none" ? operatorId : null,
-        operator_name: selectedOperator?.name ?? null,
-        collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
-        collaborator_name: selectedCollab?.companyName ?? null,
-        cluster_id: selectedClient?.clusterId ?? "",
-        origin,
-        status,
-        urgency,
-        specialty,
-        service_type: serviceType,
-        service_category: serviceCategory,
-        claim_status: claimStatus,
-        description,
-        address,
-        diagnosis_complete: diagnosisComplete,
-        scheduled_at: scheduledAtIso,
-        scheduled_end_at: scheduledEndAtIso,
-        contacted_at: andSchedule ? new Date().toISOString() : null,
-        budget_total: budgetTotal !== "" ? Number(budgetTotal) : null,
-        budget_status: budgetStatus ? (budgetStatus as string) : null,
-        real_hours: realHours !== "" ? Number(realHours) : null,
-      });
-
-      if (error) {
-        console.error("Error creating service:", error);
-        toast({ title: "Error", description: "No se pudo crear el servicio: " + error.message, variant: "destructive" });
-        setSaving(false);
-        return;
+      if (pendingServiceId) {
+        // Service already exists — update it
+        const { id: _, ...updatePayload } = payload;
+        const { error } = await supabase.from("services").update(updatePayload).eq("id", pendingServiceId);
+        if (error) {
+          toast({ title: "Error", description: "No se pudo actualizar el servicio: " + error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      } else {
+        const { error } = await supabase.from("services").insert(payload);
+        if (error) {
+          toast({ title: "Error", description: "No se pudo crear el servicio: " + error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
       }
 
+      sessionStorage.removeItem(PENDING_SERVICE_KEY);
       await refetch();
 
       toast({
         title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
         description: andSchedule
-          ? `El servicio ${newId} ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
-          : `El servicio ${newId} se ha registrado como Pendiente de Contacto.`,
+          ? `El servicio ${serviceId} ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
+          : `El servicio ${serviceId} se ha registrado como Pendiente de Contacto.`,
       });
       navigate("/servicios");
     } catch (err: any) {
@@ -392,24 +503,24 @@ export default function ServiceCreate() {
                   <FileText className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">Este servicio requiere presupuesto</span>
                 </div>
-                {hasBudget ? (
+                {linkedBudget ? (
                   <Link
-                    to="/presupuestos/PRE-XXXXX"
+                    to={`/presupuestos/${linkedBudget.id}`}
                     className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Ver presupuesto PRE-XXXXX
+                    Ver presupuesto {linkedBudget.id}
                   </Link>
                 ) : (
-                  <Button size="sm" variant="default" onClick={() => navigate("/presupuestos/nuevo")}>
+                  <Button size="sm" variant="default" onClick={handleCreateBudget} disabled={saving}>
                     <FileText className="w-4 h-4 mr-1" />
-                    Crear presupuesto
+                    {saving ? "Guardando..." : "Crear presupuesto"}
                   </Button>
                 )}
               </div>
-              {!hasBudget && (
+              {!linkedBudget && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Puedes crear el presupuesto ahora o después de registrar el servicio. El presupuesto se vinculará automáticamente.
+                  Al crear el presupuesto, el servicio se guardará automáticamente y se vinculará al presupuesto.
                 </p>
               )}
             </div>
@@ -675,7 +786,7 @@ export default function ServiceCreate() {
 
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
-        <Button variant="outline" onClick={() => navigate("/servicios")}>Cancelar</Button>
+        <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
         <Button variant="secondary" onClick={() => handleSave(false)} disabled={saving}>
           <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Contacto)"}
         </Button>
