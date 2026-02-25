@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, CalendarIcon } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,6 +15,7 @@ import type { DateRange } from "react-day-picker";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { services, loading } = useServices();
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -220,7 +222,7 @@ export default function Dashboard() {
                 </tr>
               ) : (
                 filtered.slice(0, 10).map((s) => (
-                  <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                  <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/servicios/${s.id}`)}>
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{s.id}</td>
                     <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                     <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
