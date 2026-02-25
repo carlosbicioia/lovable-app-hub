@@ -36,6 +36,9 @@ export interface Collaborator {
   contactPerson: string;
 }
 
+export type ClaimStatus = "Abierto" | "En_Valoración" | "Aceptado" | "Rechazado" | "Cerrado";
+export type ServiceType = "Presupuesto" | "Reparación_Directa";
+
 export interface ServiceMedia {
   id: string;
   type: "photo" | "video";
@@ -44,16 +47,34 @@ export interface ServiceMedia {
   uploadedAt: string;
 }
 
+export interface TimelineEvent {
+  id: string;
+  date: string;
+  comment: string;
+  author?: string;
+}
+
+export interface ServiceComment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 export interface Service {
   id: string;
   clientId: string;
   clientName: string;
   operatorId: string | null;
   operatorName: string | null;
+  collaboratorId: string | null;
+  collaboratorName: string | null;
   origin: ServiceOrigin;
   status: ServiceStatus;
   urgency: UrgencyLevel;
   specialty: Specialty;
+  serviceType: ServiceType;
+  claimStatus: ClaimStatus;
   receivedAt: string;
   contactedAt: string | null;
   scheduledAt: string | null;
@@ -63,6 +84,9 @@ export interface Service {
   description?: string;
   address?: string;
   media?: ServiceMedia[];
+  internalComments?: ServiceComment[];
+  managerComments?: ServiceComment[];
+  timelineEvents?: TimelineEvent[];
 }
 
 export interface Operator {
