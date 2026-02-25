@@ -31,9 +31,11 @@ import {
   Droplets,
   Zap,
   Wind,
+  ChevronDown,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Service, Operator, Specialty } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
 
@@ -297,39 +299,32 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
   const days = eachDayOfInterval(range);
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-          <User className="w-4 h-4" /> Resumen operarios
-        </h3>
-        <div className="space-y-2">
-          {mockOperators.map((op) => {
-            const assignedCount = mockServices.filter(
-              (s) =>
-                s.operatorId === op.id &&
-                s.scheduledAt &&
-                days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
-            ).length;
-            return (
-              <div key={op.id} className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
-                  <span className="text-sm font-medium text-foreground">{op.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={cn("inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
-                    {specialtyIcon[op.specialty]}
-                  </span>
-                  <Badge variant={assignedCount > 0 ? "default" : "secondary"} className="text-[10px] h-5">
-                    {assignedCount} srv
-                  </Badge>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-2">
+      {mockOperators.map((op) => {
+        const assignedCount = mockServices.filter(
+          (s) =>
+            s.operatorId === op.id &&
+            s.scheduledAt &&
+            days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
+        ).length;
+        return (
+          <div key={op.id} className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/50">
+            <div className="flex items-center gap-2">
+              <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
+              <span className="text-sm font-medium text-foreground">{op.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={cn("inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
+                {specialtyIcon[op.specialty]}
+              </span>
+              <Badge variant={assignedCount > 0 ? "default" : "secondary"} className="text-[10px] h-5">
+                {assignedCount} srv
+              </Badge>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -387,50 +382,58 @@ export default function CalendarView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        {/* Calendar */}
-        <div className="xl:col-span-3">
-          <Card>
-            <CardContent className="p-3">
-              {view === "day" && <DayView date={currentDate} />}
-              {view === "week" && <WeekView date={currentDate} />}
-              {view === "month" && <MonthView date={currentDate} />}
-            </CardContent>
-          </Card>
-        </div>
+      {/* Collapsible panels */}
+      <div className="flex flex-wrap gap-3">
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <User className="w-4 h-4" />
+              Operarios
+              <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="absolute z-50 mt-1 w-80 rounded-lg border border-border bg-popover p-3 shadow-lg">
+            <OperatorSummary date={currentDate} view={view} />
+          </CollapsibleContent>
+        </Collapsible>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <OperatorSummary date={currentDate} view={view} />
-
-          {/* Legend */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4" /> Leyenda
-              </h3>
-              <div className="space-y-1.5">
-                {Object.entries(statusColor).map(([key, cls]) => (
-                  <div key={key} className="flex items-center gap-2">
-                    <span className={cn("w-3 h-3 rounded-sm", cls.split(" ")[0])} />
-                    <span className="text-xs text-muted-foreground">
-                      {key.replace("_", " ")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 pt-3 border-t border-border space-y-1.5">
-                {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => (
-                  <div key={key} className="flex items-center gap-2">
-                    {specialtyIcon[key]}
-                    <span className="text-xs text-muted-foreground">{key}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <CalendarIcon className="w-4 h-4" />
+              Leyenda
+              <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="absolute z-50 mt-1 w-64 rounded-lg border border-border bg-popover p-3 shadow-lg">
+            <div className="space-y-1.5">
+              {Object.entries(statusColor).map(([key, cls]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className={cn("w-3 h-3 rounded-sm", cls.split(" ")[0])} />
+                  <span className="text-xs text-muted-foreground">{key.replace("_", " ")}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+              {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => (
+                <div key={key} className="flex items-center gap-2">
+                  {specialtyIcon[key]}
+                  <span className="text-xs text-muted-foreground">{key}</span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
+
+      {/* Calendar full width */}
+      <Card>
+        <CardContent className="p-3">
+          {view === "day" && <DayView date={currentDate} />}
+          {view === "week" && <WeekView date={currentDate} />}
+          {view === "month" && <MonthView date={currentDate} />}
+        </CardContent>
+      </Card>
     </div>
   );
 }
