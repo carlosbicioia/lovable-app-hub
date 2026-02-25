@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { mockOperators, mockServices } from "@/data/mockData";
+import { mockOperators } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ function NpsIndicator({ value }: { value: number }) {
 function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<Specialty | "all">("all");
+  const { services } = useServices();
 
   const filtered = mockOperators.filter((op) => {
     const matchSearch =
@@ -163,7 +165,7 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((op) => {
           const stCfg = statusConfig[op.status];
-          const assignedServices = mockServices.filter(
+          const assignedServices = services.filter(
             (s) => s.operatorId === op.id && ["En_Curso", "Agendado"].includes(s.status)
           ).length;
 
@@ -235,8 +237,9 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
 // ─── OPERATOR DETAIL ───────────────────────────────────────
 function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () => void }) {
   const stCfg = statusConfig[operator.status];
+  const { services } = useServices();
 
-  const operatorServices = mockServices.filter((s) => s.operatorId === operator.id);
+  const operatorServices = services.filter((s) => s.operatorId === operator.id);
   const activeServices = operatorServices.filter((s) => ["En_Curso", "Agendado", "Pendiente_Contacto"].includes(s.status));
   const recentServices = [...operatorServices].sort(
     (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()

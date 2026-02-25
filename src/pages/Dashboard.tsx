@@ -1,12 +1,23 @@
 import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro } from "lucide-react";
 import KpiCard from "@/components/shared/KpiCard";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { mockServices } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
+import { Loader2 } from "lucide-react";
 
 export default function Dashboard() {
-  const pendingContact = mockServices.filter((s) => s.status === "Pendiente_Contacto").length;
-  const inProgress = mockServices.filter((s) => s.status === "En_Curso").length;
-  const urgent = mockServices.filter((s) => s.urgency !== "Estándar").length;
+  const { services, loading } = useServices();
+
+  const pendingContact = services.filter((s) => s.status === "Pendiente_Contacto").length;
+  const inProgress = services.filter((s) => s.status === "En_Curso").length;
+  const urgent = services.filter((s) => s.urgency !== "Estándar").length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -17,7 +28,7 @@ export default function Dashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Servicios Activos" value={mockServices.length} subtitle="Total en sistema" icon={Wrench} variant="primary" trend={{ value: "12% vs mes ant.", positive: true }} />
+        <KpiCard title="Servicios Activos" value={services.length} subtitle="Total en sistema" icon={Wrench} variant="primary" trend={{ value: "12% vs mes ant.", positive: true }} />
         <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="SLA 12h activo" icon={Clock} variant="warning" />
         <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" />
         <KpiCard title="Urgencias" value={urgent} subtitle="24h o inmediato" icon={AlertTriangle} variant="warning" />
@@ -49,7 +60,7 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {mockServices.slice(0, 5).map((s) => (
+              {services.slice(0, 5).map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{s.id}</td>
                   <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
