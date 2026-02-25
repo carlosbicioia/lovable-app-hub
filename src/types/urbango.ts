@@ -36,6 +36,14 @@ export interface Collaborator {
   contactPerson: string;
 }
 
+export interface ServiceMedia {
+  id: string;
+  type: "photo" | "video";
+  url: string;
+  caption?: string;
+  uploadedAt: string;
+}
+
 export interface Service {
   id: string;
   clientId: string;
@@ -52,6 +60,9 @@ export interface Service {
   nps: number | null;
   budgetTotal: number | null;
   budgetStatus: "Pendiente" | "Enviado" | "Aprobado" | "Rechazado" | null;
+  description?: string;
+  address?: string;
+  media?: ServiceMedia[];
 }
 
 export interface Operator {
