@@ -119,7 +119,13 @@ export default function BudgetCreate() {
 
     await addBudget(newBudget);
     toast.success(send ? "Presupuesto creado y enviado" : "Presupuesto guardado como borrador");
-    navigate("/presupuestos");
+    // If coming from service creation flow, go back to continue editing
+    const pendingData = sessionStorage.getItem("pendingServiceCreate");
+    if (pendingData) {
+      navigate("/servicios/nuevo");
+    } else {
+      navigate("/presupuestos");
+    }
   };
 
   return (
