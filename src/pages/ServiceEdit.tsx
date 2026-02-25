@@ -15,14 +15,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { mockClients, mockCollaborators, mockOperators, mockServices } from "@/data/mockData";
+import { mockClients, mockCollaborators, mockOperators } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceStatus, BudgetStatus } from "@/types/urbango";
 
 export default function ServiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const service = mockServices.find((s) => s.id === id);
+  const { services, loading: servicesLoading, updateService } = useServices();
+  const service = services.find((s) => s.id === id);
+  const [saving, setSaving] = useState(false);
 
   // ── All state ──
   const [clientId, setClientId] = useState("");
@@ -80,6 +84,14 @@ export default function ServiceEdit() {
     }
   }, [service]);
 
+  if (servicesLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!service) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -114,13 +126,65 @@ export default function ServiceEdit() {
     ? [currentOperator, ...availableOperators]
     : availableOperators;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!clientId) {
       toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
       return;
     }
     if (!description.trim()) {
       toast({ title: "Error", description: "La descripción es obligatoria", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
+    const selOp = mockOperators.find((o) => o.id === operatorId);
+
+    // Build scheduled timestamps
+    let scheduledAtIso: string | null = null;
+    let scheduledEndAtIso: string | null = null;
+    if (scheduledDate) {
+      const [h, m] = scheduledTime.split(":").map(Number);
+      const d = new Date(scheduledDate);
+      d.setHours(h, m, 0, 0);
+      scheduledAtIso = d.toISOString();
+    }
+    if (scheduledEndDate) {
+      const [h, m] = scheduledEndTime.split(":").map(Number);
+      const d = new Date(scheduledEndDate);
+      d.setHours(h, m, 0, 0);
+      scheduledEndAtIso = d.toISOString();
+    }
+
+    const { error } = await updateService(service.id, {
+      client_id: clientId,
+      client_name: selectedClient?.name ?? "",
+      operator_id: operatorId && operatorId !== "none" ? operatorId : null,
+      operator_name: selOp?.name ?? null,
+      collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
+      collaborator_name: selectedCollab?.companyName ?? null,
+      cluster_id: selectedClient?.clusterId ?? service.clusterId,
+      origin,
+      status,
+      urgency,
+      specialty,
+      service_type: serviceType,
+      service_category: serviceCategory,
+      claim_status: claimStatus,
+      scheduled_at: scheduledAtIso,
+      scheduled_end_at: scheduledEndAtIso,
+      diagnosis_complete: diagnosisComplete,
+      nps: nps !== "" ? Number(nps) : null,
+      budget_total: budgetTotal !== "" ? Number(budgetTotal) : null,
+      budget_status: budgetStatus && (budgetStatus as string) !== "none" ? budgetStatus : null,
+      description,
+      address,
+      real_hours: realHours !== "" ? Number(realHours) : null,
+    });
+
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "No se pudo guardar el servicio", variant: "destructive" });
       return;
     }
     toast({ title: "Servicio actualizado", description: `${service.id} se ha guardado correctamente.` });
@@ -473,8 +537,9 @@ export default function ServiceEdit() {
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
         <Button variant="outline" onClick={() => navigate(`/servicios/${service.id}`)}>Cancelar</Button>
-        <Button onClick={handleSave}>
-          <Save className="w-4 h-4 mr-2" /> Guardar cambios
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          {saving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </div>
     </div>
