@@ -44,6 +44,92 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_lines: {
+        Row: {
+          budget_id: string
+          concept: string
+          cost_price: number
+          created_at: string
+          description: string | null
+          id: string
+          margin: number
+          sort_order: number
+          tax_rate: number
+          units: number
+        }
+        Insert: {
+          budget_id: string
+          concept?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          margin?: number
+          sort_order?: number
+          tax_rate?: number
+          units?: number
+        }
+        Update: {
+          budget_id?: string
+          concept?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          margin?: number
+          sort_order?: number
+          tax_rate?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          client_address: string
+          client_name: string
+          collaborator_name: string | null
+          created_at: string
+          id: string
+          service_id: string
+          service_name: string
+          status: string
+          terms_and_conditions: string
+          updated_at: string
+        }
+        Insert: {
+          client_address?: string
+          client_name?: string
+          collaborator_name?: string | null
+          created_at?: string
+          id: string
+          service_id: string
+          service_name?: string
+          status?: string
+          terms_and_conditions?: string
+          updated_at?: string
+        }
+        Update: {
+          client_address?: string
+          client_name?: string
+          collaborator_name?: string | null
+          created_at?: string
+          id?: string
+          service_id?: string
+          service_name?: string
+          status?: string
+          terms_and_conditions?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
