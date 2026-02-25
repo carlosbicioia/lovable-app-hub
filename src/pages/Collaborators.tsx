@@ -1,9 +1,39 @@
-import { mockCollaborators } from "@/data/mockData";
-import { Search, Plus, Filter, Star } from "lucide-react";
+import { useState } from "react";
+import { Search, Plus, Filter, Star, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useCollaborators, type CollaboratorInput } from "@/hooks/useCollaborators";
+import type { Collaborator, CollaboratorCategory } from "@/types/urbango";
+import { toast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const categoryColors: Record<string, string> = {
   Administrador: "bg-info/15 text-info border-info/30",
@@ -12,66 +42,250 @@ const categoryColors: Record<string, string> = {
   Otros: "bg-muted text-muted-foreground border-border",
 };
 
+const categories: CollaboratorCategory[] = ["Administrador", "Corredor", "Gestoría", "Otros"];
+
+const emptyForm: CollaboratorInput = {
+  companyName: "",
+  category: "Administrador",
+  email: "",
+  phone: "",
+  contactPerson: "",
+};
+
 export default function Collaborators() {
+  const { collaborators, loading, create, update, remove } = useCollaborators();
   const [search, setSearch] = useState("");
-  const filtered = mockCollaborators.filter(
-    (c) => c.companyName.toLowerCase().includes(search.toLowerCase()) || c.id.toLowerCase().includes(search.toLowerCase())
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<CollaboratorInput>(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Collaborator | null>(null);
+
+  const filtered = collaborators.filter(
+    (c) =>
+      c.companyName.toLowerCase().includes(search.toLowerCase()) ||
+      c.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
+      c.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (c: Collaborator) => {
+    setEditingId(c.id);
+    setForm({
+      companyName: c.companyName,
+      category: c.category,
+      email: c.email,
+      phone: c.phone,
+      contactPerson: c.contactPerson,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.companyName.trim()) {
+      toast({ title: "Error", description: "El nombre de empresa es obligatorio", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const { error } = editingId
+      ? await update(editingId, form)
+      : await create(form);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "No se pudo guardar el colaborador", variant: "destructive" });
+      return;
+    }
+    toast({ title: editingId ? "Colaborador actualizado" : "Colaborador creado" });
+    setDialogOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const { error } = await remove(deleteTarget.id);
+    if (error) {
+      toast({ title: "Error", description: "No se pudo eliminar el colaborador", variant: "destructive" });
+    } else {
+      toast({ title: "Colaborador eliminado" });
+    }
+    setDeleteTarget(null);
+  };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Colaboradores</h1>
-          <p className="text-muted-foreground text-sm mt-1">{mockCollaborators.length} colaboradores B2B</p>
+          <p className="text-muted-foreground text-sm mt-1">{collaborators.length} colaboradores B2B</p>
         </div>
-        <Button>
+        <Button onClick={openCreate}>
           <Plus className="w-4 h-4 mr-2" /> Nuevo Colaborador
         </Button>
       </div>
 
+      {/* Search */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar empresa..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar empresa, contacto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Button variant="outline" size="icon">
-          <Filter className="w-4 h-4" />
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map((c) => (
-          <div key={c.id} className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-card-foreground">{c.companyName}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{c.contactPerson} · {c.email}</p>
-              </div>
-              <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", categoryColors[c.category])}>
-                {c.category}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
-              <div className="text-center">
-                <p className="text-lg font-display font-bold text-card-foreground">{c.activeServices}</p>
-                <p className="text-xs text-muted-foreground">Activos</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-display font-bold text-card-foreground">{c.totalClients}</p>
-                <p className="text-xs text-muted-foreground">Clientes</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-                  <span className="text-lg font-display font-bold text-card-foreground">{c.npsMean}</span>
+      {/* Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-44 rounded-xl" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="text-lg font-medium">No se encontraron colaboradores</p>
+          <p className="text-sm mt-1">Prueba con otra búsqueda o crea uno nuevo</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((c) => (
+            <div
+              key={c.id}
+              className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-card-foreground truncate">{c.companyName}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.contactPerson} · {c.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{c.phone}</p>
                 </div>
-                <p className="text-xs text-muted-foreground">NPS</p>
+                <div className="flex items-center gap-1 ml-2 shrink-0">
+                  <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", categoryColors[c.category])}>
+                    {c.category}
+                  </span>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 ml-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(c)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
+                <div className="text-center">
+                  <p className="text-lg font-display font-bold text-card-foreground">{c.activeServices}</p>
+                  <p className="text-xs text-muted-foreground">Activos</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-display font-bold text-card-foreground">{c.totalClients}</p>
+                  <p className="text-xs text-muted-foreground">Clientes</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+                    <span className="text-lg font-display font-bold text-card-foreground">{c.npsMean}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">NPS</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Editar Colaborador" : "Nuevo Colaborador"}</DialogTitle>
+            <DialogDescription>
+              {editingId ? "Modifica los datos del colaborador." : "Rellena los datos para crear un nuevo colaborador."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="companyName">Nombre de empresa *</Label>
+              <Input
+                id="companyName"
+                value={form.companyName}
+                onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
+                placeholder="Ej: Fincas Reunidas SL"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="category">Categoría</Label>
+              <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as CollaboratorCategory }))}>
+                <SelectTrigger id="category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contactPerson">Persona de contacto</Label>
+              <Input
+                id="contactPerson"
+                value={form.contactPerson}
+                onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
+                placeholder="Ej: Antonio Pérez"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="info@empresa.es"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  placeholder="912345678"
+                />
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Crear colaborador"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar colaborador?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente <strong>{deleteTarget?.companyName}</strong>. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
