@@ -345,6 +345,99 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          address: string | null
+          budget_status: string | null
+          budget_total: number | null
+          claim_status: string
+          client_id: string
+          client_name: string
+          cluster_id: string
+          collaborator_id: string | null
+          collaborator_name: string | null
+          contacted_at: string | null
+          created_at: string
+          description: string | null
+          diagnosis_complete: boolean
+          id: string
+          nps: number | null
+          operator_id: string | null
+          operator_name: string | null
+          origin: string
+          real_hours: number | null
+          received_at: string
+          scheduled_at: string | null
+          scheduled_end_at: string | null
+          service_category: string
+          service_type: string
+          specialty: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          address?: string | null
+          budget_status?: string | null
+          budget_total?: number | null
+          claim_status?: string
+          client_id?: string
+          client_name?: string
+          cluster_id?: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          description?: string | null
+          diagnosis_complete?: boolean
+          id: string
+          nps?: number | null
+          operator_id?: string | null
+          operator_name?: string | null
+          origin?: string
+          real_hours?: number | null
+          received_at?: string
+          scheduled_at?: string | null
+          scheduled_end_at?: string | null
+          service_category?: string
+          service_type?: string
+          specialty?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          address?: string | null
+          budget_status?: string | null
+          budget_total?: number | null
+          claim_status?: string
+          client_id?: string
+          client_name?: string
+          cluster_id?: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          description?: string | null
+          diagnosis_complete?: boolean
+          id?: string
+          nps?: number | null
+          operator_id?: string | null
+          operator_name?: string | null
+          origin?: string
+          real_hours?: number | null
+          received_at?: string
+          scheduled_at?: string | null
+          scheduled_end_at?: string | null
+          service_category?: string
+          service_type?: string
+          specialty?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           collaborator_id: string | null
