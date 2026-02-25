@@ -18,6 +18,7 @@ import Articles from "@/pages/Articles";
 import CalendarView from "@/pages/CalendarView";
 import Operators from "@/pages/Operators";
 import ServiceCreate from "@/pages/ServiceCreate";
+import ServiceEdit from "@/pages/ServiceEdit";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
@@ -68,6 +69,7 @@ function AppRoutes() {
         <Route path="/servicios" element={<Services />} />
         <Route path="/servicios/nuevo" element={<ServiceCreate />} />
         <Route path="/servicios/:id" element={<ServiceDetail />} />
+        <Route path="/servicios/:id/editar" element={<ServiceEdit />} />
         <Route path="/presupuestos" element={<Budgets />} />
         <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
         <Route path="/presupuestos/:id" element={<BudgetDetail />} />
