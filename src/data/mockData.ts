@@ -1,4 +1,4 @@
-import type { Client, Collaborator, Service } from "@/types/urbango";
+import type { Client, Collaborator, Service, Budget } from "@/types/urbango";
 
 export const mockClients: Client[] = [
   { id: "CLI-001", name: "María García López", dni: "12345678A", email: "maria@email.com", phone: "612345678", address: "C/ Gran Vía 45, 2ºA", postalCode: "28013", city: "Madrid", province: "Madrid", clusterId: "CLU-01", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", planType: "Agua", lastServiceDate: "2026-02-20" },
@@ -28,4 +28,69 @@ export const mockServices: Service[] = [
   { id: "SRV-006", clientId: "CLI-008", clientName: "Roberto Navarro Peña", operatorId: null, operatorName: null, collaboratorId: "COL-004", collaboratorName: "Gestoría Norte", origin: "B2B", status: "Pendiente_Contacto", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Reparación_Directa", claimStatus: "Abierto", receivedAt: "2026-02-24T09:00:00", contactedAt: null, scheduledAt: null, nps: null, budgetTotal: null, budgetStatus: null, description: "Revisión general de instalación de agua.", address: "C/ Alfonso I 30, Zaragoza", media: [], internalComments: [], managerComments: [], timelineEvents: [{ id: "TE-015", date: "2026-02-24T09:00:00", comment: "Servicio recibido vía B2B", author: "Sistema" }] },
   { id: "SRV-007", clientId: "CLI-005", clientName: "Laura Jiménez Mora", operatorId: "OP-02", operatorName: "Pablo Serrano", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", origin: "B2B", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", claimStatus: "En_Valoración", receivedAt: "2026-02-22T16:00:00", contactedAt: "2026-02-22T17:00:00", scheduledAt: "2026-02-24T14:00:00", nps: null, budgetTotal: 680, budgetStatus: "Aprobado", description: "Sustitución de grifería en cocina y baño.", address: "C/ Alcalá 100, 3ºD, Madrid", media: [{ id: "M-007", type: "photo", url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400", caption: "Grifería a sustituir", uploadedAt: "2026-02-22T17:10:00" }], internalComments: [], managerComments: [{ id: "MC-003", text: "Pendiente confirmación del cliente sobre modelo de grifería.", author: "Admin", createdAt: "2026-02-23T09:00:00" }], timelineEvents: [{ id: "TE-016", date: "2026-02-22T16:00:00", comment: "Servicio recibido", author: "Sistema" }, { id: "TE-017", date: "2026-02-22T17:00:00", comment: "Contacto realizado", author: "Pablo Serrano" }] },
   { id: "SRV-008", clientId: "CLI-007", clientName: "Elena Torres Gil", operatorId: "OP-03", operatorName: "Miguel Ángel Rivas", collaboratorId: null, collaboratorName: null, origin: "Directo", status: "Finalizado", urgency: "24h", specialty: "Electricidad/Luz", serviceType: "Reparación_Directa", claimStatus: "Cerrado", receivedAt: "2026-02-19T08:00:00", contactedAt: "2026-02-19T08:30:00", scheduledAt: "2026-02-20T08:00:00", nps: 7, budgetTotal: 350, budgetStatus: "Aprobado", description: "Cortocircuito en enchufe de salón. Saltan los plomos frecuentemente.", address: "C/ Larios 22, Málaga", media: [{ id: "M-008", type: "photo", url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400", caption: "Enchufe dañado", uploadedAt: "2026-02-19T09:00:00" }], internalComments: [{ id: "IC-004", text: "Instalación muy antigua, recomendado revisión completa.", author: "Miguel Ángel Rivas", createdAt: "2026-02-20T10:00:00" }], managerComments: [], timelineEvents: [{ id: "TE-018", date: "2026-02-19T08:00:00", comment: "Servicio recibido", author: "Sistema" }, { id: "TE-019", date: "2026-02-19T08:30:00", comment: "Contacto realizado", author: "Miguel Ángel Rivas" }, { id: "TE-020", date: "2026-02-20T08:00:00", comment: "Reparación completada", author: "Miguel Ángel Rivas" }] },
+];
+
+export const mockBudgets: Budget[] = [
+  {
+    id: "PRE-15271349",
+    serviceId: "SRV-001",
+    serviceName: "Fuga en tubería principal del baño",
+    clientName: "María García López",
+    clientAddress: "C/ Gran Vía 45, 2ºA, Madrid",
+    collaboratorName: "Fincas Reunidas SL",
+    createdAt: "2026-02-23T10:00:00",
+    status: "Aprobado",
+    lines: [
+      { id: "L1", concept: "Reparación tubería cobre", description: "Sustitución tramo 2m tubería cobre 22mm", units: 1, costPrice: 180, margin: 30, taxRate: 21 },
+      { id: "L2", concept: "Material fontanería", description: "Codos, manguitos y soldadura", units: 1, costPrice: 45, margin: 30, taxRate: 21 },
+      { id: "L3", concept: "Mano de obra", description: "4 horas de trabajo", units: 4, costPrice: 35, margin: 30, taxRate: 21 },
+    ],
+    termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+  },
+  {
+    id: "PRE-15271350",
+    serviceId: "SRV-003",
+    serviceName: "Renovación de cuadro eléctrico completo",
+    clientName: "Pedro Rodríguez Díaz",
+    clientAddress: "C/ Sierpes 78, Sevilla",
+    collaboratorName: "Correduría Andaluza",
+    createdAt: "2026-02-20T16:00:00",
+    status: "Aprobado",
+    lines: [
+      { id: "L4", concept: "Cuadro eléctrico completo", description: "Cuadro 40 módulos con diferencial e ICP", units: 1, costPrice: 420, margin: 30, taxRate: 21 },
+      { id: "L5", concept: "Cableado eléctrico", description: "Cable 6mm² y 2.5mm²", units: 1, costPrice: 120, margin: 30, taxRate: 21 },
+      { id: "L6", concept: "Mano de obra electricista", description: "8 horas de trabajo", units: 8, costPrice: 40, margin: 30, taxRate: 21 },
+    ],
+    termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+  },
+  {
+    id: "PRE-15271351",
+    serviceId: "SRV-005",
+    serviceName: "Instalación de sistema de climatización centralizado",
+    clientName: "Javier López Herrero",
+    clientAddress: "Paseo de Gracia 55, Barcelona",
+    collaboratorName: "InmoGest BCN",
+    createdAt: "2026-02-15T12:00:00",
+    status: "Enviado",
+    lines: [
+      { id: "L7", concept: "Unidad exterior multi-split", description: "Daikin 3MXM68N", units: 1, costPrice: 1200, margin: 30, taxRate: 21 },
+      { id: "L8", concept: "Unidades interiores", description: "Daikin FTXM25R x3", units: 3, costPrice: 280, margin: 30, taxRate: 21 },
+      { id: "L9", concept: "Instalación completa", description: "Tubería, cableado y puesta en marcha", units: 1, costPrice: 450, margin: 30, taxRate: 10 },
+    ],
+    termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+  },
+  {
+    id: "PRE-15271352",
+    serviceId: "SRV-007",
+    serviceName: "Sustitución de grifería en cocina y baño",
+    clientName: "Laura Jiménez Mora",
+    clientAddress: "C/ Alcalá 100, 3ºD, Madrid",
+    collaboratorName: "Fincas Reunidas SL",
+    createdAt: "2026-02-22T18:00:00",
+    status: "Borrador",
+    lines: [
+      { id: "L10", concept: "Sustitución de jambas", description: "Marco de puerta de entrada dañada", units: 1, costPrice: 84, margin: 30, taxRate: 21 },
+    ],
+    termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+  },
 ];
