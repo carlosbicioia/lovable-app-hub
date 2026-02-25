@@ -215,11 +215,30 @@ function DayView({ date }: { date: Date }) {
 // ─── WEEK VIEW ─────────────────────────────────────────────
 function WeekView({ date }: { date: Date }) {
   const { services } = useServices();
+  const navigate = useNavigate();
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
 
+  // Separate multi-day and single-day services for this week
+  const weekServices = services.filter((s) => {
+    if (!s.scheduledAt) return false;
+    const sStart = new Date(s.scheduledAt);
+    const startD = new Date(sStart.getFullYear(), sStart.getMonth(), sStart.getDate());
+    const endD = s.scheduledEndAt
+      ? new Date(new Date(s.scheduledEndAt).getFullYear(), new Date(s.scheduledEndAt).getMonth(), new Date(s.scheduledEndAt).getDate())
+      : startD;
+    const weekStartD = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+    const weekEndD = new Date(days[6].getFullYear(), days[6].getMonth(), days[6].getDate());
+    return endD >= weekStartD && startD <= weekEndD;
+  });
 
+  const multiDayServices = weekServices.filter(isMultiDay);
+  const singleDayServices = weekServices.filter((s) => !isMultiDay(s));
+
+  // Compute bar segments for multi-day services (reusing month logic)
+  const barSegments = computeBarSegments(days, weekServices);
+  const maxBarRows = barSegments.length > 0 ? Math.max(...barSegments.map((b) => b.row)) + 1 : 0;
 
   return (
     <div className="h-full flex flex-col">
@@ -241,7 +260,69 @@ function WeekView({ date }: { date: Date }) {
           </div>
         ))}
       </div>
-      {/* Hour rows */}
+
+      {/* Multi-day bars */}
+      {maxBarRows > 0 && (
+        <div className="shrink-0 border-b border-border bg-muted/30">
+          {Array.from({ length: Math.min(maxBarRows, 4) }, (_, rowIdx) => (
+            <div
+              key={rowIdx}
+              className="grid gap-0 px-0.5"
+              style={{ gridTemplateColumns: "56px repeat(7, 1fr)", height: 22 }}
+            >
+              <div />
+              {barSegments
+                .filter((b) => b.row === rowIdx)
+                .map((bar) => {
+                  const colors = getOperatorColor(bar.service.operatorId);
+                  const sStart = new Date(bar.service.scheduledAt!);
+                  const sEnd = new Date(bar.service.scheduledEndAt!);
+                  const startsThisWeek = isSameDay(sStart, days[bar.colStart - 1]) || sStart < days[0];
+                  const endsThisWeek = isSameDay(sEnd, days[bar.colEnd - 2]) || sEnd > days[6];
+
+                  return (
+                    <Tooltip key={bar.service.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigate(`/servicios/${bar.service.id}`)}
+                          className={cn(
+                            "h-[20px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-pointer transition-colors hover:ring-1 hover:ring-ring px-1.5",
+                            startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0",
+                            endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0"
+                          )}
+                          style={{
+                            gridColumn: `${bar.colStart + 1} / ${bar.colEnd + 1}`,
+                            backgroundColor: colors.bg,
+                            color: colors.text,
+                            borderColor: colors.border,
+                          }}
+                        >
+                          {specialtyIcon[bar.service.specialty]}
+                          <span className="truncate">
+                            {bar.service.id} · {bar.service.operatorName ?? "Sin asignar"}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <div className="space-y-1">
+                          <p className="font-semibold">{bar.service.id} – {bar.service.clientName}</p>
+                          <p className="text-xs"><span className="text-muted-foreground">Periodo:</span> {format(sStart, "d MMM", { locale: es })} – {format(sEnd, "d MMM", { locale: es })}</p>
+                          <p className="text-xs"><span className="text-muted-foreground">Operario:</span> {bar.service.operatorName ?? "Sin asignar"}</p>
+                          <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[bar.service.status] ?? bar.service.status}</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+            </div>
+          ))}
+          {maxBarRows > 4 && (
+            <p className="text-[10px] text-muted-foreground text-center py-0.5">+{maxBarRows - 4} más</p>
+          )}
+        </div>
+      )}
+
+      {/* Hour rows — single-day services only */}
       <div className="flex-1 overflow-y-auto">
         {hours.map((hour) => (
           <div
@@ -253,18 +334,10 @@ function WeekView({ date }: { date: Date }) {
               {String(hour).padStart(2, "0")}:00
             </div>
             {days.map((day) => {
-              const dayServices = services.filter(
+              const dayServices = singleDayServices.filter(
                 (s) => {
                   if (!s.scheduledAt) return false;
                   const start = new Date(s.scheduledAt);
-                  const isMultiDay = s.scheduledEndAt && !isSameDay(start, new Date(s.scheduledEndAt));
-                  if (isMultiDay) {
-                    // Multi-day: show on the start hour for every spanned day
-                    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                    const endDay = new Date(new Date(s.scheduledEndAt!).getFullYear(), new Date(s.scheduledEndAt!).getMonth(), new Date(s.scheduledEndAt!).getDate());
-                    const target = new Date(day.getFullYear(), day.getMonth(), day.getDate());
-                    return target >= startDay && target <= endDay && getHours(start) === hour;
-                  }
                   return isSameDay(start, day) && getHours(start) === hour;
                 }
               );
@@ -282,7 +355,6 @@ function WeekView({ date }: { date: Date }) {
     </div>
   );
 }
-
 // ─── MONTH VIEW helpers ────────────────────────────────────
 function isMultiDay(s: Service): boolean {
   if (!s.scheduledAt || !s.scheduledEndAt) return false;
