@@ -245,7 +245,7 @@ function WeekView({ date }: { date: Date }) {
               return (
                 <div key={day.toISOString()} className="p-0.5 border-r border-border last:border-r-0 space-y-0.5">
                   {dayServices.map((s) => (
-                    <ServiceChip key={s.id} service={s} showTime />
+                    <ServiceChip key={s.id} service={s} />
                   ))}
                 </div>
               );
