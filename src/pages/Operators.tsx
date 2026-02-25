@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { mockOperators } from "@/data/mockData";
 import { useServices } from "@/hooks/useServices";
+import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,13 +42,21 @@ import {
   Line,
 } from "recharts";
 
-const specialtyIcon: Record<Specialty, React.ReactNode> = {
+const fallbackIconMap: Record<string, React.ReactNode> = {
+  Droplets: <Droplets className="w-4 h-4" />,
+  Zap: <Zap className="w-4 h-4" />,
+  Wind: <Wind className="w-4 h-4" />,
+  Wrench: <Wrench className="w-4 h-4" />,
+};
+
+// These are kept as fallback defaults; the dynamic data comes from useSpecialties()
+const specialtyIcon: Record<string, React.ReactNode> = {
   "Fontanería/Agua": <Droplets className="w-4 h-4" />,
   "Electricidad/Luz": <Zap className="w-4 h-4" />,
   Clima: <Wind className="w-4 h-4" />,
 };
 
-const specialtyColor: Record<Specialty, string> = {
+const specialtyColor: Record<string, string> = {
   "Fontanería/Agua": "bg-info/15 text-info border-info/30",
   "Electricidad/Luz": "bg-warning/15 text-warning border-warning/30",
   Clima: "bg-success/15 text-success border-success/30",
@@ -70,8 +79,20 @@ function NpsIndicator({ value }: { value: number }) {
 // ─── OPERATOR LIST ─────────────────────────────────────────
 function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
   const [search, setSearch] = useState("");
-  const [filterSpecialty, setFilterSpecialty] = useState<Specialty | "all">("all");
+  const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const { services } = useServices();
+  const { data: dbSpecialties } = useSpecialties();
+
+  // Build dynamic icon/color maps from DB specialties
+  const dynSpecialtyIcon: Record<string, React.ReactNode> = {};
+  const dynSpecialtyColor: Record<string, string> = {};
+  (dbSpecialties ?? []).filter(s => s.active).forEach(s => {
+    dynSpecialtyIcon[s.name] = fallbackIconMap[s.icon] ?? <Wrench className="w-4 h-4" />;
+    dynSpecialtyColor[s.name] = s.color;
+  });
+  const getSpecIcon = (name: string) => dynSpecialtyIcon[name] ?? specialtyIcon[name] ?? <Wrench className="w-4 h-4" />;
+  const getSpecColor = (name: string) => dynSpecialtyColor[name] ?? specialtyColor[name] ?? "bg-muted text-muted-foreground border-border";
+  const activeSpecNames = (dbSpecialties ?? []).filter(s => s.active).map(s => s.name);
 
   const filtered = mockOperators.filter((op) => {
     const matchSearch =
@@ -146,8 +167,16 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-1">
-          {(["all", "Fontanería/Agua", "Electricidad/Luz", "Clima"] as const).map((s) => (
+        <div className="flex gap-1 flex-wrap">
+          <Button
+            variant={filterSpecialty === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterSpecialty("all")}
+            className="text-xs"
+          >
+            Todas
+          </Button>
+          {activeSpecNames.map((s) => (
             <Button
               key={s}
               variant={filterSpecialty === s ? "default" : "outline"}
@@ -155,7 +184,7 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
               onClick={() => setFilterSpecialty(s)}
               className="text-xs"
             >
-              {s === "all" ? "Todas" : s.split("/")[0]}
+              {s.split("/")[0]}
             </Button>
           ))}
         </div>
@@ -198,13 +227,13 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
                     </div>
                     <p className="text-xs text-muted-foreground">{op.id} · {op.city}</p>
                     <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
-                        {specialtyIcon[op.specialty]}
+                      <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border", getSpecColor(op.specialty))}>
+                        {getSpecIcon(op.specialty)}
                         {op.specialty.split("/")[0]}
                       </span>
                       {op.secondarySpecialty && (
-                        <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border opacity-70", specialtyColor[op.secondarySpecialty])}>
-                          {specialtyIcon[op.secondarySpecialty]}
+                        <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border opacity-70", getSpecColor(op.secondarySpecialty))}>
+                          {getSpecIcon(op.secondarySpecialty)}
                         </span>
                       )}
                     </div>
@@ -238,6 +267,17 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
 function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () => void }) {
   const stCfg = statusConfig[operator.status];
   const { services } = useServices();
+  const { data: dbSpecialties } = useSpecialties();
+
+  const getSpecIcon = (name: string) => {
+    const sp = (dbSpecialties ?? []).find(s => s.name === name);
+    if (sp) return fallbackIconMap[sp.icon] ?? <Wrench className="w-4 h-4" />;
+    return specialtyIcon[name] ?? <Wrench className="w-4 h-4" />;
+  };
+  const getSpecColor = (name: string) => {
+    const sp = (dbSpecialties ?? []).find(s => s.name === name);
+    return sp?.color ?? specialtyColor[name] ?? "bg-muted text-muted-foreground border-border";
+  };
 
   const operatorServices = services.filter((s) => s.operatorId === operator.id);
   const activeServices = operatorServices.filter((s) => ["En_Curso", "Agendado", "Pendiente_Contacto"].includes(s.status));
@@ -278,12 +318,12 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
           </div>
           <p className="text-sm text-muted-foreground">{operator.id} · {operator.city}, {operator.province}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", specialtyColor[operator.specialty])}>
-              {specialtyIcon[operator.specialty]} {operator.specialty}
+            <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", getSpecColor(operator.specialty))}>
+              {getSpecIcon(operator.specialty)} {operator.specialty}
             </span>
             {operator.secondarySpecialty && (
-              <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", specialtyColor[operator.secondarySpecialty])}>
-                {specialtyIcon[operator.secondarySpecialty]} {operator.secondarySpecialty}
+              <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", getSpecColor(operator.secondarySpecialty))}>
+                {getSpecIcon(operator.secondarySpecialty)} {operator.secondarySpecialty}
               </span>
             )}
           </div>

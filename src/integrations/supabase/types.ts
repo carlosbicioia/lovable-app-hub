@@ -130,6 +130,33 @@ export type Database = {
         }
         Relationships: []
       }
+      certifications: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
@@ -518,6 +545,36 @@ export type Database = {
           status?: string
           updated_at?: string
           urgency?: string
+        }
+        Relationships: []
+      }
+      specialties: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }
