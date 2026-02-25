@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Wrench, Zap, User, Activity } from "lucide-react";
+import { Building2, Wrench, Zap, User, Activity, CalendarClock } from "lucide-react";
 import { mockCollaborators, mockOperators } from "@/data/mockData";
 import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
+import { format, isSameDay } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface Props {
   service: Service;
@@ -53,7 +56,53 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* Cita */}
+      <Card className="bg-card">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Cita</span>
+          </div>
+          {service.scheduledAt ? (() => {
+            const start = new Date(service.scheduledAt);
+            const end = service.scheduledEndAt ? new Date(service.scheduledEndAt) : null;
+            const isMultiDay = end && !isSameDay(start, end);
+            return (
+              <div>
+                <span className={cn(
+                  "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold mb-1",
+                  "bg-success/15 text-success border border-success/30"
+                )}>
+                  Citado
+                </span>
+                <p className="text-sm font-medium text-card-foreground">
+                  {format(start, "d MMM yyyy", { locale: es })}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {format(start, "HH:mm")}
+                  {end ? ` – ${format(end, "HH:mm")}` : ""}
+                </p>
+                {isMultiDay && (
+                  <p className="text-xs text-muted-foreground">
+                    hasta {format(end, "d MMM", { locale: es })}
+                  </p>
+                )}
+              </div>
+            );
+          })() : (
+            <div>
+              <span className={cn(
+                "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold",
+                "bg-warning/15 text-warning border border-warning/30"
+              )}>
+                Pendiente de citar
+              </span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Especialidad */}
       <Card className="bg-card">
         <CardContent className="p-3">
