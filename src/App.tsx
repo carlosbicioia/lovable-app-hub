@@ -17,6 +17,7 @@ import ComingSoon from "@/pages/ComingSoon";
 import CalendarView from "@/pages/CalendarView";
 import Operators from "@/pages/Operators";
 import ServiceCreate from "@/pages/ServiceCreate";
+import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/articulos" element={<Articles />} />
             <Route path="/calendario" element={<CalendarView />} />
             <Route path="/operarios" element={<Operators />} />
+            <Route path="/configuracion" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
