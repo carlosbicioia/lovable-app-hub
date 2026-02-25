@@ -1,86 +1,97 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, AlertTriangle, XCircle, Camera, Phone, UserCheck, ClipboardCheck, Star, Receipt } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Circle, Camera, Phone, UserCheck, ClipboardCheck, Star, Receipt } from "lucide-react";
 import type { Service } from "@/types/urbango";
-import { differenceInHours } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   service: Service;
 }
 
 interface CheckItem {
+  id: string;
   label: string;
-  done: boolean;
-  warning?: boolean;
   detail?: string;
   icon: React.ElementType;
+  warning?: boolean;
 }
 
 export default function ServiceProtocolChecklist({ service }: Props) {
-  const hoursSinceReceived = differenceInHours(new Date(), new Date(service.receivedAt));
-  const contactSlaOk = !!service.contactedAt;
-  const contactSlaExpired = !contactSlaOk && hoursSinceReceived >= 12;
-  const contactSlaWarning = !contactSlaOk && hoursSinceReceived >= 8 && hoursSinceReceived < 12;
-
-  const hasMedia = (service.media?.length ?? 0) > 0;
-  const hasOperator = !!service.operatorId;
-  const hasBudget = service.serviceType === "Presupuesto" ? !!service.budgetStatus : true;
-  const npsCollected = service.nps !== null;
-  const npsOk = service.nps !== null && service.nps >= 7;
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
-  const materialsReady = (service.materials?.length ?? 0) > 0 || service.serviceType === "Reparación_Directa";
 
-  const checks: CheckItem[] = [
+  const allItems: CheckItem[] = [
     {
+      id: "contact",
       icon: Phone,
       label: "Contacto con cliente (SLA 12h)",
-      done: contactSlaOk,
-      warning: contactSlaWarning,
-      detail: contactSlaExpired ? "⏰ SLA vencido" : contactSlaWarning ? "⚠ Próximo a vencer" : contactSlaOk ? "Contactado" : "Pendiente",
+      detail: service.contactedAt ? "Contactado" : "Pendiente",
     },
     {
+      id: "diagnosis",
       icon: Camera,
       label: "Diagnóstico multimedia",
-      done: service.diagnosisComplete,
-      detail: hasMedia ? `${service.media!.length} archivo(s) recibido(s)` : "Sin material multimedia",
+      detail: (service.media?.length ?? 0) > 0 ? `${service.media!.length} archivo(s) recibido(s)` : "Sin material multimedia",
     },
     {
+      id: "operator",
       icon: UserCheck,
       label: "Técnico asignado (por cluster y especialidad)",
-      done: hasOperator,
-      detail: hasOperator ? `${service.operatorName} · Cluster ${service.clusterId}` : "Sin asignar",
+      detail: service.operatorName ? `${service.operatorName} · Cluster ${service.clusterId}` : "Sin asignar",
     },
     {
+      id: "materials",
       icon: ClipboardCheck,
       label: "Material preparado",
-      done: materialsReady,
       detail: (service.materials?.length ?? 0) > 0 ? `${service.materials!.length} artículo(s)` : "Sin materiales registrados",
     },
   ];
 
   if (service.serviceType === "Presupuesto") {
-    checks.push({
+    allItems.push({
+      id: "budget",
       icon: Receipt,
       label: "Presupuesto gestionado",
-      done: service.budgetStatus === "Aprobado" || service.budgetStatus === "Enviado",
       detail: service.budgetStatus ?? "Sin presupuesto",
     });
   }
 
   if (isFinalized) {
-    checks.push({
+    allItems.push({
+      id: "nps",
       icon: Star,
       label: "NPS recogido",
-      done: npsCollected,
-      warning: npsCollected && !npsOk,
-      detail: npsCollected
-        ? `${service.nps}/10${!npsOk ? " — Requiere revisión del gestor antes del cierre" : ""}`
+      warning: service.nps !== null && service.nps < 7,
+      detail: service.nps !== null
+        ? `${service.nps}/10${service.nps < 7 ? " — Requiere revisión del gestor antes del cierre" : ""}`
         : "Pendiente de encuesta",
     });
   }
 
-  const completed = checks.filter((c) => c.done && !c.warning).length;
-  const total = checks.length;
+  // Manager-controlled check state (local for now — will persist to DB)
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => {
+    // Pre-check items that are obviously done
+    const initial = new Set<string>();
+    if (service.contactedAt) initial.add("contact");
+    if (service.diagnosisComplete) initial.add("diagnosis");
+    if (service.operatorId) initial.add("operator");
+    if ((service.materials?.length ?? 0) > 0 || service.serviceType === "Reparación_Directa") initial.add("materials");
+    if (service.budgetStatus === "Aprobado" || service.budgetStatus === "Enviado") initial.add("budget");
+    if (service.nps !== null) initial.add("nps");
+    return initial;
+  });
+
+  const toggleItem = (id: string) => {
+    setCheckedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const completed = allItems.filter((c) => checkedItems.has(c.id) && !c.warning).length;
+  const total = allItems.length;
 
   return (
     <Card>
@@ -98,40 +109,48 @@ export default function ServiceProtocolChecklist({ service }: Props) {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {checks.map((check, i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className={cn(
-              "mt-0.5 shrink-0",
-              check.done && !check.warning ? "text-success" :
-              check.warning ? "text-warning" : "text-muted-foreground"
-            )}>
-              {check.done && !check.warning ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : check.warning ? (
-                <AlertTriangle className="w-4 h-4" />
-              ) : (
-                <XCircle className="w-4 h-4" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={cn(
-                "text-sm font-medium",
-                check.done && !check.warning ? "text-card-foreground" : "text-muted-foreground"
-              )}>
-                {check.label}
-              </p>
-              {check.detail && (
+        {allItems.map((check) => {
+          const isDone = checkedItems.has(check.id);
+          return (
+            <div key={check.id} className="flex items-start gap-3 group">
+              <div className="mt-0.5 shrink-0">
+                <Checkbox
+                  checked={isDone}
+                  onCheckedChange={() => toggleItem(check.id)}
+                  className={cn(
+                    "transition-colors",
+                    isDone && !check.warning ? "data-[state=checked]:bg-success data-[state=checked]:border-success" :
+                    check.warning ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+                  )}
+                />
+              </div>
+              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleItem(check.id)}>
                 <p className={cn(
-                  "text-xs mt-0.5",
-                  check.warning ? "text-warning" :
-                  check.done ? "text-muted-foreground" : "text-muted-foreground"
+                  "text-sm font-medium transition-colors",
+                  isDone && !check.warning ? "text-card-foreground" : "text-muted-foreground"
                 )}>
-                  {check.detail}
+                  {check.label}
                 </p>
-              )}
+                {check.detail && (
+                  <p className={cn(
+                    "text-xs mt-0.5",
+                    check.warning ? "text-warning" : "text-muted-foreground"
+                  )}>
+                    {check.detail}
+                  </p>
+                )}
+              </div>
+              <check.icon className={cn(
+                "w-4 h-4 mt-0.5 shrink-0",
+                isDone && !check.warning ? "text-success" :
+                check.warning ? "text-warning" : "text-muted-foreground"
+              )} />
             </div>
-          </div>
-        ))}
+          );
+        })}
+        <p className="text-xs text-muted-foreground italic pt-2 border-t border-border">
+          El gestor marca cada paso manualmente según el avance del servicio. Los puntos del protocolo se configuran en Ajustes.
+        </p>
       </CardContent>
     </Card>
   );
