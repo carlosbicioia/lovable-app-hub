@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, DragEvent } from "react";
 import { mockOperators } from "@/data/mockData";
 import { useServices } from "@/hooks/useServices";
 import {
@@ -18,6 +18,7 @@ import {
   isSameMonth,
   isToday,
   getHours,
+  differenceInCalendarDays,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Service, Operator, Specialty } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -79,7 +82,6 @@ function getServicesForDate(services: Service[], date: Date): Service[] {
     const start = new Date(s.scheduledAt);
     if (s.scheduledEndAt) {
       const end = new Date(s.scheduledEndAt);
-      // Check if date falls within [start, end] range (by day)
       const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -89,7 +91,56 @@ function getServicesForDate(services: Service[], date: Date): Service[] {
   });
 }
 
-function ServiceChip({ service, showTime = false }: { service: Service; showTime?: boolean }) {
+// ─── DRAG & DROP HELPERS ───────────────────────────────────
+function handleDragStart(e: DragEvent, service: Service) {
+  e.dataTransfer.setData("text/plain", service.id);
+  e.dataTransfer.effectAllowed = "move";
+}
+
+function DroppableCell({
+  date,
+  children,
+  className,
+  onDropService,
+  style,
+}: {
+  date: Date;
+  children: React.ReactNode;
+  className?: string;
+  onDropService: (serviceId: string, targetDate: Date) => void;
+  style?: React.CSSProperties;
+}) {
+  const [over, setOver] = useState(false);
+
+  return (
+    <div
+      className={cn(className, over && "ring-2 ring-primary/50 bg-primary/5")}
+      style={style}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setOver(true);
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setOver(false);
+        const serviceId = e.dataTransfer.getData("text/plain");
+        if (serviceId) onDropService(serviceId, date);
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ServiceChip({
+  service,
+  showTime = false,
+}: {
+  service: Service;
+  showTime?: boolean;
+}) {
   const navigate = useNavigate();
   const colors = getOperatorColor(service.operatorId);
 
@@ -102,8 +153,10 @@ function ServiceChip({ service, showTime = false }: { service: Service; showTime
     <Tooltip>
       <TooltipTrigger asChild>
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e as any, service)}
           onClick={() => navigate(`/servicios/${service.id}`)}
-          className="w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-pointer"
+          className="w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-grab active:cursor-grabbing"
           style={{
             backgroundColor: colors.bg,
             color: colors.text,
@@ -135,21 +188,19 @@ function ServiceChip({ service, showTime = false }: { service: Service; showTime
 }
 
 // ─── DAY VIEW ──────────────────────────────────────────────
-function DayView({ date }: { date: Date }) {
+function DayView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
   const { services } = useServices();
   const scheduledServices = services.filter(
     (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
   );
 
-  // Group by operator
   const operators = mockOperators;
   const unassigned = scheduledServices.filter((s) => !s.operatorId);
 
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[700px]">
-        {/* Header row */}
         <div className="grid gap-0 border-b border-border" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
           <div className="p-2 text-xs font-medium text-muted-foreground border-r border-border">Hora</div>
           {operators.map((op) => (
@@ -171,7 +222,6 @@ function DayView({ date }: { date: Date }) {
           )}
         </div>
 
-        {/* Hour rows */}
         {hours.map((hour) => (
           <div
             key={hour}
@@ -189,21 +239,21 @@ function DayView({ date }: { date: Date }) {
                 (s) => s.operatorId === op.id && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
               );
               return (
-                <div key={op.id} className="p-1 border-r border-border last:border-r-0 space-y-0.5">
+                <DroppableCell key={op.id} date={date} onDropService={onDropService} className="p-1 border-r border-border last:border-r-0 space-y-0.5">
                   {opServices.map((s) => (
                     <ServiceChip key={s.id} service={s} />
                   ))}
-                </div>
+                </DroppableCell>
               );
             })}
             {unassigned.length > 0 && (
-              <div className="p-1 space-y-0.5">
+              <DroppableCell date={date} onDropService={onDropService} className="p-1 space-y-0.5">
                 {unassigned
                   .filter((s) => s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour)
                   .map((s) => (
                     <ServiceChip key={s.id} service={s} />
                   ))}
-              </div>
+              </DroppableCell>
             )}
           </div>
         ))}
@@ -213,14 +263,13 @@ function DayView({ date }: { date: Date }) {
 }
 
 // ─── WEEK VIEW ─────────────────────────────────────────────
-function WeekView({ date }: { date: Date }) {
+function WeekView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
   const { services } = useServices();
   const navigate = useNavigate();
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
 
-  // Separate multi-day and single-day services for this week
   const weekServices = services.filter((s) => {
     if (!s.scheduledAt) return false;
     const sStart = new Date(s.scheduledAt);
@@ -236,7 +285,6 @@ function WeekView({ date }: { date: Date }) {
   const multiDayServices = weekServices.filter(isMultiDay);
   const singleDayServices = weekServices.filter((s) => !isMultiDay(s));
 
-  // Compute bar segments for multi-day services (reusing month logic)
   const barSegments = computeBarSegments(days, weekServices);
   const maxBarRows = barSegments.length > 0 ? Math.max(...barSegments.map((b) => b.row)) + 1 : 0;
 
@@ -284,9 +332,11 @@ function WeekView({ date }: { date: Date }) {
                     <Tooltip key={bar.service.id}>
                       <TooltipTrigger asChild>
                         <button
+                          draggable
+                          onDragStart={(e) => handleDragStart(e as any, bar.service)}
                           onClick={() => navigate(`/servicios/${bar.service.id}`)}
                           className={cn(
-                            "h-[20px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-pointer transition-colors hover:ring-1 hover:ring-ring px-1.5",
+                            "h-[20px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-grab active:cursor-grabbing transition-colors hover:ring-1 hover:ring-ring px-1.5",
                             startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0",
                             endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0"
                           )}
@@ -342,11 +392,16 @@ function WeekView({ date }: { date: Date }) {
                 }
               );
               return (
-                <div key={day.toISOString()} className="p-0.5 border-r border-border last:border-r-0 space-y-0.5">
+                <DroppableCell
+                  key={day.toISOString()}
+                  date={day}
+                  onDropService={onDropService}
+                  className="p-0.5 border-r border-border last:border-r-0 space-y-0.5"
+                >
                   {dayServices.map((s) => (
                     <ServiceChip key={s.id} service={s} />
                   ))}
-                </div>
+                </DroppableCell>
               );
             })}
           </div>
@@ -355,6 +410,7 @@ function WeekView({ date }: { date: Date }) {
     </div>
   );
 }
+
 // ─── MONTH VIEW helpers ────────────────────────────────────
 function isMultiDay(s: Service): boolean {
   if (!s.scheduledAt || !s.scheduledEndAt) return false;
@@ -363,15 +419,15 @@ function isMultiDay(s: Service): boolean {
 
 interface BarSegment {
   service: Service;
-  colStart: number; // 1-based grid column
-  colEnd: number;   // 1-based grid column (exclusive)
-  row: number;      // stacking row (0-based)
+  colStart: number;
+  colEnd: number;
+  row: number;
 }
 
 function computeBarSegments(weekDays: Date[], services: Service[]): BarSegment[] {
   const multiDayServices = services.filter(isMultiDay);
   const segments: BarSegment[] = [];
-  const rowTaken: number[][] = []; // rowTaken[row] = list of occupied columns
+  const rowTaken: number[][] = [];
 
   for (const service of multiDayServices) {
     const sStart = new Date(service.scheduledAt!);
@@ -379,19 +435,17 @@ function computeBarSegments(weekDays: Date[], services: Service[]): BarSegment[]
     const startDay = new Date(sStart.getFullYear(), sStart.getMonth(), sStart.getDate());
     const endDay = new Date(sEnd.getFullYear(), sEnd.getMonth(), sEnd.getDate());
 
-    // Find which columns of this week the service occupies
     let colStart = -1;
     let colEnd = -1;
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekDays[i].getFullYear(), weekDays[i].getMonth(), weekDays[i].getDate());
       if (d >= startDay && d <= endDay) {
         if (colStart === -1) colStart = i + 1;
-        colEnd = i + 2; // exclusive
+        colEnd = i + 2;
       }
     }
     if (colStart === -1) continue;
 
-    // Find a free row
     let row = 0;
     const occupiedCols = Array.from({ length: colEnd - colStart }, (_, i) => colStart + i);
     while (true) {
@@ -407,7 +461,7 @@ function computeBarSegments(weekDays: Date[], services: Service[]): BarSegment[]
   return segments;
 }
 
-function MonthView({ date }: { date: Date }) {
+function MonthView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
   const { services } = useServices();
   const navigate = useNavigate();
   const monthStart = startOfMonth(date);
@@ -418,13 +472,11 @@ function MonthView({ date }: { date: Date }) {
 
   const weekDayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-  // Group into weeks
   const weeks: Date[][] = [];
   for (let i = 0; i < allDays.length; i += 7) {
     weeks.push(allDays.slice(i, i + 7));
   }
 
-  // Get all services that appear in the calendar range
   const rangeServices = services.filter((s) => {
     if (!s.scheduledAt) return false;
     const start = new Date(s.scheduledAt);
@@ -458,12 +510,14 @@ function MonthView({ date }: { date: Date }) {
             <div key={wi} className="flex-1 min-h-0 flex flex-col border-b border-border last:border-b-0">
               {/* Day numbers row */}
               <div className="grid grid-cols-7 shrink-0">
-                {weekDays.map((day, di) => {
+                {weekDays.map((day) => {
                   const isCurrentMonth = isSameMonth(day, date);
                   const dayServices = getServicesForDate(rangeServices, day);
                   return (
-                    <div
+                    <DroppableCell
                       key={day.toISOString()}
+                      date={day}
+                      onDropService={onDropService}
                       className={cn(
                         "flex justify-between items-center px-1.5 py-0.5 border-r border-border last:border-r-0",
                         !isCurrentMonth && "opacity-40"
@@ -482,7 +536,7 @@ function MonthView({ date }: { date: Date }) {
                           {dayServices.length}
                         </Badge>
                       )}
-                    </div>
+                    </DroppableCell>
                   );
                 })}
               </div>
@@ -505,9 +559,11 @@ function MonthView({ date }: { date: Date }) {
                             <Tooltip key={bar.service.id}>
                               <TooltipTrigger asChild>
                                 <button
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e as any, bar.service)}
                                   onClick={() => navigate(`/servicios/${bar.service.id}`)}
                                   className={cn(
-                                    "h-[18px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-pointer transition-colors hover:ring-1 hover:ring-ring px-1.5",
+                                    "h-[18px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-grab active:cursor-grabbing transition-colors hover:ring-1 hover:ring-ring px-1.5",
                                     bar.colStart === 1 ? "rounded-l-md" : startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0",
                                     bar.colEnd === 8 ? "rounded-r-md" : endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0"
                                   )}
@@ -549,8 +605,10 @@ function MonthView({ date }: { date: Date }) {
                   const isCurrentMonth = isSameMonth(day, date);
                   const singleDayServices = getServicesForDate(rangeServices, day).filter((s) => !isMultiDay(s));
                   return (
-                    <div
+                    <DroppableCell
                       key={day.toISOString()}
+                      date={day}
+                      onDropService={onDropService}
                       className={cn(
                         "px-0.5 pb-0.5 space-y-0.5 overflow-y-auto border-r border-border last:border-r-0",
                         !isCurrentMonth && "opacity-40"
@@ -562,7 +620,7 @@ function MonthView({ date }: { date: Date }) {
                       {singleDayServices.length > 3 && (
                         <p className="text-[10px] text-muted-foreground text-center">+{singleDayServices.length - 3} más</p>
                       )}
-                    </div>
+                    </DroppableCell>
                   );
                 })}
               </div>
@@ -622,6 +680,42 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date("2026-02-24"));
   const [view, setView] = useState<ViewMode>("week");
+  const { services, refetch } = useServices();
+  const { toast } = useToast();
+
+  const handleDropService = useCallback(async (serviceId: string, targetDate: Date) => {
+    const service = services.find((s) => s.id === serviceId);
+    if (!service || !service.scheduledAt) return;
+
+    const oldStart = new Date(service.scheduledAt);
+    const dayDelta = differenceInCalendarDays(targetDate, new Date(oldStart.getFullYear(), oldStart.getMonth(), oldStart.getDate()));
+    if (dayDelta === 0) return;
+
+    // Shift both scheduled_at and scheduled_end_at by the same delta
+    const newStart = addDays(oldStart, dayDelta);
+    const updates: Record<string, string> = {
+      scheduled_at: newStart.toISOString(),
+    };
+    if (service.scheduledEndAt) {
+      const oldEnd = new Date(service.scheduledEndAt);
+      updates.scheduled_end_at = addDays(oldEnd, dayDelta).toISOString();
+    }
+
+    const { error } = await supabase.from("services").update(updates).eq("id", serviceId);
+    if (error) {
+      toast({
+        title: "Error al mover servicio",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Servicio reagendado",
+        description: `${serviceId} movido al ${format(targetDate, "d MMM yyyy", { locale: es })}`,
+      });
+      refetch();
+    }
+  }, [services, refetch, toast]);
 
   const navigate = (dir: -1 | 1) => {
     if (view === "day") setCurrentDate((d) => (dir === 1 ? addDays(d, 1) : subDays(d, 1)));
@@ -647,7 +741,7 @@ export default function CalendarView() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Calendario</h1>
-          <p className="text-sm text-muted-foreground">Disponibilidad de operarios y servicios agendados</p>
+          <p className="text-sm text-muted-foreground">Disponibilidad de operarios y servicios agendados · Arrastra para reagendar</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToday}>
@@ -725,9 +819,9 @@ export default function CalendarView() {
       {/* Calendar full width & height */}
       <Card className="mt-3 flex-1 min-h-0">
         <CardContent className="p-3 h-full overflow-auto">
-          {view === "day" && <DayView date={currentDate} />}
-          {view === "week" && <WeekView date={currentDate} />}
-          {view === "month" && <MonthView date={currentDate} />}
+          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} />}
+          {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} />}
+          {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} />}
         </CardContent>
       </Card>
     </div>
