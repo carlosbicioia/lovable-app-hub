@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Bell, Search, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ChatPanel from "@/components/chat/ChatPanel";
+import { useChat } from "@/hooks/useChat";
 
 export default function TopBar() {
   const [chatOpen, setChatOpen] = useState(false);
+  const { totalUnread } = useChat();
 
   return (
     <>
@@ -22,9 +24,11 @@ export default function TopBar() {
             className="relative p-2 rounded-lg hover:bg-muted transition-colors"
           >
             <MessageSquare className="w-5 h-5 text-muted-foreground" />
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
-              4
-            </span>
+            {totalUnread > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                {totalUnread}
+              </span>
+            )}
           </button>
           <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
             <Bell className="w-5 h-5 text-muted-foreground" />
