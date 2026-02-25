@@ -12,6 +12,7 @@ import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
 import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 
@@ -109,15 +110,29 @@ export default function ServiceDetail() {
         )}
       </div>
 
-      {/* Info cards row */}
-      <ServiceInfoCards service={service} />
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap">
+          <TabsTrigger value="overview" className="text-sm">Visión general</TabsTrigger>
+          <TabsTrigger value="details" className="text-sm">Detalles del servicio</TabsTrigger>
+          <TabsTrigger value="budget" className="text-sm">Presupuesto</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
-          <ServiceProtocolChecklist service={service} />
-          <ServiceDescription service={service} />
-          <ServiceTimeline service={service} />
+        {/* Tab: Visión general */}
+        <TabsContent value="overview" className="space-y-6 mt-4">
+          <ServiceInfoCards service={service} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <ServiceDescription service={service} />
+              <ServiceProtocolChecklist service={service} />
+              <ServiceTimeline service={service} />
+            </div>
+            <ServiceSidebar service={service} />
+          </div>
+        </TabsContent>
+
+        {/* Tab: Detalles del servicio */}
+        <TabsContent value="details" className="space-y-6 mt-4">
           <ServiceMaterials service={service} />
           <ServiceComments
             title="Comentarios internos"
@@ -132,11 +147,98 @@ export default function ServiceDetail() {
             variant="manager"
           />
           <ServiceMedia service={service} />
-        </div>
+        </TabsContent>
 
-        {/* Sidebar */}
-        <ServiceSidebar service={service} />
-      </div>
+        {/* Tab: Presupuesto */}
+        <TabsContent value="budget" className="space-y-6 mt-4">
+          {linkedBudget ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Presupuesto {linkedBudget.id}</h3>
+                  <p className="text-sm text-muted-foreground">Vinculado a este servicio</p>
+                </div>
+                <Button variant="outline" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
+                  <FileText className="w-4 h-4 mr-2" /> Ver Presupuesto completo
+                </Button>
+              </div>
+              {/* Budget summary cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estado</p>
+                  <p className={cn(
+                    "text-sm font-semibold",
+                    service.budgetStatus === "Aprobado" ? "text-success" :
+                    service.budgetStatus === "Pendiente" ? "text-warning" :
+                    service.budgetStatus === "Rechazado" ? "text-destructive" : "text-muted-foreground"
+                  )}>
+                    {service.budgetStatus ?? "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe total</p>
+                  <p className="text-lg font-bold text-card-foreground">
+                    {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
+                  <p className="text-lg font-bold text-card-foreground">
+                    {service.realHours != null ? `${service.realHours}h` : "—"}
+                  </p>
+                </div>
+              </div>
+              {/* NPS if available */}
+              {service.nps !== null && (
+                <div className="rounded-lg border border-border bg-card p-4 max-w-xs">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
+                  <p className={cn(
+                    "text-lg font-bold",
+                    service.nps >= 9 ? "text-success" :
+                    service.nps >= 7 ? "text-warning" : "text-destructive"
+                  )}>
+                    {service.nps}/10
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : service.serviceType === "Presupuesto" ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+              <FileText className="w-10 h-10 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Sin presupuesto vinculado</p>
+                <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto pero aún no se ha creado uno.</p>
+              </div>
+              <Button onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+                <FileText className="w-4 h-4 mr-2" /> Crear Presupuesto
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+              <FileText className="w-10 h-10 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Reparación directa</p>
+                <p className="text-xs text-muted-foreground mt-1">Este servicio no requiere presupuesto previo.</p>
+              </div>
+              {/* Economic summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mt-4">
+                <div className="rounded-lg border border-border bg-card p-4 text-left">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                  <p className="text-lg font-bold text-card-foreground">
+                    {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4 text-left">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
+                  <p className="text-lg font-bold text-card-foreground">
+                    {service.realHours != null ? `${service.realHours}h` : "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
