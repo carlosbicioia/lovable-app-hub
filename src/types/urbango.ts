@@ -104,16 +104,43 @@ export interface Service {
   realHours?: number | null;
 }
 
+export type OperatorStatus = "Activo" | "Inactivo" | "Vacaciones" | "Baja";
+
+export interface OperatorMonthlyRevenue {
+  month: string; // "2026-01", "2026-02"
+  revenue: number;
+  services: number;
+}
+
 export interface Operator {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  name: string; // computed display name
+  dni: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  province: string;
+  photo: string;
   specialty: Specialty;
+  secondarySpecialty: Specialty | null;
   clusterId: string;
-  npsMean: number;
+  clusterIds: string[]; // can cover multiple clusters
+  status: OperatorStatus;
   available: boolean;
+  npsMean: number;
   totalRevenue: number;
   completedServices: number;
+  activeServices: number;
   color: string; // unique HSL color identifier e.g. "210 80% 52%"
+  hireDate: string;
+  vehiclePlate: string | null;
+  certifications: string[];
+  monthlyRevenue: OperatorMonthlyRevenue[];
+  lastServiceDate: string | null;
+  avgResponseTime: number; // minutes avg to first contact
 }
 
 export type TaxRate = 0 | 10 | 21;
