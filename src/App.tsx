@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import Collaborators from "@/pages/Collaborators";
 import Services from "@/pages/Services";
+import ServiceDetail from "@/pages/ServiceDetail";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/clientes" element={<Clients />} />
             <Route path="/colaboradores" element={<Collaborators />} />
             <Route path="/servicios" element={<Services />} />
+            <Route path="/servicios/:id" element={<ServiceDetail />} />
             <Route path="/articulos" element={<ComingSoon title="Artículos" />} />
             <Route path="/calendario" element={<ComingSoon title="Calendario" />} />
             <Route path="/operarios" element={<ComingSoon title="Operarios" />} />

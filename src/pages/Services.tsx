@@ -1,14 +1,17 @@
 import { mockServices } from "@/data/mockData";
-import { Search, Plus, Filter } from "lucide-react";
+import { Search, Plus, Filter, Image, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useState } from "react";
-import { differenceInHours } from "date-fns";
+import { differenceInHours, format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function Services() {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
   const filtered = mockServices.filter(
     (s) =>
       s.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -21,6 +24,12 @@ export default function Services() {
     if (hours >= 12) return "expired";
     if (hours >= 8) return "warning";
     return "ok";
+  };
+
+  const mediaCount = (s: typeof filtered[0]) => {
+    const photos = s.media?.filter(m => m.type === "photo").length ?? 0;
+    const videos = s.media?.filter(m => m.type === "video").length ?? 0;
+    return { photos, videos };
   };
 
   return (
@@ -56,8 +65,11 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Especialidad</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Técnico</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Alta</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Prevista</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">SLA</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Urgencia</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Media</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
               </tr>
@@ -65,8 +77,13 @@ export default function Services() {
             <tbody>
               {filtered.map((s) => {
                 const sla = getSlaStatus(s.receivedAt, s.contactedAt);
+                const { photos, videos } = mediaCount(s);
                 return (
-                  <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
+                  <tr
+                    key={s.id}
+                    className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/servicios/${s.id}`)}
+                  >
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{s.id}</td>
                     <td className="px-5 py-3">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
@@ -77,6 +94,18 @@ export default function Services() {
                     <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
                     <td className="px-5 py-3 text-muted-foreground">{s.operatorName ?? "—"}</td>
                     <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs">
+                      {format(new Date(s.receivedAt), "dd MMM yyyy", { locale: es })}
+                    </td>
+                    <td className="px-5 py-3 text-xs">
+                      {s.scheduledAt ? (
+                        <span className="text-card-foreground font-medium">
+                          {format(new Date(s.scheduledAt), "dd MMM yyyy · HH:mm", { locale: es })}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Sin agendar</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3">
                       {sla === "expired" && (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft">
@@ -92,6 +121,21 @@ export default function Services() {
                       {!sla && <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="px-5 py-3"><StatusBadge urgency={s.urgency} /></td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {photos > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <Image className="w-3.5 h-3.5" /> {photos}
+                          </span>
+                        )}
+                        {videos > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <Video className="w-3.5 h-3.5" /> {videos}
+                          </span>
+                        )}
+                        {photos === 0 && videos === 0 && "—"}
+                      </div>
+                    </td>
                     <td className="px-5 py-3">
                       {s.budgetStatus ? (
                         <span className={cn(
