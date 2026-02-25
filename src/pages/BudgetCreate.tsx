@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Send, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { mockServices } from "@/data/mockData";
+import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "@/hooks/use-toast";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 
@@ -20,6 +23,7 @@ export default function BudgetCreate() {
   const [lines, setLines] = useState<BudgetLine[]>([
     { id: "1", concept: "", description: "", units: 1, costPrice: 0, margin: 30, taxRate: 21 },
   ]);
+  const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
 
   const servicesWithBudget = mockServices.filter((s) => s.serviceType === "Presupuesto");
   const selectedService = mockServices.find((s) => s.id === serviceId);
@@ -35,6 +39,39 @@ export default function BudgetCreate() {
       ...prev,
       { id: String(prev.length + 1), concept: "", description: "", units: 1, costPrice: 0, margin: 30, taxRate: 21 },
     ]);
+  };
+
+  const addLineFromArticle = (articleId: string) => {
+    const article = articlesData.find((a) => a.id === articleId);
+    if (!article) return;
+    const salePrice = getArticleSalePrice(article);
+    const margin = article.costPrice > 0 ? ((salePrice - article.costPrice) / article.costPrice) * 100 : 30;
+
+    if (openPopoverIndex !== null && openPopoverIndex < lines.length) {
+      // Replace the current line
+      setLines((prev) =>
+        prev.map((l, i) =>
+          i === openPopoverIndex
+            ? { ...l, concept: article.title, description: article.description, costPrice: article.costPrice, margin: Math.round(margin * 100) / 100, units: 1 }
+            : l
+        )
+      );
+    } else {
+      // Add new line
+      setLines((prev) => [
+        ...prev,
+        {
+          id: String(prev.length + 1),
+          concept: article.title,
+          description: article.description,
+          units: 1,
+          costPrice: article.costPrice,
+          margin: Math.round(margin * 100) / 100,
+          taxRate: 21,
+        },
+      ]);
+    }
+    setOpenPopoverIndex(null);
   };
 
   const removeLine = (index: number) => {
@@ -126,9 +163,36 @@ export default function BudgetCreate() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Líneas del presupuesto</CardTitle>
-          <Button variant="outline" size="sm" onClick={addLine}>
-            <Plus className="w-4 h-4 mr-1" /> Añadir línea
-          </Button>
+          <div className="flex gap-2">
+            <Popover open={openPopoverIndex === -1} onOpenChange={(open) => setOpenPopoverIndex(open ? -1 : null)}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <PackageSearch className="w-4 h-4 mr-1" /> Desde artículo
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[350px] p-0 bg-popover" align="end">
+                <Command>
+                  <CommandInput placeholder="Buscar artículo..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontraron artículos</CommandEmpty>
+                    <CommandGroup>
+                      {articlesData.map((a) => (
+                        <CommandItem key={a.id} value={`${a.title} ${a.description}`} onSelect={() => addLineFromArticle(a.id)}>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{a.title}</span>
+                            <span className="text-xs text-muted-foreground">{a.costPrice.toFixed(2)} € · {a.unit} · {a.specialty}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" onClick={addLine}>
+              <Plus className="w-4 h-4 mr-1" /> Línea manual
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Header */}
@@ -144,63 +208,62 @@ export default function BudgetCreate() {
           </div>
 
           {lines.map((line, i) => {
-            const { salePrice, lineSubtotal } = calcLine(line);
+            const { salePrice } = calcLine(line);
             return (
               <div key={line.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_80px_80px_80px_80px_40px] gap-2 items-start border-b border-border pb-3 last:border-0">
-                <Input
-                  placeholder="Concepto"
-                  value={line.concept}
-                  onChange={(e) => updateLine(i, "concept", e.target.value)}
-                />
+                <div className="flex gap-1">
+                  <Popover open={openPopoverIndex === i} onOpenChange={(open) => setOpenPopoverIndex(open ? i : null)}>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" title="Buscar artículo">
+                        <PackageSearch className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 bg-popover z-50" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar artículo..." />
+                        <CommandList>
+                          <CommandEmpty>No se encontraron artículos</CommandEmpty>
+                          <CommandGroup>
+                            {articlesData.map((a) => (
+                              <CommandItem key={a.id} value={`${a.title} ${a.description}`} onSelect={() => addLineFromArticle(a.id)}>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">{a.title}</span>
+                                  <span className="text-xs text-muted-foreground">{a.costPrice.toFixed(2)} € · {a.unit} · {a.specialty}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <Input
+                    placeholder="Concepto"
+                    value={line.concept}
+                    onChange={(e) => updateLine(i, "concept", e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
                 <Input
                   placeholder="Descripción"
                   value={line.description ?? ""}
                   onChange={(e) => updateLine(i, "description", e.target.value)}
                 />
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={line.units}
-                  onChange={(e) => updateLine(i, "units", parseFloat(e.target.value) || 0)}
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={line.costPrice}
-                  onChange={(e) => updateLine(i, "costPrice", parseFloat(e.target.value) || 0)}
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={line.margin}
-                  onChange={(e) => updateLine(i, "margin", parseFloat(e.target.value) || 0)}
-                />
+                <Input type="number" min={0} step={0.01} value={line.units} onChange={(e) => updateLine(i, "units", parseFloat(e.target.value) || 0)} />
+                <Input type="number" min={0} step={0.01} value={line.costPrice} onChange={(e) => updateLine(i, "costPrice", parseFloat(e.target.value) || 0)} />
+                <Input type="number" min={0} step={1} value={line.margin} onChange={(e) => updateLine(i, "margin", parseFloat(e.target.value) || 0)} />
                 <div className="flex items-center h-10 px-2 text-sm text-muted-foreground bg-muted rounded-md">
                   {salePrice.toFixed(2)} €
                 </div>
-                <Select
-                  value={String(line.taxRate)}
-                  onValueChange={(v) => updateLine(i, "taxRate", parseInt(v) as TaxRate)}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
+                <Select value={String(line.taxRate)} onValueChange={(v) => updateLine(i, "taxRate", parseInt(v) as TaxRate)}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">0%</SelectItem>
                     <SelectItem value="10">10%</SelectItem>
                     <SelectItem value="21">21%</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => removeLine(i)}
-                  disabled={lines.length <= 1}
-                >
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => removeLine(i)} disabled={lines.length <= 1}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -233,12 +296,7 @@ export default function BudgetCreate() {
           <CardTitle className="text-base">Términos y Condiciones</CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea
-            value={terms}
-            onChange={(e) => setTerms(e.target.value)}
-            rows={3}
-            className="text-sm"
-          />
+          <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={3} className="text-sm" />
         </CardContent>
       </Card>
 
