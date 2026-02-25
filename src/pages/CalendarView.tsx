@@ -352,9 +352,9 @@ export default function CalendarView() {
   const goToday = () => setCurrentDate(new Date("2026-02-25"));
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-[calc(100vh-5rem)]">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Calendario</h1>
           <p className="text-sm text-muted-foreground">Disponibilidad de operarios y servicios agendados</p>
@@ -383,7 +383,7 @@ export default function CalendarView() {
       </div>
 
       {/* Collapsible panels */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 shrink-0 mt-3">
         <Collapsible>
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5">
@@ -426,9 +426,9 @@ export default function CalendarView() {
         </Collapsible>
       </div>
 
-      {/* Calendar full width */}
-      <Card>
-        <CardContent className="p-3">
+      {/* Calendar full width & height */}
+      <Card className="mt-3 flex-1 min-h-0">
+        <CardContent className="p-3 h-full overflow-auto">
           {view === "day" && <DayView date={currentDate} />}
           {view === "week" && <WeekView date={currentDate} />}
           {view === "month" && <MonthView date={currentDate} />}
