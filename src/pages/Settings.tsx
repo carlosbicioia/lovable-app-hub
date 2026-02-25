@@ -7,19 +7,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Building2, Users, Shield, FileText, Bell, Palette, Mail, Globe,
-  Plus, Trash2, Upload, Clock, Wrench,
+  Building2, Users, Shield, FileText, Bell, Palette, Mail,
+  Plus, Trash2, Upload, Clock, Wrench, Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-
-/* ---------- mock data ---------- */
-const mockUsers = [
-  { id: "U1", name: "Carlos García", email: "carlos@urbango.es", role: "admin", active: true },
-  { id: "U2", name: "María López", email: "maria@urbango.es", role: "gestor", active: true },
-  { id: "U3", name: "Pedro Ruiz", email: "pedro@urbango.es", role: "operario", active: false },
-];
+import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/useCompanySettings";
+import { useAppUsers, useCreateAppUser, useUpdateAppUser, useDeleteAppUser } from "@/hooks/useAppUsers";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -29,7 +26,82 @@ const roles = [
 ];
 
 export default function Settings() {
-  const [users] = useState(mockUsers);
+  const { data: settings, isLoading: settingsLoading } = useCompanySettings();
+  const updateSettings = useUpdateCompanySettings();
+  const { data: users, isLoading: usersLoading } = useAppUsers();
+  const createUser = useCreateAppUser();
+  const updateUser = useUpdateAppUser();
+  const deleteUser = useDeleteAppUser();
+
+  // Company form state
+  const [companyForm, setCompanyForm] = useState<Record<string, any>>({});
+  const [operativeForm, setOperativeForm] = useState<Record<string, any>>({});
+  const [docsForm, setDocsForm] = useState<Record<string, any>>({});
+  const [appearanceForm, setAppearanceForm] = useState<Record<string, any>>({});
+
+  // New user dialog
+  const [showNewUser, setShowNewUser] = useState(false);
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario" });
+
+  // Sync forms when settings load
+  useEffect(() => {
+    if (settings) {
+      setCompanyForm({
+        company_name: settings.company_name,
+        tax_id: settings.tax_id,
+        address: settings.address,
+        phone: settings.phone,
+        email: settings.email,
+        website: settings.website,
+      });
+      setOperativeForm({
+        sla_first_contact_hours: settings.sla_first_contact_hours,
+        sla_resolution_hours: settings.sla_resolution_hours,
+        default_vat: settings.default_vat,
+        currency: settings.currency,
+      });
+      setDocsForm({
+        budget_prefix: settings.budget_prefix,
+        budget_next_number: settings.budget_next_number,
+        budget_validity_days: settings.budget_validity_days,
+        date_format: settings.date_format,
+        legal_conditions: settings.legal_conditions,
+        document_footer: settings.document_footer,
+        service_prefix: settings.service_prefix,
+        invoice_prefix: settings.invoice_prefix,
+      });
+      setAppearanceForm({
+        theme: settings.theme,
+        language: settings.language,
+        timezone: settings.timezone,
+      });
+    }
+  }, [settings]);
+
+  const handleSaveCompany = () => updateSettings.mutate(companyForm);
+  const handleSaveOperative = () => updateSettings.mutate(operativeForm);
+  const handleSaveDocs = () => updateSettings.mutate(docsForm);
+  const handleSaveAppearance = () => updateSettings.mutate(appearanceForm);
+
+  const handleCreateUser = () => {
+    if (!newUser.name || !newUser.email) return;
+    createUser.mutate(newUser, {
+      onSuccess: () => {
+        setShowNewUser(false);
+        setNewUser({ name: "", email: "", role: "operario" });
+      },
+    });
+  };
+
+  if (settingsLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -59,27 +131,27 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Razón social</Label>
-                  <Input defaultValue="UrbanGO Facility Services S.L." />
+                  <Input value={companyForm.company_name ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, company_name: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>CIF / NIF</Label>
-                  <Input defaultValue="B12345678" />
+                  <Input value={companyForm.tax_id ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, tax_id: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Dirección fiscal</Label>
-                  <Input defaultValue="Calle Gran Vía 42, 28013 Madrid" />
+                  <Input value={companyForm.address ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, address: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Teléfono</Label>
-                  <Input defaultValue="+34 911 234 567" />
+                  <Input value={companyForm.phone ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, phone: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Email de contacto</Label>
-                  <Input type="email" defaultValue="admin@urbango.es" />
+                  <Input type="email" value={companyForm.email ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, email: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Sitio web</Label>
-                  <Input defaultValue="https://urbango.es" />
+                  <Input value={companyForm.website ?? ""} onChange={(e) => setCompanyForm(p => ({ ...p, website: e.target.value }))} />
                 </div>
               </div>
 
@@ -99,7 +171,10 @@ export default function Settings() {
               </div>
 
               <div className="flex justify-end">
-                <Button>Guardar cambios</Button>
+                <Button onClick={handleSaveCompany} disabled={updateSettings.isPending}>
+                  {updateSettings.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Guardar cambios
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -113,19 +188,19 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>SLA primer contacto (horas)</Label>
-                  <Input type="number" defaultValue="12" />
+                  <Input type="number" value={operativeForm.sla_first_contact_hours ?? ""} onChange={(e) => setOperativeForm(p => ({ ...p, sla_first_contact_hours: Number(e.target.value) }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>SLA resolución (horas)</Label>
-                  <Input type="number" defaultValue="72" />
+                  <Input type="number" value={operativeForm.sla_resolution_hours ?? ""} onChange={(e) => setOperativeForm(p => ({ ...p, sla_resolution_hours: Number(e.target.value) }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>IVA por defecto (%)</Label>
-                  <Input type="number" defaultValue="21" />
+                  <Input type="number" value={operativeForm.default_vat ?? ""} onChange={(e) => setOperativeForm(p => ({ ...p, default_vat: Number(e.target.value) }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Moneda</Label>
-                  <Select defaultValue="EUR">
+                  <Select value={operativeForm.currency ?? "EUR"} onValueChange={(v) => setOperativeForm(p => ({ ...p, currency: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="EUR">€ Euro (EUR)</SelectItem>
@@ -136,7 +211,10 @@ export default function Settings() {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button>Guardar cambios</Button>
+                <Button onClick={handleSaveOperative} disabled={updateSettings.isPending}>
+                  {updateSettings.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Guardar cambios
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -150,38 +228,54 @@ export default function Settings() {
                 <CardTitle className="text-base">Usuarios del sistema</CardTitle>
                 <CardDescription>Gestiona quién puede acceder a la plataforma</CardDescription>
               </div>
-              <Button size="sm"><Plus className="w-3.5 h-3.5 mr-1.5" /> Añadir usuario</Button>
+              <Button size="sm" onClick={() => setShowNewUser(true)}>
+                <Plus className="w-3.5 h-3.5 mr-1.5" /> Añadir usuario
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="divide-y divide-border">
-                {users.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between py-3 gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-primary">{u.name.split(" ").map(n => n[0]).join("")}</span>
+              {usersLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {(users ?? []).map((u) => (
+                    <div key={u.id} className="flex items-center justify-between py-3 gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-primary">{u.name.split(" ").map(n => n[0]).join("")}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-card-foreground truncate">{u.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-card-foreground truncate">{u.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className={cn(
+                          "text-xs font-medium px-2 py-0.5 rounded-full border",
+                          u.role === "admin" ? "bg-primary/10 text-primary border-primary/20" :
+                          u.role === "gestor" ? "bg-info/10 text-info border-info/20" :
+                          "bg-muted text-muted-foreground border-border"
+                        )}>
+                          {roles.find(r => r.value === u.role)?.label ?? u.role}
+                        </span>
+                        <Switch
+                          checked={u.active}
+                          onCheckedChange={(checked) => updateUser.mutate({ id: u.id, active: checked })}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => deleteUser.mutate(u.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className={cn(
-                        "text-xs font-medium px-2 py-0.5 rounded-full border",
-                        u.role === "admin" ? "bg-primary/10 text-primary border-primary/20" :
-                        u.role === "gestor" ? "bg-info/10 text-info border-info/20" :
-                        "bg-muted text-muted-foreground border-border"
-                      )}>
-                        {roles.find(r => r.value === u.role)?.label ?? u.role}
-                      </span>
-                      <Switch checked={u.active} />
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -222,7 +316,7 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        {/* ===== DOCUMENTOS / PRESUPUESTOS ===== */}
+        {/* ===== DOCUMENTOS ===== */}
         <TabsContent value="documents" className="space-y-6 mt-4">
           <Card>
             <CardHeader>
@@ -233,19 +327,19 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Prefijo de numeración</Label>
-                  <Input defaultValue="PRE-" />
+                  <Input value={docsForm.budget_prefix ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, budget_prefix: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Siguiente número</Label>
-                  <Input type="number" defaultValue="1042" />
+                  <Input type="number" value={docsForm.budget_next_number ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, budget_next_number: Number(e.target.value) }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Validez por defecto (días)</Label>
-                  <Input type="number" defaultValue="30" />
+                  <Input type="number" value={docsForm.budget_validity_days ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, budget_validity_days: Number(e.target.value) }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Formato de fecha</Label>
-                  <Select defaultValue="dd/MM/yyyy">
+                  <Select value={docsForm.date_format ?? "dd/MM/yyyy"} onValueChange={(v) => setDocsForm(p => ({ ...p, date_format: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="dd/MM/yyyy">dd/MM/yyyy</SelectItem>
@@ -260,22 +354,19 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label>Condiciones legales</Label>
-                <Textarea
-                  rows={4}
-                  defaultValue="Este presupuesto tiene una validez de 30 días naturales desde la fecha de emisión. Los precios indicados no incluyen IVA salvo indicación expresa. Los trabajos se realizarán según la normativa vigente."
-                />
+                <Textarea rows={4} value={docsForm.legal_conditions ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, legal_conditions: e.target.value }))} />
               </div>
 
               <div className="space-y-2">
                 <Label>Nota al pie del documento</Label>
-                <Textarea
-                  rows={2}
-                  defaultValue="UrbanGO Facility Services S.L. — CIF B12345678 — admin@urbango.es"
-                />
+                <Textarea rows={2} value={docsForm.document_footer ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, document_footer: e.target.value }))} />
               </div>
 
               <div className="flex justify-end">
-                <Button>Guardar plantilla</Button>
+                <Button onClick={handleSaveDocs} disabled={updateSettings.isPending}>
+                  {updateSettings.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Guardar plantilla
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -289,15 +380,18 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Prefijo de servicio</Label>
-                  <Input defaultValue="SRV-" />
+                  <Input value={docsForm.service_prefix ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, service_prefix: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>Prefijo de factura</Label>
-                  <Input defaultValue="FAC-" />
+                  <Input value={docsForm.invoice_prefix ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, invoice_prefix: e.target.value }))} />
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button>Guardar</Button>
+                <Button onClick={handleSaveDocs} disabled={updateSettings.isPending}>
+                  {updateSettings.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Guardar
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -352,7 +446,7 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Tema</Label>
-                <Select defaultValue="system">
+                <Select value={appearanceForm.theme ?? "system"} onValueChange={(v) => setAppearanceForm(p => ({ ...p, theme: v }))}>
                   <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="light">Claro</SelectItem>
@@ -363,7 +457,7 @@ export default function Settings() {
               </div>
               <div className="space-y-2">
                 <Label>Idioma</Label>
-                <Select defaultValue="es">
+                <Select value={appearanceForm.language ?? "es"} onValueChange={(v) => setAppearanceForm(p => ({ ...p, language: v }))}>
                   <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="es">Español</SelectItem>
@@ -374,7 +468,7 @@ export default function Settings() {
               </div>
               <div className="space-y-2">
                 <Label>Zona horaria</Label>
-                <Select defaultValue="europe_madrid">
+                <Select value={appearanceForm.timezone ?? "europe_madrid"} onValueChange={(v) => setAppearanceForm(p => ({ ...p, timezone: v }))}>
                   <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="europe_madrid">Europe/Madrid (CET)</SelectItem>
@@ -384,12 +478,52 @@ export default function Settings() {
                 </Select>
               </div>
               <div className="flex justify-end">
-                <Button>Guardar preferencias</Button>
+                <Button onClick={handleSaveAppearance} disabled={updateSettings.isPending}>
+                  {updateSettings.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Guardar preferencias
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* New User Dialog */}
+      <Dialog open={showNewUser} onOpenChange={setShowNewUser}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Añadir usuario</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nombre completo</Label>
+              <Input value={newUser.name} onChange={(e) => setNewUser(p => ({ ...p, name: e.target.value }))} placeholder="Nombre y apellidos" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input type="email" value={newUser.email} onChange={(e) => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="usuario@empresa.es" />
+            </div>
+            <div className="space-y-2">
+              <Label>Rol</Label>
+              <Select value={newUser.role} onValueChange={(v) => setNewUser(p => ({ ...p, role: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {roles.map(r => (
+                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewUser(false)}>Cancelar</Button>
+            <Button onClick={handleCreateUser} disabled={createUser.isPending || !newUser.name || !newUser.email}>
+              {createUser.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Crear usuario
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
@@ -48,6 +78,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      company_settings: {
+        Row: {
+          address: string
+          budget_next_number: number
+          budget_prefix: string
+          budget_validity_days: number
+          company_name: string
+          created_at: string
+          currency: string
+          date_format: string
+          default_vat: number
+          document_footer: string
+          email: string
+          id: string
+          invoice_prefix: string
+          language: string
+          legal_conditions: string
+          logo_url: string | null
+          phone: string
+          service_prefix: string
+          sla_first_contact_hours: number
+          sla_resolution_hours: number
+          tax_id: string
+          theme: string
+          timezone: string
+          updated_at: string
+          website: string
+        }
+        Insert: {
+          address?: string
+          budget_next_number?: number
+          budget_prefix?: string
+          budget_validity_days?: number
+          company_name?: string
+          created_at?: string
+          currency?: string
+          date_format?: string
+          default_vat?: number
+          document_footer?: string
+          email?: string
+          id?: string
+          invoice_prefix?: string
+          language?: string
+          legal_conditions?: string
+          logo_url?: string | null
+          phone?: string
+          service_prefix?: string
+          sla_first_contact_hours?: number
+          sla_resolution_hours?: number
+          tax_id?: string
+          theme?: string
+          timezone?: string
+          updated_at?: string
+          website?: string
+        }
+        Update: {
+          address?: string
+          budget_next_number?: number
+          budget_prefix?: string
+          budget_validity_days?: number
+          company_name?: string
+          created_at?: string
+          currency?: string
+          date_format?: string
+          default_vat?: number
+          document_footer?: string
+          email?: string
+          id?: string
+          invoice_prefix?: string
+          language?: string
+          legal_conditions?: string
+          logo_url?: string | null
+          phone?: string
+          service_prefix?: string
+          sla_first_contact_hours?: number
+          sla_resolution_hours?: number
+          tax_id?: string
+          theme?: string
+          timezone?: string
+          updated_at?: string
+          website?: string
+        }
+        Relationships: []
       }
       conversations: {
         Row: {
