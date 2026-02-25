@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, CalendarIcon } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
   const { services, loading } = useServices();
@@ -49,6 +50,39 @@ export default function Dashboard() {
 
   const uniqueClients = new Set(filtered.map((s) => s.clientId)).size;
   const uniqueCollabs = new Set(filtered.filter((s) => s.collaboratorId).map((s) => s.collaboratorId)).size;
+
+  // Chart data: group by day or week depending on range span
+  const chartData = useMemo(() => {
+    if (!dateRange?.from) return [];
+    const from = dateRange.from;
+    const to = dateRange.to ?? dateRange.from;
+    const span = differenceInDays(to, from);
+    const useWeeks = span > 21;
+
+    if (useWeeks) {
+      const weeks = eachWeekOfInterval({ start: from, end: to }, { weekStartsOn: 1 });
+      return weeks.map((weekStart) => {
+        const weekEnd = addDays(weekStart, 6);
+        const count = filtered.filter((s) => {
+          try {
+            const d = parseISO(s.receivedAt);
+            return d >= weekStart && d <= weekEnd;
+          } catch { return false; }
+        }).length;
+        return { label: format(weekStart, "d MMM", { locale: es }), servicios: count };
+      });
+    }
+
+    const days = eachDayOfInterval({ start: from, end: to });
+    return days.map((day) => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const count = filtered.filter((s) => {
+        try { return s.receivedAt.startsWith(dayStr); }
+        catch { return false; }
+      }).length;
+      return { label: format(day, "d MMM", { locale: es }), servicios: count };
+    });
+  }, [filtered, dateRange]);
 
   const formatRange = () => {
     if (!dateRange?.from) return "Seleccionar fechas";
@@ -120,6 +154,43 @@ export default function Dashboard() {
           variant="success"
         />
       </div>
+
+      {/* Evolution chart */}
+      {chartData.length > 1 && (
+        <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+          <h2 className="font-display font-semibold text-card-foreground mb-4">Evolución de Servicios</h2>
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorServicios" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 8,
+                  fontSize: 13,
+                }}
+                labelStyle={{ color: "hsl(var(--card-foreground))" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="servicios"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                fill="url(#colorServicios)"
+                name="Servicios"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Recent services table */}
       <div className="bg-card rounded-xl border border-border shadow-sm">
