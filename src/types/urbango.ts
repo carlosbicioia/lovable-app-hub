@@ -140,3 +140,17 @@ export interface Budget {
   lines: BudgetLine[];
   termsAndConditions: string;
 }
+
+export type ArticleCategory = "Material" | "Mano_de_Obra";
+
+export interface Article {
+  id: string;
+  title: string;
+  description: string;
+  category: ArticleCategory;
+  specialty: Specialty;
+  costPrice: number;
+  hasKnownPvp: boolean;
+  pvp: number | null; // if known; otherwise calculated as costPrice * 1.30
+  unit: string; // "ud", "m", "m²", "h", "kg"
+}
