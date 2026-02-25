@@ -16,6 +16,7 @@ import Articles from "@/pages/Articles";
 import ComingSoon from "@/pages/ComingSoon";
 import CalendarView from "@/pages/CalendarView";
 import Operators from "@/pages/Operators";
+import ServiceCreate from "@/pages/ServiceCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/clientes" element={<Clients />} />
             <Route path="/colaboradores" element={<Collaborators />} />
             <Route path="/servicios" element={<Services />} />
+            <Route path="/servicios/nuevo" element={<ServiceCreate />} />
             <Route path="/servicios/:id" element={<ServiceDetail />} />
             <Route path="/presupuestos" element={<Budgets />} />
             <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />

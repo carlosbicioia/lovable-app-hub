@@ -39,7 +39,7 @@ export default function Services() {
           <h1 className="text-2xl font-display font-bold text-foreground">Servicios</h1>
           <p className="text-muted-foreground text-sm mt-1">{mockServices.length} servicios en sistema</p>
         </div>
-        <Button>
+        <Button onClick={() => navigate("/servicios/nuevo")}>
           <Plus className="w-4 h-4 mr-2" /> Nuevo Servicio
         </Button>
       </div>
