@@ -1,4 +1,4 @@
-import type { Client, Collaborator, Service, Budget } from "@/types/urbango";
+import type { Client, Collaborator, Service, Budget, Operator } from "@/types/urbango";
 
 export const mockClients: Client[] = [
   { id: "CLI-001", name: "María García López", dni: "12345678A", email: "maria@email.com", phone: "612345678", address: "C/ Gran Vía 45, 2ºA", postalCode: "28013", city: "Madrid", province: "Madrid", clusterId: "CLU-01", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", planType: "Agua", lastServiceDate: "2026-02-20" },
@@ -93,4 +93,13 @@ export const mockBudgets: Budget[] = [
     ],
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
   },
+];
+
+export const mockOperators: Operator[] = [
+  { id: "OP-01", name: "Juan Morales", specialty: "Fontanería/Agua", clusterId: "CLU-01", npsMean: 8.9, available: true, totalRevenue: 32400, completedServices: 87 },
+  { id: "OP-02", name: "Pablo Serrano", specialty: "Fontanería/Agua", clusterId: "CLU-03", npsMean: 9.2, available: true, totalRevenue: 28700, completedServices: 74 },
+  { id: "OP-03", name: "Miguel Ángel Rivas", specialty: "Electricidad/Luz", clusterId: "CLU-04", npsMean: 8.5, available: true, totalRevenue: 41200, completedServices: 102 },
+  { id: "OP-04", name: "Antonio Ruiz", specialty: "Clima", clusterId: "CLU-02", npsMean: 9.0, available: false, totalRevenue: 19800, completedServices: 51 },
+  { id: "OP-05", name: "Francisco Delgado", specialty: "Electricidad/Luz", clusterId: "CLU-01", npsMean: 7.8, available: true, totalRevenue: 15600, completedServices: 38 },
+  { id: "OP-06", name: "Carlos Medina", specialty: "Clima", clusterId: "CLU-05", npsMean: 8.3, available: true, totalRevenue: 22100, completedServices: 59 },
 ];

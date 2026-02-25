@@ -1,0 +1,436 @@
+import { useState, useMemo } from "react";
+import { mockServices, mockOperators } from "@/data/mockData";
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  addDays,
+  addWeeks,
+  addMonths,
+  subDays,
+  subWeeks,
+  subMonths,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  getHours,
+} from "date-fns";
+import { es } from "date-fns/locale";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  User,
+  Droplets,
+  Zap,
+  Wind,
+} from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Service, Operator, Specialty } from "@/types/urbango";
+import { useNavigate } from "react-router-dom";
+
+type ViewMode = "day" | "week" | "month";
+
+const specialtyIcon: Record<Specialty, React.ReactNode> = {
+  "Fontanería/Agua": <Droplets className="w-3 h-3" />,
+  "Electricidad/Luz": <Zap className="w-3 h-3" />,
+  Clima: <Wind className="w-3 h-3" />,
+};
+
+const specialtyColor: Record<Specialty, string> = {
+  "Fontanería/Agua": "bg-info/15 text-info border-info/30",
+  "Electricidad/Luz": "bg-warning/15 text-warning border-warning/30",
+  Clima: "bg-success/15 text-success border-success/30",
+};
+
+const statusColor: Record<string, string> = {
+  Pendiente_Contacto: "bg-destructive/15 text-destructive",
+  Agendado: "bg-info/15 text-info",
+  En_Curso: "bg-warning/15 text-warning",
+  Finalizado: "bg-success/15 text-success",
+  Liquidado: "bg-muted text-muted-foreground",
+};
+
+function getServicesForDate(services: Service[], date: Date): Service[] {
+  return services.filter((s) => {
+    if (s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)) return true;
+    return false;
+  });
+}
+
+function ServiceChip({ service }: { service: Service }) {
+  const navigate = useNavigate();
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={() => navigate(`/servicios/${service.id}`)}
+          className={cn(
+            "w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-pointer",
+            statusColor[service.status] || "bg-muted text-muted-foreground"
+          )}
+        >
+          <span className="flex items-center gap-1">
+            {specialtyIcon[service.specialty]}
+            <span className="truncate">
+              {service.id} · {service.operatorName ?? "Sin asignar"}
+            </span>
+          </span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="max-w-xs">
+        <div className="space-y-1">
+          <p className="font-semibold">{service.id}</p>
+          <p className="text-xs">{service.clientName}</p>
+          <p className="text-xs text-muted-foreground">{service.address}</p>
+          <p className="text-xs">{service.operatorName ?? "Operario sin asignar"}</p>
+          {service.scheduledAt && (
+            <p className="text-xs">{format(new Date(service.scheduledAt), "HH:mm", { locale: es })}</p>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// ─── DAY VIEW ──────────────────────────────────────────────
+function DayView({ date }: { date: Date }) {
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7:00 - 18:00
+  const scheduledServices = mockServices.filter(
+    (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
+  );
+
+  // Group by operator
+  const operators = mockOperators;
+  const unassigned = scheduledServices.filter((s) => !s.operatorId);
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[700px]">
+        {/* Header row */}
+        <div className="grid gap-0 border-b border-border" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
+          <div className="p-2 text-xs font-medium text-muted-foreground border-r border-border">Hora</div>
+          {operators.map((op) => (
+            <div key={op.id} className="p-2 text-center border-r border-border last:border-r-0">
+              <div className="flex items-center justify-center gap-1.5">
+                <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
+                <span className="text-xs font-semibold text-foreground">{op.name.split(" ")[0]}</span>
+              </div>
+              <span className={cn("inline-flex items-center gap-0.5 text-[10px] mt-0.5 px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
+                {specialtyIcon[op.specialty]}
+                {op.specialty.split("/")[0]}
+              </span>
+            </div>
+          ))}
+          {unassigned.length > 0 && (
+            <div className="p-2 text-center">
+              <span className="text-xs font-semibold text-destructive">Sin asignar</span>
+            </div>
+          )}
+        </div>
+
+        {/* Hour rows */}
+        {hours.map((hour) => (
+          <div
+            key={hour}
+            className={cn(
+              "grid gap-0 border-b border-border min-h-[56px]",
+              isToday(date) && getHours(new Date()) === hour && "bg-primary/5"
+            )}
+            style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}
+          >
+            <div className="p-2 text-xs text-muted-foreground border-r border-border font-mono">
+              {String(hour).padStart(2, "0")}:00
+            </div>
+            {operators.map((op) => {
+              const opServices = scheduledServices.filter(
+                (s) => s.operatorId === op.id && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
+              );
+              return (
+                <div key={op.id} className="p-1 border-r border-border last:border-r-0 space-y-0.5">
+                  {opServices.map((s) => (
+                    <ServiceChip key={s.id} service={s} />
+                  ))}
+                </div>
+              );
+            })}
+            {unassigned.length > 0 && (
+              <div className="p-1 space-y-0.5">
+                {unassigned
+                  .filter((s) => s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour)
+                  .map((s) => (
+                    <ServiceChip key={s.id} service={s} />
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── WEEK VIEW ─────────────────────────────────────────────
+function WeekView({ date }: { date: Date }) {
+  const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
+  const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+
+  return (
+    <div className="grid grid-cols-7 gap-0 border border-border rounded-lg overflow-hidden">
+      {days.map((day) => {
+        const dayServices = getServicesForDate(mockServices, day);
+        return (
+          <div
+            key={day.toISOString()}
+            className={cn(
+              "min-h-[180px] border-r border-border last:border-r-0 flex flex-col",
+              !isSameMonth(day, date) && "bg-muted/30"
+            )}
+          >
+            <div
+              className={cn(
+                "px-2 py-1.5 text-center border-b border-border",
+                isToday(day) && "bg-primary text-primary-foreground"
+              )}
+            >
+              <div className="text-[10px] font-medium uppercase">
+                {format(day, "EEE", { locale: es })}
+              </div>
+              <div className="text-lg font-bold">{format(day, "d")}</div>
+            </div>
+            <div className="p-1 space-y-0.5 flex-1 overflow-y-auto">
+              {dayServices.map((s) => (
+                <ServiceChip key={s.id} service={s} />
+              ))}
+              {dayServices.length === 0 && (
+                <p className="text-[10px] text-muted-foreground text-center mt-4">Sin servicios</p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── MONTH VIEW ────────────────────────────────────────────
+function MonthView({ date }: { date: Date }) {
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(date);
+  const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(monthEnd, { locale: es, weekStartsOn: 1 });
+  const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+  return (
+    <div>
+      <div className="grid grid-cols-7 gap-0 border border-border rounded-t-lg overflow-hidden">
+        {weekDays.map((d) => (
+          <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground border-b border-border bg-muted/50">
+            {d}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-0 border-x border-b border-border rounded-b-lg overflow-hidden">
+        {days.map((day) => {
+          const dayServices = getServicesForDate(mockServices, day);
+          const isCurrentMonth = isSameMonth(day, date);
+          return (
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "min-h-[100px] border-b border-r border-border last:border-r-0 [&:nth-child(7n)]:border-r-0 flex flex-col",
+                !isCurrentMonth && "bg-muted/20 opacity-50"
+              )}
+            >
+              <div className="flex justify-between items-center px-1.5 py-1">
+                <span
+                  className={cn(
+                    "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
+                    isToday(day) && "bg-primary text-primary-foreground"
+                  )}
+                >
+                  {format(day, "d")}
+                </span>
+                {dayServices.length > 0 && (
+                  <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                    {dayServices.length}
+                  </Badge>
+                )}
+              </div>
+              <div className="px-1 pb-1 space-y-0.5 overflow-y-auto max-h-[80px]">
+                {dayServices.slice(0, 3).map((s) => (
+                  <ServiceChip key={s.id} service={s} />
+                ))}
+                {dayServices.length > 3 && (
+                  <p className="text-[10px] text-muted-foreground text-center">+{dayServices.length - 3} más</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── OPERATOR SUMMARY PANEL ────────────────────────────────
+function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
+  const range = useMemo(() => {
+    if (view === "day") return { start: date, end: date };
+    if (view === "week") {
+      const ws = startOfWeek(date, { locale: es, weekStartsOn: 1 });
+      return { start: ws, end: addDays(ws, 6) };
+    }
+    return { start: startOfMonth(date), end: endOfMonth(date) };
+  }, [date, view]);
+
+  const days = eachDayOfInterval(range);
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <User className="w-4 h-4" /> Resumen operarios
+        </h3>
+        <div className="space-y-2">
+          {mockOperators.map((op) => {
+            const assignedCount = mockServices.filter(
+              (s) =>
+                s.operatorId === op.id &&
+                s.scheduledAt &&
+                days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
+            ).length;
+            return (
+              <div key={op.id} className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
+                  <span className="text-sm font-medium text-foreground">{op.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn("inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
+                    {specialtyIcon[op.specialty]}
+                  </span>
+                  <Badge variant={assignedCount > 0 ? "default" : "secondary"} className="text-[10px] h-5">
+                    {assignedCount} srv
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── MAIN ──────────────────────────────────────────────────
+export default function CalendarView() {
+  const [currentDate, setCurrentDate] = useState(new Date("2026-02-24"));
+  const [view, setView] = useState<ViewMode>("week");
+
+  const navigate = (dir: -1 | 1) => {
+    if (view === "day") setCurrentDate((d) => (dir === 1 ? addDays(d, 1) : subDays(d, 1)));
+    if (view === "week") setCurrentDate((d) => (dir === 1 ? addWeeks(d, 1) : subWeeks(d, 1)));
+    if (view === "month") setCurrentDate((d) => (dir === 1 ? addMonths(d, 1) : subMonths(d, 1)));
+  };
+
+  const title = useMemo(() => {
+    if (view === "day") return format(currentDate, "EEEE d 'de' MMMM yyyy", { locale: es });
+    if (view === "week") {
+      const ws = startOfWeek(currentDate, { locale: es, weekStartsOn: 1 });
+      const we = addDays(ws, 6);
+      return `${format(ws, "d MMM", { locale: es })} – ${format(we, "d MMM yyyy", { locale: es })}`;
+    }
+    return format(currentDate, "MMMM yyyy", { locale: es });
+  }, [currentDate, view]);
+
+  const goToday = () => setCurrentDate(new Date("2026-02-25"));
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Calendario</h1>
+          <p className="text-sm text-muted-foreground">Disponibilidad de operarios y servicios agendados</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={goToday}>
+            Hoy
+          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(1)}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+          <span className="text-sm font-semibold text-foreground capitalize min-w-[200px] text-center">
+            {title}
+          </span>
+          <ToggleGroup type="single" value={view} onValueChange={(v) => v && setView(v as ViewMode)} className="border border-border rounded-lg">
+            <ToggleGroupItem value="day" className="text-xs px-3 h-8">Día</ToggleGroupItem>
+            <ToggleGroupItem value="week" className="text-xs px-3 h-8">Semana</ToggleGroupItem>
+            <ToggleGroupItem value="month" className="text-xs px-3 h-8">Mes</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+        {/* Calendar */}
+        <div className="xl:col-span-3">
+          <Card>
+            <CardContent className="p-3">
+              {view === "day" && <DayView date={currentDate} />}
+              {view === "week" && <WeekView date={currentDate} />}
+              {view === "month" && <MonthView date={currentDate} />}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-4">
+          <OperatorSummary date={currentDate} view={view} />
+
+          {/* Legend */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4" /> Leyenda
+              </h3>
+              <div className="space-y-1.5">
+                {Object.entries(statusColor).map(([key, cls]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className={cn("w-3 h-3 rounded-sm", cls.split(" ")[0])} />
+                    <span className="text-xs text-muted-foreground">
+                      {key.replace("_", " ")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+                {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    {specialtyIcon[key]}
+                    <span className="text-xs text-muted-foreground">{key}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
