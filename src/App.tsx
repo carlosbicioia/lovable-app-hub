@@ -12,6 +12,7 @@ import ServiceDetail from "@/pages/ServiceDetail";
 import Budgets from "@/pages/Budgets";
 import BudgetDetail from "@/pages/BudgetDetail";
 import BudgetCreate from "@/pages/BudgetCreate";
+import Articles from "@/pages/Articles";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
@@ -33,7 +34,7 @@ const App = () => (
             <Route path="/presupuestos" element={<Budgets />} />
             <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
             <Route path="/presupuestos/:id" element={<BudgetDetail />} />
-            <Route path="/articulos" element={<ComingSoon title="Artículos" />} />
+            <Route path="/articulos" element={<Articles />} />
             <Route path="/calendario" element={<ComingSoon title="Calendario" />} />
             <Route path="/operarios" element={<ComingSoon title="Operarios" />} />
           </Route>
