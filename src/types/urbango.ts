@@ -99,3 +99,30 @@ export interface Operator {
   totalRevenue: number;
   completedServices: number;
 }
+
+export type TaxRate = 0 | 10 | 21;
+
+export interface BudgetLine {
+  id: string;
+  concept: string;
+  description?: string;
+  units: number;
+  costPrice: number;
+  margin: number; // percentage e.g. 30
+  taxRate: TaxRate;
+}
+
+export type BudgetStatus = "Borrador" | "Enviado" | "Aprobado" | "Rechazado";
+
+export interface Budget {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  clientName: string;
+  clientAddress: string;
+  collaboratorName: string | null;
+  createdAt: string;
+  status: BudgetStatus;
+  lines: BudgetLine[];
+  termsAndConditions: string;
+}
