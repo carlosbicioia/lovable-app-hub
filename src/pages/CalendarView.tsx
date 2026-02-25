@@ -53,13 +53,24 @@ const specialtyColor: Record<Specialty, string> = {
   Clima: "bg-success/15 text-success border-success/30",
 };
 
-const statusColor: Record<string, string> = {
-  Pendiente_Contacto: "bg-destructive/15 text-destructive",
-  Agendado: "bg-info/15 text-info",
-  En_Curso: "bg-warning/15 text-warning",
-  Finalizado: "bg-success/15 text-success",
-  Liquidado: "bg-muted text-muted-foreground",
+const statusLabels: Record<string, string> = {
+  Pendiente_Contacto: "Pendiente contacto",
+  Agendado: "Agendado",
+  En_Curso: "En curso",
+  Finalizado: "Finalizado",
+  Liquidado: "Liquidado",
 };
+
+function getOperatorColor(operatorId: string | null): { bg: string; text: string; border: string } {
+  if (!operatorId) return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))", border: "hsl(var(--border))" };
+  const op = mockOperators.find((o) => o.id === operatorId);
+  if (!op) return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))", border: "hsl(var(--border))" };
+  return {
+    bg: `hsl(${op.color} / 0.15)`,
+    text: `hsl(${op.color})`,
+    border: `hsl(${op.color} / 0.35)`,
+  };
+}
 
 function getServicesForDate(services: Service[], date: Date): Service[] {
   return services.filter((s) => {
@@ -70,15 +81,19 @@ function getServicesForDate(services: Service[], date: Date): Service[] {
 
 function ServiceChip({ service }: { service: Service }) {
   const navigate = useNavigate();
+  const colors = getOperatorColor(service.operatorId);
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={() => navigate(`/servicios/${service.id}`)}
-          className={cn(
-            "w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-pointer",
-            statusColor[service.status] || "bg-muted text-muted-foreground"
-          )}
+          className="w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-pointer"
+          style={{
+            backgroundColor: colors.bg,
+            color: colors.text,
+            borderColor: colors.border,
+          }}
         >
           <span className="flex items-center gap-1">
             {specialtyIcon[service.specialty]}
@@ -90,12 +105,13 @@ function ServiceChip({ service }: { service: Service }) {
       </TooltipTrigger>
       <TooltipContent side="right" className="max-w-xs">
         <div className="space-y-1">
-          <p className="font-semibold">{service.id}</p>
-          <p className="text-xs">{service.clientName}</p>
-          <p className="text-xs text-muted-foreground">{service.address}</p>
-          <p className="text-xs">{service.operatorName ?? "Operario sin asignar"}</p>
+          <p className="font-semibold">{service.id} – {service.clientName}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Tipo:</span> {service.serviceType === "Presupuesto" ? "Con presupuesto" : "Reparación directa"}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[service.status] ?? service.status}</p>
           {service.scheduledAt && (
-            <p className="text-xs">{format(new Date(service.scheduledAt), "HH:mm", { locale: es })}</p>
+            <p className="text-xs"><span className="text-muted-foreground">Hora:</span> {format(new Date(service.scheduledAt), "HH:mm", { locale: es })}</p>
           )}
         </div>
       </TooltipContent>
@@ -123,7 +139,7 @@ function DayView({ date }: { date: Date }) {
           {operators.map((op) => (
             <div key={op.id} className="p-2 text-center border-r border-border last:border-r-0">
               <div className="flex items-center justify-center gap-1.5">
-                <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
+                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(${op.color})` }} />
                 <span className="text-xs font-semibold text-foreground">{op.name.split(" ")[0]}</span>
               </div>
               <span className={cn("inline-flex items-center gap-0.5 text-[10px] mt-0.5 px-1.5 py-0.5 rounded-full border", specialtyColor[op.specialty])}>
@@ -186,7 +202,7 @@ function WeekView({ date }: { date: Date }) {
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
   return (
-    <div className="grid grid-cols-7 gap-0 border border-border rounded-lg overflow-hidden">
+    <div className="grid grid-cols-7 gap-0 border border-border rounded-lg overflow-hidden h-full">
       {days.map((day) => {
         const dayServices = getServicesForDate(mockServices, day);
         return (
@@ -230,19 +246,23 @@ function MonthView({ date }: { date: Date }) {
   const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  const weeks = days.length / 7;
 
   const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
   return (
-    <div>
-      <div className="grid grid-cols-7 gap-0 border border-border rounded-t-lg overflow-hidden">
+    <div className="h-full flex flex-col">
+      <div className="grid grid-cols-7 gap-0 border border-border rounded-t-lg overflow-hidden shrink-0">
         {weekDays.map((d) => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground border-b border-border bg-muted/50">
+          <div key={d} className="py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-border bg-muted/50">
             {d}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-0 border-x border-b border-border rounded-b-lg overflow-hidden">
+      <div
+        className="grid grid-cols-7 gap-0 border-x border-b border-border rounded-b-lg overflow-hidden flex-1"
+        style={{ gridTemplateRows: `repeat(${weeks}, 1fr)` }}
+      >
         {days.map((day) => {
           const dayServices = getServicesForDate(mockServices, day);
           const isCurrentMonth = isSameMonth(day, date);
@@ -250,11 +270,11 @@ function MonthView({ date }: { date: Date }) {
             <div
               key={day.toISOString()}
               className={cn(
-                "min-h-[100px] border-b border-r border-border last:border-r-0 [&:nth-child(7n)]:border-r-0 flex flex-col",
+                "border-b border-r border-border [&:nth-child(7n)]:border-r-0 flex flex-col overflow-hidden",
                 !isCurrentMonth && "bg-muted/20 opacity-50"
               )}
             >
-              <div className="flex justify-between items-center px-1.5 py-1">
+              <div className="flex justify-between items-center px-1.5 py-0.5 shrink-0">
                 <span
                   className={cn(
                     "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
@@ -269,12 +289,12 @@ function MonthView({ date }: { date: Date }) {
                   </Badge>
                 )}
               </div>
-              <div className="px-1 pb-1 space-y-0.5 overflow-y-auto max-h-[80px]">
-                {dayServices.slice(0, 3).map((s) => (
+              <div className="px-1 pb-1 space-y-0.5 overflow-y-auto flex-1">
+                {dayServices.slice(0, 4).map((s) => (
                   <ServiceChip key={s.id} service={s} />
                 ))}
-                {dayServices.length > 3 && (
-                  <p className="text-[10px] text-muted-foreground text-center">+{dayServices.length - 3} más</p>
+                {dayServices.length > 4 && (
+                  <p className="text-[10px] text-muted-foreground text-center">+{dayServices.length - 4} más</p>
                 )}
               </div>
             </div>
@@ -310,7 +330,7 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
         return (
           <div key={op.id} className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/50">
             <div className="flex items-center gap-2">
-              <div className={cn("w-2 h-2 rounded-full", op.available ? "bg-success" : "bg-destructive")} />
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(${op.color})` }} />
               <span className="text-sm font-medium text-foreground">{op.name}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -405,16 +425,22 @@ export default function CalendarView() {
               <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-50 mt-1 w-64 rounded-lg border border-border bg-popover p-3 shadow-lg">
+          <CollapsibleContent className="absolute z-50 mt-1 w-72 rounded-lg border border-border bg-popover p-3 shadow-lg">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operarios</p>
             <div className="space-y-1.5">
-              {Object.entries(statusColor).map(([key, cls]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <span className={cn("w-3 h-3 rounded-sm", cls.split(" ")[0])} />
-                  <span className="text-xs text-muted-foreground">{key.replace("_", " ")}</span>
+              {mockOperators.map((op) => (
+                <div key={op.id} className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(${op.color})` }} />
+                  <span className="text-xs text-foreground">{op.name}</span>
                 </div>
               ))}
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm bg-muted" />
+                <span className="text-xs text-muted-foreground">Sin asignar</span>
+              </div>
             </div>
             <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Especialidades</p>
               {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => (
                 <div key={key} className="flex items-center gap-2">
                   {specialtyIcon[key]}
