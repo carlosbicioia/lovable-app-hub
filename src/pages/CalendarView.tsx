@@ -219,6 +219,8 @@ function WeekView({ date }: { date: Date }) {
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
 
+
+
   return (
     <div className="h-full flex flex-col">
       {/* Day headers */}
