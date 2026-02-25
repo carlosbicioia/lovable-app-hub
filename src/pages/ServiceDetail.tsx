@@ -313,11 +313,12 @@ export default function ServiceDetail() {
                       <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estado</p>
                       <p className={cn(
                         "text-sm font-semibold",
-                        service.budgetStatus === "Aprobado" ? "text-success" :
-                        service.budgetStatus === "Pendiente" ? "text-warning" :
-                        service.budgetStatus === "Rechazado" ? "text-destructive" : "text-muted-foreground"
+                        linkedBudget?.status === "Aprobado" ? "text-success" :
+                        linkedBudget?.status === "Borrador" || linkedBudget?.status === "Enviado" ? "text-warning" :
+                        linkedBudget?.status === "Rechazado" ? "text-destructive" :
+                        linkedBudget?.status === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
                       )}>
-                        {service.budgetStatus ?? "—"}
+                        {linkedBudget ? (linkedBudget.status === "Pte_Facturación" ? "Pte. Facturación" : linkedBudget.status) : "—"}
                       </p>
                     </CardContent>
                   </Card>
