@@ -281,64 +281,216 @@ function WeekView({ date }: { date: Date }) {
   );
 }
 
-// ─── MONTH VIEW ────────────────────────────────────────────
+// ─── MONTH VIEW helpers ────────────────────────────────────
+function isMultiDay(s: Service): boolean {
+  if (!s.scheduledAt || !s.scheduledEndAt) return false;
+  return !isSameDay(new Date(s.scheduledAt), new Date(s.scheduledEndAt));
+}
+
+interface BarSegment {
+  service: Service;
+  colStart: number; // 1-based grid column
+  colEnd: number;   // 1-based grid column (exclusive)
+  row: number;      // stacking row (0-based)
+}
+
+function computeBarSegments(weekDays: Date[], services: Service[]): BarSegment[] {
+  const multiDayServices = services.filter(isMultiDay);
+  const segments: BarSegment[] = [];
+  const rowTaken: number[][] = []; // rowTaken[row] = list of occupied columns
+
+  for (const service of multiDayServices) {
+    const sStart = new Date(service.scheduledAt!);
+    const sEnd = new Date(service.scheduledEndAt!);
+    const startDay = new Date(sStart.getFullYear(), sStart.getMonth(), sStart.getDate());
+    const endDay = new Date(sEnd.getFullYear(), sEnd.getMonth(), sEnd.getDate());
+
+    // Find which columns of this week the service occupies
+    let colStart = -1;
+    let colEnd = -1;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekDays[i].getFullYear(), weekDays[i].getMonth(), weekDays[i].getDate());
+      if (d >= startDay && d <= endDay) {
+        if (colStart === -1) colStart = i + 1;
+        colEnd = i + 2; // exclusive
+      }
+    }
+    if (colStart === -1) continue;
+
+    // Find a free row
+    let row = 0;
+    const occupiedCols = Array.from({ length: colEnd - colStart }, (_, i) => colStart + i);
+    while (true) {
+      if (!rowTaken[row]) rowTaken[row] = [];
+      const conflict = occupiedCols.some((c) => rowTaken[row].includes(c));
+      if (!conflict) break;
+      row++;
+    }
+    occupiedCols.forEach((c) => rowTaken[row].push(c));
+
+    segments.push({ service, colStart, colEnd, row });
+  }
+  return segments;
+}
+
 function MonthView({ date }: { date: Date }) {
   const { services } = useServices();
+  const navigate = useNavigate();
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
   const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { locale: es, weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weeks = days.length / 7;
+  const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  const weekDayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+  // Group into weeks
+  const weeks: Date[][] = [];
+  for (let i = 0; i < allDays.length; i += 7) {
+    weeks.push(allDays.slice(i, i + 7));
+  }
+
+  // Get all services that appear in the calendar range
+  const rangeServices = services.filter((s) => {
+    if (!s.scheduledAt) return false;
+    const start = new Date(s.scheduledAt);
+    const startD = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endD = s.scheduledEndAt
+      ? new Date(new Date(s.scheduledEndAt).getFullYear(), new Date(s.scheduledEndAt).getMonth(), new Date(s.scheduledEndAt).getDate())
+      : startD;
+    const calStartD = new Date(calendarStart.getFullYear(), calendarStart.getMonth(), calendarStart.getDate());
+    const calEndD = new Date(calendarEnd.getFullYear(), calendarEnd.getMonth(), calendarEnd.getDate());
+    return endD >= calStartD && startD <= calEndD;
+  });
 
   return (
     <div className="h-full flex flex-col">
+      {/* Header */}
       <div className="grid grid-cols-7 gap-0 border border-border rounded-t-lg overflow-hidden shrink-0">
-        {weekDays.map((d) => (
+        {weekDayLabels.map((d) => (
           <div key={d} className="py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-border bg-muted/50">
             {d}
           </div>
         ))}
       </div>
-      <div
-        className="grid grid-cols-7 gap-0 border-x border-b border-border rounded-b-lg overflow-hidden flex-1"
-        style={{ gridTemplateRows: `repeat(${weeks}, 1fr)` }}
-      >
-        {days.map((day) => {
-          const dayServices = getServicesForDate(services, day);
-          const isCurrentMonth = isSameMonth(day, date);
+
+      {/* Weeks */}
+      <div className="border-x border-b border-border rounded-b-lg overflow-hidden flex-1 flex flex-col">
+        {weeks.map((weekDays, wi) => {
+          const barSegments = computeBarSegments(weekDays, rangeServices);
+          const maxBarRows = barSegments.length > 0 ? Math.max(...barSegments.map((b) => b.row)) + 1 : 0;
+
           return (
-            <div
-              key={day.toISOString()}
-              className={cn(
-                "border-b border-r border-border [&:nth-child(7n)]:border-r-0 flex flex-col overflow-hidden",
-                !isCurrentMonth && "bg-muted/20 opacity-50"
-              )}
-            >
-              <div className="flex justify-between items-center px-1.5 py-0.5 shrink-0">
-                <span
-                  className={cn(
-                    "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                    isToday(day) && "bg-primary text-primary-foreground"
-                  )}
-                >
-                  {format(day, "d")}
-                </span>
-                {dayServices.length > 0 && (
-                  <Badge variant="secondary" className="text-[10px] h-4 px-1">
-                    {dayServices.length}
-                  </Badge>
-                )}
+            <div key={wi} className="flex-1 min-h-0 flex flex-col border-b border-border last:border-b-0">
+              {/* Day numbers row */}
+              <div className="grid grid-cols-7 shrink-0">
+                {weekDays.map((day, di) => {
+                  const isCurrentMonth = isSameMonth(day, date);
+                  const dayServices = getServicesForDate(rangeServices, day);
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={cn(
+                        "flex justify-between items-center px-1.5 py-0.5 border-r border-border last:border-r-0",
+                        !isCurrentMonth && "opacity-40"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
+                          isToday(day) && "bg-primary text-primary-foreground"
+                        )}
+                      >
+                        {format(day, "d")}
+                      </span>
+                      {dayServices.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                          {dayServices.length}
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="px-1 pb-1 space-y-0.5 overflow-y-auto flex-1">
-                {dayServices.slice(0, 4).map((s) => (
-                  <ServiceChip key={s.id} service={s} showTime />
-                ))}
-                {dayServices.length > 4 && (
-                  <p className="text-[10px] text-muted-foreground text-center">+{dayServices.length - 4} más</p>
-                )}
+
+              {/* Multi-day bars */}
+              {maxBarRows > 0 && (
+                <div className="shrink-0">
+                  {Array.from({ length: Math.min(maxBarRows, 3) }, (_, rowIdx) => (
+                    <div key={rowIdx} className="grid grid-cols-7 gap-0 px-0.5" style={{ height: 20 }}>
+                      {barSegments
+                        .filter((b) => b.row === rowIdx)
+                        .map((bar) => {
+                          const colors = getOperatorColor(bar.service.operatorId);
+                          const sStart = new Date(bar.service.scheduledAt!);
+                          const sEnd = new Date(bar.service.scheduledEndAt!);
+                          const startsThisWeek = isSameDay(sStart, weekDays[bar.colStart - 1]) || sStart < weekDays[0];
+                          const endsThisWeek = isSameDay(sEnd, weekDays[bar.colEnd - 2]) || sEnd > weekDays[6];
+
+                          return (
+                            <Tooltip key={bar.service.id}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => navigate(`/servicios/${bar.service.id}`)}
+                                  className={cn(
+                                    "h-[18px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-pointer transition-colors hover:ring-1 hover:ring-ring px-1.5",
+                                    bar.colStart === 1 ? "rounded-l-md" : startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0",
+                                    bar.colEnd === 8 ? "rounded-r-md" : endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0"
+                                  )}
+                                  style={{
+                                    gridColumn: `${bar.colStart} / ${bar.colEnd}`,
+                                    backgroundColor: colors.bg,
+                                    color: colors.text,
+                                    borderColor: colors.border,
+                                  }}
+                                >
+                                  {specialtyIcon[bar.service.specialty]}
+                                  <span className="truncate">
+                                    {bar.service.id} · {bar.service.operatorName ?? "Sin asignar"}
+                                  </span>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-xs">
+                                <div className="space-y-1">
+                                  <p className="font-semibold">{bar.service.id} – {bar.service.clientName}</p>
+                                  <p className="text-xs"><span className="text-muted-foreground">Periodo:</span> {format(sStart, "d MMM", { locale: es })} – {format(sEnd, "d MMM", { locale: es })}</p>
+                                  <p className="text-xs"><span className="text-muted-foreground">Operario:</span> {bar.service.operatorName ?? "Sin asignar"}</p>
+                                  <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[bar.service.status] ?? bar.service.status}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                    </div>
+                  ))}
+                  {maxBarRows > 3 && (
+                    <p className="text-[10px] text-muted-foreground text-center">+{maxBarRows - 3} más</p>
+                  )}
+                </div>
+              )}
+
+              {/* Single-day chips */}
+              <div className="grid grid-cols-7 gap-0 flex-1 min-h-0 overflow-hidden">
+                {weekDays.map((day) => {
+                  const isCurrentMonth = isSameMonth(day, date);
+                  const singleDayServices = getServicesForDate(rangeServices, day).filter((s) => !isMultiDay(s));
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={cn(
+                        "px-0.5 pb-0.5 space-y-0.5 overflow-y-auto border-r border-border last:border-r-0",
+                        !isCurrentMonth && "opacity-40"
+                      )}
+                    >
+                      {singleDayServices.slice(0, 3).map((s) => (
+                        <ServiceChip key={s.id} service={s} showTime />
+                      ))}
+                      {singleDayServices.length > 3 && (
+                        <p className="text-[10px] text-muted-foreground text-center">+{singleDayServices.length - 3} más</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
