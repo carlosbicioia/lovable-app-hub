@@ -8,10 +8,19 @@ import { differenceInHours, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useBudgets } from "@/hooks/useBudgets";
+import type { BudgetStatus } from "@/types/urbango";
 
 export default function Services() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { budgets } = useBudgets();
+
+  const getBudgetStatusForService = (serviceId: string): BudgetStatus | null => {
+    const budget = budgets.find((b) => b.serviceId === serviceId);
+    return budget?.status ?? null;
+  };
+
   const filtered = mockServices.filter(
     (s) =>
       s.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -137,16 +146,21 @@ export default function Services() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      {s.budgetStatus ? (
-                        <span className={cn(
-                          "text-xs font-medium",
-                          s.budgetStatus === "Aprobado" ? "text-success" :
-                          s.budgetStatus === "Pendiente" ? "text-warning" :
-                          s.budgetStatus === "Rechazado" ? "text-destructive" : "text-muted-foreground"
-                        )}>
-                          {s.budgetStatus}
-                        </span>
-                      ) : "—"}
+                      {(() => {
+                        const bStatus = getBudgetStatusForService(s.id);
+                        if (!bStatus) return "—";
+                        return (
+                          <span className={cn(
+                            "text-xs font-medium",
+                            bStatus === "Aprobado" ? "text-success" :
+                            bStatus === "Borrador" || bStatus === "Enviado" ? "text-warning" :
+                            bStatus === "Rechazado" ? "text-destructive" :
+                            bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
+                          )}>
+                            {bStatus === "Pte_Facturación" ? "Pte. Facturación" : bStatus}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">
                       {s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}
