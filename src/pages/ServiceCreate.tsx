@@ -17,10 +17,14 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { mockClients, mockCollaborators, mockOperators } from "@/data/mockData";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useServices } from "@/hooks/useServices";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, BudgetStatus } from "@/types/urbango";
 
 export default function ServiceCreate() {
+  const { refetch } = useServices();
   const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
 
   // ── Client & origin ──
   const [clientId, setClientId] = useState("");
@@ -75,7 +79,7 @@ export default function ServiceCreate() {
     (o) => o.status === "Activo" && o.available && (o.specialty === specialty || o.secondarySpecialty === specialty)
   );
 
-  const handleSave = (andSchedule: boolean) => {
+  const handleSave = async (andSchedule: boolean) => {
     if (!clientId) {
       toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
       return;
@@ -93,13 +97,101 @@ export default function ServiceCreate() {
       return;
     }
 
-    toast({
-      title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
-      description: andSchedule
-        ? `El servicio ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
-        : "El servicio se ha registrado como Pendiente de Contacto.",
-    });
-    navigate("/servicios");
+    setSaving(true);
+    try {
+      // Generate next service ID
+      const { data: settings } = await supabase
+        .from("company_settings")
+        .select("service_prefix")
+        .limit(1)
+        .single();
+      const prefix = settings?.service_prefix ?? "SRV-";
+
+      // Find the highest existing numeric suffix
+      const { data: lastServices } = await supabase
+        .from("services")
+        .select("id")
+        .ilike("id", `${prefix}%`)
+        .order("id", { ascending: false })
+        .limit(1);
+
+      let nextNum = 1;
+      if (lastServices && lastServices.length > 0) {
+        const lastId = lastServices[0].id;
+        const numPart = parseInt(lastId.replace(prefix, ""), 10);
+        if (!isNaN(numPart)) nextNum = numPart + 1;
+      }
+      const newId = `${prefix}${String(nextNum).padStart(3, "0")}`;
+
+      const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
+
+      // Build scheduled_at / scheduled_end_at with time
+      let scheduledAtIso: string | null = null;
+      let scheduledEndAtIso: string | null = null;
+      if (scheduledDate) {
+        const [h, m] = scheduledTime.split(":").map(Number);
+        const d = new Date(scheduledDate);
+        d.setHours(h, m, 0, 0);
+        scheduledAtIso = d.toISOString();
+      }
+      if (scheduledEndDate) {
+        const [h, m] = scheduledEndTime.split(":").map(Number);
+        const d = new Date(scheduledEndDate);
+        d.setHours(h, m, 0, 0);
+        scheduledEndAtIso = d.toISOString();
+      }
+
+      const status = andSchedule ? "Agendado" : "Pendiente_Contacto";
+
+      const { error } = await supabase.from("services").insert({
+        id: newId,
+        client_id: clientId,
+        client_name: selectedClient?.name ?? "",
+        operator_id: operatorId && operatorId !== "none" ? operatorId : null,
+        operator_name: selectedOperator?.name ?? null,
+        collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
+        collaborator_name: selectedCollab?.companyName ?? null,
+        cluster_id: selectedClient?.clusterId ?? "",
+        origin,
+        status,
+        urgency,
+        specialty,
+        service_type: serviceType,
+        service_category: serviceCategory,
+        claim_status: claimStatus,
+        description,
+        address,
+        diagnosis_complete: diagnosisComplete,
+        scheduled_at: scheduledAtIso,
+        scheduled_end_at: scheduledEndAtIso,
+        contacted_at: andSchedule ? new Date().toISOString() : null,
+        budget_total: budgetTotal !== "" ? Number(budgetTotal) : null,
+        budget_status: budgetStatus ? (budgetStatus as string) : null,
+        real_hours: realHours !== "" ? Number(realHours) : null,
+      });
+
+      if (error) {
+        console.error("Error creating service:", error);
+        toast({ title: "Error", description: "No se pudo crear el servicio: " + error.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      await refetch();
+
+      toast({
+        title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
+        description: andSchedule
+          ? `El servicio ${newId} ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
+          : `El servicio ${newId} se ha registrado como Pendiente de Contacto.`,
+      });
+      navigate("/servicios");
+    } catch (err: any) {
+      console.error("Unexpected error creating service:", err);
+      toast({ title: "Error", description: "Error inesperado al crear el servicio", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -584,11 +676,11 @@ export default function ServiceCreate() {
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
         <Button variant="outline" onClick={() => navigate("/servicios")}>Cancelar</Button>
-        <Button variant="secondary" onClick={() => handleSave(false)}>
-          <Save className="w-4 h-4 mr-2" /> Registrar (Pte. Contacto)
+        <Button variant="secondary" onClick={() => handleSave(false)} disabled={saving}>
+          <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Contacto)"}
         </Button>
-        <Button onClick={() => handleSave(true)}>
-          <Send className="w-4 h-4 mr-2" /> Registrar y Agendar
+        <Button onClick={() => handleSave(true)} disabled={saving}>
+          <Send className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar y Agendar"}
         </Button>
       </div>
     </div>
