@@ -63,26 +63,30 @@ export default function Dashboard() {
 
     if (useWeeks) {
       const weeks = eachWeekOfInterval({ start: from, end: to }, { weekStartsOn: 1 });
+      let acc = 0;
       return weeks.map((weekStart) => {
         const weekEnd = addDays(weekStart, 6);
-        const count = filtered.filter((s) => {
+        const weekServices = filtered.filter((s) => {
           try {
             const d = parseISO(s.receivedAt);
             return d >= weekStart && d <= weekEnd;
           } catch { return false; }
-        }).length;
-        return { label: format(weekStart, "d MMM", { locale: es }), servicios: count };
+        });
+        acc += weekServices.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
+        return { label: format(weekStart, "d MMM", { locale: es }), servicios: weekServices.length, facturación: acc };
       });
     }
 
     const days = eachDayOfInterval({ start: from, end: to });
+    let acc = 0;
     return days.map((day) => {
       const dayStr = format(day, "yyyy-MM-dd");
-      const count = filtered.filter((s) => {
+      const dayServices = filtered.filter((s) => {
         try { return s.receivedAt.startsWith(dayStr); }
         catch { return false; }
-      }).length;
-      return { label: format(day, "d MMM", { locale: es }), servicios: count };
+      });
+      acc += dayServices.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
+      return { label: format(day, "d MMM", { locale: es }), servicios: dayServices.length, facturación: acc };
     });
   }, [filtered, dateRange]);
 
@@ -160,18 +164,23 @@ export default function Dashboard() {
       {/* Evolution chart */}
       {chartData.length > 1 && (
         <div className="bg-card rounded-xl border border-border shadow-sm p-5">
-          <h2 className="font-display font-semibold text-card-foreground mb-4">Evolución de Servicios</h2>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+          <h2 className="font-display font-semibold text-card-foreground mb-4">Evolución de Servicios y Facturación</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorServicios" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
+                <linearGradient id="colorFacturacion" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
+                </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v: number) => `€${(v / 1000).toFixed(1)}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -180,14 +189,28 @@ export default function Dashboard() {
                   fontSize: 13,
                 }}
                 labelStyle={{ color: "hsl(var(--card-foreground))" }}
+                formatter={(value: number, name: string) =>
+                  name === "Facturación" ? [`€${value.toLocaleString()}`, name] : [value, name]
+                }
               />
               <Area
+                yAxisId="left"
                 type="monotone"
                 dataKey="servicios"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#colorServicios)"
                 name="Servicios"
+              />
+              <Area
+                yAxisId="right"
+                type="monotone"
+                dataKey="facturación"
+                stroke="hsl(var(--success))"
+                strokeWidth={2}
+                fill="url(#colorFacturacion)"
+                name="Facturación"
+                strokeDasharray="5 3"
               />
             </AreaChart>
           </ResponsiveContainer>
