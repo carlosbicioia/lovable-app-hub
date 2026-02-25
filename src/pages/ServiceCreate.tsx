@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Send, CalendarIcon, Upload } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Euro, Camera, File } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -10,19 +10,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { mockClients, mockCollaborators, mockOperators } from "@/data/mockData";
 import { toast } from "@/hooks/use-toast";
-import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
+import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, BudgetStatus } from "@/types/urbango";
 
 export default function ServiceCreate() {
   const navigate = useNavigate();
 
   // ── Client & origin ──
   const [clientId, setClientId] = useState("");
+  const [clientOpen, setClientOpen] = useState(false);
   const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
   const [collaboratorId, setCollaboratorId] = useState("");
 
@@ -47,13 +49,19 @@ export default function ServiceCreate() {
   // ── Flags ──
   const [diagnosisComplete, setDiagnosisComplete] = useState(false);
 
+  // ── Economics ──
+  const [budgetTotal, setBudgetTotal] = useState<number | "">("");
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | "">("");
+  const [realHours, setRealHours] = useState<number | "">("");
+  const [hasBudget, setHasBudget] = useState(false);
+
   // ── Derived data ──
   const selectedClient = mockClients.find((c) => c.id === clientId);
   const selectedOperator = mockOperators.find((o) => o.id === operatorId);
 
-  // Auto-fill address when client changes
   const handleClientChange = (id: string) => {
     setClientId(id);
+    setClientOpen(false);
     const client = mockClients.find((c) => c.id === id);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
@@ -63,7 +71,6 @@ export default function ServiceCreate() {
     }
   };
 
-  // Filter operators by specialty
   const availableOperators = mockOperators.filter(
     (o) => o.status === "Activo" && o.available && (o.specialty === specialty || o.secondarySpecialty === specialty)
   );
@@ -115,28 +122,48 @@ export default function ServiceCreate() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Client searchable selector */}
             <div className="space-y-2">
               <Label>Cliente *</Label>
-              <Select value={clientId} onValueChange={handleClientChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cliente..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={clientOpen} onOpenChange={setClientOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn("w-full justify-between font-normal", !clientId && "text-muted-foreground")}
+                  >
+                    {selectedClient ? selectedClient.name : "Buscar cliente..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[320px] p-0 bg-popover z-50" align="start">
+                  <Command>
+                    <CommandInput placeholder="Nombre, DNI, teléfono..." />
+                    <CommandList>
+                      <CommandEmpty>No se encontraron clientes</CommandEmpty>
+                      <CommandGroup>
+                        {mockClients.map((c) => (
+                          <CommandItem
+                            key={c.id}
+                            value={`${c.name} ${c.dni} ${c.phone} ${c.email}`}
+                            onSelect={() => handleClientChange(c.id)}
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{c.name}</span>
+                              <span className="text-xs text-muted-foreground">{c.phone} · {c.address}, {c.city}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
               <Label>Origen</Label>
               <Select value={origin} onValueChange={(v) => setOrigin(v as ServiceOrigin)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Directo">Directo</SelectItem>
                   <SelectItem value="B2B">B2B (Colaborador)</SelectItem>
@@ -149,15 +176,11 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Colaborador</Label>
               <Select value={collaboratorId} onValueChange={setCollaboratorId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sin colaborador" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin colaborador</SelectItem>
                   {mockCollaborators.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.companyName}
-                    </SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -165,14 +188,18 @@ export default function ServiceCreate() {
           </div>
 
           {selectedClient && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 bg-muted/30 rounded-lg p-3 border border-border">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Teléfono</Label>
-                <p className="text-sm">{selectedClient.phone}</p>
+                <p className="text-sm font-medium">{selectedClient.phone}</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Email</Label>
                 <p className="text-sm">{selectedClient.email}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Dirección</Label>
+                <p className="text-sm">{selectedClient.address}, {selectedClient.city}</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Plan activo</Label>
@@ -200,9 +227,7 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Especialidad *</Label>
               <Select value={specialty} onValueChange={(v) => { setSpecialty(v as Specialty); setOperatorId(""); }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Fontanería/Agua">Fontanería / Agua</SelectItem>
                   <SelectItem value="Electricidad/Luz">Electricidad / Luz</SelectItem>
@@ -214,9 +239,7 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Urgencia</Label>
               <Select value={urgency} onValueChange={(v) => setUrgency(v as UrgencyLevel)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Estándar">Estándar</SelectItem>
                   <SelectItem value="24h">24 horas</SelectItem>
@@ -228,9 +251,7 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Tipo de servicio</Label>
               <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Reparación_Directa">Reparación directa</SelectItem>
                   <SelectItem value="Presupuesto">Requiere presupuesto</SelectItem>
@@ -241,9 +262,7 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Categoría</Label>
               <Select value={serviceCategory} onValueChange={(v) => setServiceCategory(v as "Correctivo" | "Plan_Preventivo")}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Correctivo">Correctivo</SelectItem>
                   <SelectItem value="Plan_Preventivo">Plan preventivo</SelectItem>
@@ -254,9 +273,7 @@ export default function ServiceCreate() {
             <div className="space-y-2">
               <Label>Estado reclamación</Label>
               <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Abierto">Abierto</SelectItem>
                   <SelectItem value="En_Valoración">En valoración</SelectItem>
@@ -274,6 +291,37 @@ export default function ServiceCreate() {
               </div>
             </div>
           </div>
+
+          {/* Budget section when "Presupuesto" is selected */}
+          {serviceType === "Presupuesto" && (
+            <div className="mt-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Este servicio requiere presupuesto</span>
+                </div>
+                {hasBudget ? (
+                  <Link
+                    to="/presupuestos/PRE-XXXXX"
+                    className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Ver presupuesto PRE-XXXXX
+                  </Link>
+                ) : (
+                  <Button size="sm" variant="default" onClick={() => navigate("/presupuestos/nuevo")}>
+                    <FileText className="w-4 h-4 mr-1" />
+                    Crear presupuesto
+                  </Button>
+                )}
+              </div>
+              {!hasBudget && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Puedes crear el presupuesto ahora o después de registrar el servicio. El presupuesto se vinculará automáticamente.
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -301,52 +349,74 @@ export default function ServiceCreate() {
               placeholder="Dirección completa donde se realizará el servicio"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ── SECTION 4: Media & Documents (separated) ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">4. Archivos Adjuntos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Multimedia */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Camera className="w-4 h-4 text-muted-foreground" />
+              Fotos y Vídeos
+            </Label>
+            <p className="text-xs text-muted-foreground">Imágenes del problema, estado del inmueble, vídeos de la avería</p>
+            <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-primary/50 transition-colors cursor-pointer">
+              <Image className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
+              <p className="text-sm text-muted-foreground">
+                Arrastra fotos o vídeos o <span className="text-primary font-medium">seleccionar archivos</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">JPG, PNG, MP4 · Máx. 20MB por archivo</p>
+            </div>
+          </div>
 
           <Separator />
 
+          {/* Documents */}
           <div className="space-y-2">
-            <Label>Documentación adjunta</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-              <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <Label className="flex items-center gap-2">
+              <File className="w-4 h-4 text-muted-foreground" />
+              Documentación
+            </Label>
+            <p className="text-xs text-muted-foreground">Partes del seguro, pólizas, informes previos, facturas</p>
+            <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-info/50 transition-colors cursor-pointer">
+              <Upload className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
               <p className="text-sm text-muted-foreground">
-                Arrastra fotos o vídeos aquí o <span className="text-primary font-medium">haz clic para seleccionar</span>
+                Arrastra documentos o <span className="text-info font-medium">seleccionar archivos</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Fotos del problema, vídeos, documentos del seguro...</p>
+              <p className="text-[11px] text-muted-foreground mt-1">PDF, DOC, XLS · Máx. 20MB por archivo</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* ── SECTION 4: Assignment & Scheduling ── */}
+      {/* ── SECTION 5: Assignment & Scheduling ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">4. Asignación y Planificación</CardTitle>
+          <CardTitle className="text-base">5. Asignación y Planificación</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Operario asignado</Label>
               <Select value={operatorId} onValueChange={setOperatorId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sin asignar (pendiente)" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Sin asignar (pendiente)" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin asignar</SelectItem>
                   {availableOperators.map((o) => (
                     <SelectItem key={o.id} value={o.id}>
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: `hsl(${o.color})` }}
-                        />
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: `hsl(${o.color})` }} />
                         {o.name} · NPS {o.npsMean} · {o.activeServices} activos
                       </div>
                     </SelectItem>
                   ))}
                   {availableOperators.length === 0 && (
-                    <SelectItem value="_empty" disabled>
-                      No hay operarios disponibles para {specialty}
-                    </SelectItem>
+                    <SelectItem value="_empty" disabled>No hay operarios disponibles para {specialty}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -359,12 +429,7 @@ export default function ServiceCreate() {
 
             <div className="space-y-2">
               <Label>Clúster / Zona</Label>
-              <Input
-                value={selectedClient?.clusterId ?? ""}
-                readOnly
-                className="bg-muted"
-                placeholder="Se asigna automáticamente del cliente"
-              />
+              <Input value={selectedClient?.clusterId ?? ""} readOnly className="bg-muted" placeholder="Se asigna automáticamente del cliente" />
             </div>
           </div>
 
@@ -375,55 +440,34 @@ export default function ServiceCreate() {
               <Label>Fecha inicio prevista</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !scheduledDate && "text-muted-foreground")}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduledDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {scheduledDate ? format(scheduledDate, "d MMM yyyy", { locale: es }) : "Sin fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={scheduledDate}
-                    onSelect={setScheduledDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={scheduledDate} onSelect={setScheduledDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
-
             <div className="space-y-2">
               <Label>Hora inicio</Label>
               <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
             </div>
-
             <div className="space-y-2">
               <Label>Fecha fin prevista</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !scheduledEndDate && "text-muted-foreground")}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduledEndDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {scheduledEndDate ? format(scheduledEndDate, "d MMM yyyy", { locale: es }) : "Sin fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={scheduledEndDate}
-                    onSelect={setScheduledEndDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={scheduledEndDate} onSelect={setScheduledEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
-
             <div className="space-y-2">
               <Label>Hora fin</Label>
               <Input type="time" value={scheduledEndTime} onChange={(e) => setScheduledEndTime(e.target.value)} />
@@ -443,10 +487,87 @@ export default function ServiceCreate() {
         </CardContent>
       </Card>
 
-      {/* ── SECTION 5: Internal notes ── */}
+      {/* ── SECTION 6: Economics ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">5. Notas internas</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Euro className="w-4 h-4" />
+            6. Datos Económicos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Importe presupuesto (€)</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.01}
+                value={budgetTotal}
+                onChange={(e) => setBudgetTotal(e.target.value ? parseFloat(e.target.value) : "")}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Estado presupuesto</Label>
+              <Select value={budgetStatus} onValueChange={(v) => setBudgetStatus(v as BudgetStatus)}>
+                <SelectTrigger><SelectValue placeholder="Sin presupuesto" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin presupuesto</SelectItem>
+                  <SelectItem value="Pendiente">Pendiente</SelectItem>
+                  <SelectItem value="Enviado">Enviado</SelectItem>
+                  <SelectItem value="Aprobado">Aprobado</SelectItem>
+                  <SelectItem value="Rechazado">Rechazado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Horas reales trabajadas</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.5}
+                value={realHours}
+                onChange={(e) => setRealHours(e.target.value ? parseFloat(e.target.value) : "")}
+                placeholder="—"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Coste/hora operario</Label>
+              <Input
+                value={selectedOperator ? `${(selectedOperator.totalRevenue / Math.max(selectedOperator.completedServices, 1)).toFixed(2)} €/srv` : "—"}
+                readOnly
+                className="bg-muted"
+              />
+              <p className="text-[11px] text-muted-foreground">Media del operario seleccionado</p>
+            </div>
+          </div>
+
+          {budgetTotal && realHours ? (
+            <div className="mt-4 bg-muted/50 rounded-lg p-3 border border-border">
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Importe presupuesto</span>
+                  <p className="font-medium text-foreground">{Number(budgetTotal).toFixed(2)} €</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Horas reales</span>
+                  <p className="font-medium text-foreground">{realHours}h</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">€/hora efectiva</span>
+                  <p className="font-medium text-foreground">{(Number(budgetTotal) / Number(realHours)).toFixed(2)} €/h</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {/* ── SECTION 7: Internal notes ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">7. Notas internas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -462,9 +583,7 @@ export default function ServiceCreate() {
 
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
-        <Button variant="outline" onClick={() => navigate("/servicios")}>
-          Cancelar
-        </Button>
+        <Button variant="outline" onClick={() => navigate("/servicios")}>Cancelar</Button>
         <Button variant="secondary" onClick={() => handleSave(false)}>
           <Save className="w-4 h-4 mr-2" /> Registrar (Pte. Contacto)
         </Button>
