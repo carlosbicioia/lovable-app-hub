@@ -75,8 +75,17 @@ function getOperatorColor(operatorId: string | null): { bg: string; text: string
 
 function getServicesForDate(services: Service[], date: Date): Service[] {
   return services.filter((s) => {
-    if (s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)) return true;
-    return false;
+    if (!s.scheduledAt) return false;
+    const start = new Date(s.scheduledAt);
+    if (s.scheduledEndAt) {
+      const end = new Date(s.scheduledEndAt);
+      // Check if date falls within [start, end] range (by day)
+      const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      return dayStart >= startDay && dayStart <= endDay;
+    }
+    return isSameDay(start, date);
   });
 }
 
@@ -243,7 +252,19 @@ function WeekView({ date }: { date: Date }) {
             </div>
             {days.map((day) => {
               const dayServices = services.filter(
-                (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), day) && getHours(new Date(s.scheduledAt)) === hour
+                (s) => {
+                  if (!s.scheduledAt) return false;
+                  const start = new Date(s.scheduledAt);
+                  const isMultiDay = s.scheduledEndAt && !isSameDay(start, new Date(s.scheduledEndAt));
+                  if (isMultiDay) {
+                    // Multi-day: show on the start hour for every spanned day
+                    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                    const endDay = new Date(new Date(s.scheduledEndAt!).getFullYear(), new Date(s.scheduledEndAt!).getMonth(), new Date(s.scheduledEndAt!).getDate());
+                    const target = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+                    return target >= startDay && target <= endDay && getHours(start) === hour;
+                  }
+                  return isSameDay(start, day) && getHours(start) === hour;
+                }
               );
               return (
                 <div key={day.toISOString()} className="p-0.5 border-r border-border last:border-r-0 space-y-0.5">
