@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { Bell, Search, MessageSquare } from "lucide-react";
+import { Bell, Search, MessageSquare, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ChatPanel from "@/components/chat/ChatPanel";
 import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TopBar() {
   const [chatOpen, setChatOpen] = useState(false);
   const { totalUnread } = useChat();
+  const { user, signOut } = useAuth();
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <>
@@ -36,13 +41,20 @@ export default function TopBar() {
           </button>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-semibold">AG</span>
+              <span className="text-primary-foreground text-xs font-semibold">{initials}</span>
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-medium leading-none">Admin Gestor</p>
-              <p className="text-xs text-muted-foreground">gestor@urbango.es</p>
+              <p className="text-sm font-medium leading-none">{displayName}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </div>
+          <button
+            onClick={signOut}
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </header>
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
