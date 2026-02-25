@@ -1,4 +1,3 @@
-import { mockBudgets } from "@/data/mockData";
 import { Search, Plus, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,15 +7,21 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import type { BudgetStatus } from "@/types/urbango";
+import { useBudgets } from "@/hooks/useBudgets";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
   Enviado: { label: "Enviado", className: "bg-info/15 text-info" },
   Aprobado: { label: "Aprobado", className: "bg-success/15 text-success" },
   Rechazado: { label: "Rechazado", className: "bg-destructive/15 text-destructive" },
+  Pte_Facturación: { label: "Pte. Facturación", className: "bg-warning/15 text-warning" },
 };
 
-function calcBudgetTotals(lines: typeof mockBudgets[0]["lines"]) {
+const allStatuses: BudgetStatus[] = ["Borrador", "Enviado", "Aprobado", "Rechazado", "Pte_Facturación"];
+
+function calcBudgetTotals(lines: { costPrice: number; margin: number; units: number; taxRate: number }[]) {
   let subtotal = 0;
   let totalTax = 0;
   for (const l of lines) {
@@ -31,20 +36,26 @@ function calcBudgetTotals(lines: typeof mockBudgets[0]["lines"]) {
 export default function Budgets() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { budgets, updateBudgetStatus } = useBudgets();
 
-  const filtered = mockBudgets.filter(
+  const filtered = budgets.filter(
     (b) =>
       b.id.toLowerCase().includes(search.toLowerCase()) ||
       b.clientName.toLowerCase().includes(search.toLowerCase()) ||
       b.serviceId.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
+    updateBudgetStatus(budgetId, newStatus);
+    toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Presupuestos</h1>
-          <p className="text-muted-foreground text-sm mt-1">{mockBudgets.length} presupuestos</p>
+          <p className="text-muted-foreground text-sm mt-1">{budgets.length} presupuestos</p>
         </div>
         <Button onClick={() => navigate("/presupuestos/nuevo")}>
           <Plus className="w-4 h-4 mr-2" /> Nuevo Presupuesto
@@ -81,20 +92,33 @@ export default function Budgets() {
                 return (
                   <tr
                     key={b.id}
-                    className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/presupuestos/${b.id}`)}
+                    className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
                   >
-                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{b.id}</td>
-                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{b.serviceId}</td>
-                    <td className="px-5 py-3 font-medium text-card-foreground">{b.clientName}</td>
+                    <td
+                      className="px-5 py-3 font-mono text-xs text-muted-foreground cursor-pointer"
+                      onClick={() => navigate(`/presupuestos/${b.id}`)}
+                    >
+                      {b.id}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground cursor-pointer" onClick={() => navigate(`/presupuestos/${b.id}`)}>{b.serviceId}</td>
+                    <td className="px-5 py-3 font-medium text-card-foreground cursor-pointer" onClick={() => navigate(`/presupuestos/${b.id}`)}>{b.clientName}</td>
                     <td className="px-5 py-3 text-muted-foreground">{b.collaboratorName ?? "—"}</td>
                     <td className="px-5 py-3 text-muted-foreground text-xs">
                       {format(new Date(b.createdAt), "dd MMM yyyy", { locale: es })}
                     </td>
-                    <td className="px-5 py-3">
-                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", cfg.className)}>
-                        {cfg.label}
-                      </span>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <Select value={b.status} onValueChange={(v) => handleStatusChange(b.id, v as BudgetStatus)}>
+                        <SelectTrigger className={cn("h-7 w-[140px] text-xs font-medium border-0", cfg.className)}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allStatuses.map((s) => (
+                            <SelectItem key={s} value={s} className="text-xs">
+                              {statusConfig[s].label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-5 py-3 text-right text-card-foreground">{subtotal.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { mockServices } from "@/data/mockData";
 import { articlesData, getArticleSalePrice } from "@/data/articlesData";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
+import { useBudgets } from "@/hooks/useBudgets";
 
 const defaultTerms = "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.";
 
 export default function BudgetCreate() {
   const navigate = useNavigate();
-  const [serviceId, setServiceId] = useState("");
+  const [searchParams] = useSearchParams();
+  const { addBudget, budgets } = useBudgets();
+
+  const [serviceId, setServiceId] = useState(searchParams.get("serviceId") ?? "");
   const [terms, setTerms] = useState(defaultTerms);
   const [lines, setLines] = useState<BudgetLine[]>([
     { id: "1", concept: "", description: "", units: 1, costPrice: 0, margin: 30, taxRate: 21 },
@@ -48,7 +52,6 @@ export default function BudgetCreate() {
     const margin = article.costPrice > 0 ? ((salePrice - article.costPrice) / article.costPrice) * 100 : 30;
 
     if (openPopoverIndex !== null && openPopoverIndex < lines.length) {
-      // Replace the current line
       setLines((prev) =>
         prev.map((l, i) =>
           i === openPopoverIndex
@@ -57,7 +60,6 @@ export default function BudgetCreate() {
         )
       );
     } else {
-      // Add new line
       setLines((prev) => [
         ...prev,
         {
@@ -92,19 +94,30 @@ export default function BudgetCreate() {
 
   const handleSave = (send: boolean) => {
     if (!serviceId) {
-      toast({ title: "Error", description: "Selecciona un servicio", variant: "destructive" });
+      toast.error("Selecciona un servicio");
       return;
     }
     if (lines.some((l) => !l.concept)) {
-      toast({ title: "Error", description: "Todos los conceptos deben tener nombre", variant: "destructive" });
+      toast.error("Todos los conceptos deben tener nombre");
       return;
     }
-    toast({
-      title: send ? "Presupuesto enviado" : "Presupuesto guardado",
-      description: send
-        ? "El presupuesto se ha creado y enviado por email."
-        : "El presupuesto se ha guardado como borrador.",
-    });
+
+    const nextNumber = 15271349 + budgets.length;
+    const newBudget = {
+      id: `PRE-${nextNumber}`,
+      serviceId,
+      serviceName: selectedService?.description ?? "",
+      clientName: selectedService?.clientName ?? "",
+      clientAddress: selectedService?.address ?? "",
+      collaboratorName: selectedService?.collaboratorName ?? null,
+      createdAt: new Date().toISOString(),
+      status: send ? "Enviado" as const : "Borrador" as const,
+      lines,
+      termsAndConditions: terms,
+    };
+
+    addBudget(newBudget);
+    toast.success(send ? "Presupuesto creado y enviado" : "Presupuesto guardado como borrador");
     navigate("/presupuestos");
   };
 
@@ -195,7 +208,6 @@ export default function BudgetCreate() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Header */}
           <div className="hidden md:grid grid-cols-[2fr_1fr_80px_80px_80px_80px_80px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
             <span>Concepto</span>
             <span>Descripción</span>
@@ -270,7 +282,6 @@ export default function BudgetCreate() {
             );
           })}
 
-          {/* Totals */}
           <div className="flex justify-end pt-4 border-t border-border">
             <div className="w-64 space-y-1 text-sm">
               <div className="flex justify-between">

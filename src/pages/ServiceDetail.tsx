@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockServices, mockBudgets } from "@/data/mockData";
+import { mockServices } from "@/data/mockData";
+import { useBudgets } from "@/hooks/useBudgets";
 import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,8 @@ export default function ServiceDetail() {
     );
   }
 
-  const linkedBudget = mockBudgets.find((b) => b.serviceId === service.id);
+  const { budgets } = useBudgets();
+  const linkedBudget = budgets.find((b) => b.serviceId === service.id);
 
   const getSlaStatus = () => {
     if (service.contactedAt) return null;
