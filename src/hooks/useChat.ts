@@ -96,6 +96,15 @@ export function useChat() {
   }, []);
 
   const markAsRead = useCallback(async (conversationId: string) => {
+    // Optimistic update: immediately clear unread count locally
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === conversationId
+          ? { ...c, unread: 0, messages: c.messages.map((m) => ({ ...m, read: true })) }
+          : c
+      )
+    );
+
     await supabase
       .from("chat_messages")
       .update({ read: true })
