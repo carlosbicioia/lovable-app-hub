@@ -14,6 +14,7 @@ import BudgetDetail from "@/pages/BudgetDetail";
 import BudgetCreate from "@/pages/BudgetCreate";
 import Articles from "@/pages/Articles";
 import ComingSoon from "@/pages/ComingSoon";
+import CalendarView from "@/pages/CalendarView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +36,7 @@ const App = () => (
             <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
             <Route path="/presupuestos/:id" element={<BudgetDetail />} />
             <Route path="/articulos" element={<Articles />} />
-            <Route path="/calendario" element={<ComingSoon title="Calendario" />} />
+            <Route path="/calendario" element={<CalendarView />} />
             <Route path="/operarios" element={<ComingSoon title="Operarios" />} />
           </Route>
           <Route path="*" element={<NotFound />} />
