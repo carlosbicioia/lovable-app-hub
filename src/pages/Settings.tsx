@@ -43,6 +43,19 @@ export default function Settings() {
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario" });
 
+  // Protocol state
+  const [protocolItems, setProtocolItems] = useState([
+    { label: "Contacto con cliente (SLA 12h)", description: "Primer contacto telefónico o por email dentro del SLA establecido", enabled: true },
+    { label: "Diagnóstico multimedia", description: "Recibir fotos o vídeos del problema reportado", enabled: true },
+    { label: "Técnico asignado (por cluster y especialidad)", description: "Asignar un técnico del cluster correcto con la especialidad adecuada", enabled: true },
+    { label: "Material preparado", description: "Confirmar que los materiales necesarios están disponibles", enabled: true },
+    { label: "Presupuesto gestionado", description: "Solo para servicios con presupuesto: enviar y obtener aprobación", enabled: true },
+    { label: "NPS recogido", description: "Recoger la encuesta de satisfacción al finalizar", enabled: true },
+  ]);
+  const [newStepLabel, setNewStepLabel] = useState("");
+  const [newStepDesc, setNewStepDesc] = useState("");
+  const [showNewStep, setShowNewStep] = useState(false);
+
   // Sync forms when settings load
   useEffect(() => {
     if (settings) {
@@ -496,38 +509,90 @@ export default function Settings() {
               <CardDescription>Define los pasos que el gestor debe completar en cada servicio. Estos aparecerán como checklist en la pantalla de detalle del servicio.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(() => {
-                const defaultItems = [
-                  { label: "Contacto con cliente (SLA 12h)", description: "Primer contacto telefónico o por email dentro del SLA establecido" },
-                  { label: "Diagnóstico multimedia", description: "Recibir fotos o vídeos del problema reportado" },
-                  { label: "Técnico asignado (por cluster y especialidad)", description: "Asignar un técnico del cluster correcto con la especialidad adecuada" },
-                  { label: "Material preparado", description: "Confirmar que los materiales necesarios están disponibles" },
-                  { label: "Presupuesto gestionado", description: "Solo para servicios con presupuesto: enviar y obtener aprobación" },
-                  { label: "NPS recogido", description: "Recoger la encuesta de satisfacción al finalizar" },
-                ];
-                return (
-                  <div className="space-y-3">
-                    {defaultItems.map((item, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-card-foreground">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch defaultChecked />
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="outline" className="w-full">
-                      <Plus className="w-4 h-4 mr-2" /> Añadir paso al protocolo
-                    </Button>
-                    <p className="text-xs text-muted-foreground">Los cambios se aplicarán a todos los servicios nuevos. Los servicios existentes mantendrán su protocolo actual.</p>
+              <div className="space-y-3">
+                {protocolItems.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-card-foreground">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={item.enabled}
+                        onCheckedChange={(checked) =>
+                          setProtocolItems((prev) =>
+                            prev.map((p, idx) => idx === i ? { ...p, enabled: checked } : p)
+                          )
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => setProtocolItems((prev) => prev.filter((_, idx) => idx !== i))}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                );
-              })()}
+                ))}
+
+                {showNewStep ? (
+                  <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm">Nombre del paso *</Label>
+                      <Input
+                        value={newStepLabel}
+                        onChange={(e) => setNewStepLabel(e.target.value)}
+                        placeholder="Ej: Verificar garantía del equipo"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm">Descripción</Label>
+                      <Input
+                        value={newStepDesc}
+                        onChange={(e) => setNewStepDesc(e.target.value)}
+                        placeholder="Ej: Comprobar si el equipo está en período de garantía"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowNewStep(false);
+                          setNewStepLabel("");
+                          setNewStepDesc("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={!newStepLabel.trim()}
+                        onClick={() => {
+                          setProtocolItems((prev) => [
+                            ...prev,
+                            { label: newStepLabel.trim(), description: newStepDesc.trim(), enabled: true },
+                          ]);
+                          setNewStepLabel("");
+                          setNewStepDesc("");
+                          setShowNewStep(false);
+                        }}
+                      >
+                        Añadir
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button variant="outline" className="w-full" onClick={() => setShowNewStep(true)}>
+                    <Plus className="w-4 h-4 mr-2" /> Añadir paso al protocolo
+                  </Button>
+                )}
+
+                <p className="text-xs text-muted-foreground">Los cambios se aplicarán a todos los servicios nuevos. Los servicios existentes mantendrán su protocolo actual.</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
