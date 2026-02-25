@@ -16,13 +16,13 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/colaboradores", label: "Colaboradores", icon: Handshake },
   { to: "/servicios", label: "Servicios", icon: Wrench },
-  { to: "/presupuestos", label: "Presupuestos", icon: FileText },
-  { to: "/articulos", label: "Artículos", icon: Package },
   { to: "/calendario", label: "Calendario", icon: Calendar },
+  { to: "/presupuestos", label: "Presupuestos", icon: FileText },
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/articulos", label: "Artículos", icon: Package },
   { to: "/operarios", label: "Operarios", icon: HardHat },
+  { to: "/colaboradores", label: "Colaboradores", icon: Handshake },
 ];
 
 export default function AppSidebar() {
