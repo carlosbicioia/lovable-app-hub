@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Building2 } from "lucide-react";
+import { User, MapPin, Building2, Clock, AlertTriangle } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 
@@ -8,8 +8,28 @@ interface Props {
 }
 
 export default function ServiceSidebar({ service }: Props) {
+  const npsNeedsReview = service.nps !== null && service.nps < 7;
+  const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
+
   return (
     <div className="space-y-6">
+      {/* NPS Warning */}
+      {npsNeedsReview && isFinalized && (
+        <Card className="border-warning/50 bg-warning/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-card-foreground">Revisión NPS requerida</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  NPS {service.nps}/10 — Por protocolo, puntuaciones inferiores al estándar requieren revisión del gestor antes del cierre definitivo.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Client */}
       <Card>
         <CardHeader>
@@ -61,7 +81,7 @@ export default function ServiceSidebar({ service }: Props) {
           {service.operatorName ? (
             <div>
               <p className="text-sm font-medium text-card-foreground">{service.operatorName}</p>
-              <p className="text-xs text-muted-foreground">{service.operatorId}</p>
+              <p className="text-xs text-muted-foreground">{service.operatorId} · Cluster {service.clusterId}</p>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">Sin técnico asignado</p>
@@ -69,10 +89,10 @@ export default function ServiceSidebar({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Budget */}
+      {/* Budget & Liquidation */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Presupuesto</CardTitle>
+          <CardTitle className="text-base">Presupuesto y Liquidación</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex items-center justify-between">
@@ -102,6 +122,14 @@ export default function ServiceSidebar({ service }: Props) {
               {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
             </span>
           </div>
+          {service.realHours !== null && service.realHours !== undefined && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" /> Horas reales
+              </span>
+              <span className="text-sm font-bold text-card-foreground">{service.realHours}h</span>
+            </div>
+          )}
           {service.nps !== null && (
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-sm text-muted-foreground">NPS</span>

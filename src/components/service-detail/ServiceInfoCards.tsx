@@ -14,7 +14,7 @@ export default function ServiceInfoCards({ service }: Props) {
     { icon: Zap, label: "Origen", value: service.origin },
     { icon: User, label: "Técnico", value: service.operatorName ?? "Sin asignar" },
     { icon: Building2, label: "Colaborador", value: service.collaboratorName ?? "Directo (sin colaborador)" },
-    { icon: MapPin, label: "Dirección", value: service.address ?? "—" },
+    { icon: MapPin, label: "Cluster", value: service.clusterId },
   ];
 
   return (

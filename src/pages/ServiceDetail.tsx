@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockServices } from "@/data/mockData";
-import { ArrowLeft } from "lucide-react";
+import { mockServices, mockBudgets } from "@/data/mockData";
+import { ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { differenceInHours } from "date-fns";
@@ -10,6 +10,8 @@ import ServiceTimeline from "@/components/service-detail/ServiceTimeline";
 import ServiceMedia from "@/components/service-detail/ServiceMedia";
 import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
+import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
+import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,8 @@ export default function ServiceDetail() {
       </div>
     );
   }
+
+  const linkedBudget = mockBudgets.find((b) => b.serviceId === service.id);
 
   const getSlaStatus = () => {
     if (service.contactedAt) return null;
@@ -71,6 +75,14 @@ export default function ServiceDetail() {
             )}>
               {service.serviceType === "Presupuesto" ? "📋 Con Presupuesto" : "🔧 Reparación Directa"}
             </span>
+            <span className={cn(
+              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+              service.serviceCategory === "Plan_Preventivo"
+                ? "bg-info/15 text-info border-info/30"
+                : "bg-muted text-muted-foreground border-border"
+            )}>
+              {service.serviceCategory === "Plan_Preventivo" ? "🛡 Plan Preventivo" : "🔨 Correctivo"}
+            </span>
             {sla === "expired" && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft px-2.5 py-0.5 rounded-full border border-destructive/30 bg-destructive/15">
                 ⏰ SLA Vencido
@@ -82,8 +94,19 @@ export default function ServiceDetail() {
               </span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm mt-1">{service.specialty} · {service.origin}</p>
+          <p className="text-muted-foreground text-sm mt-1">{service.specialty} · {service.origin} · Cluster {service.clusterId}</p>
         </div>
+        {/* Budget actions */}
+        {service.serviceType === "Presupuesto" && !linkedBudget && (
+          <Button onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+            <FileText className="w-4 h-4 mr-2" /> Crear Presupuesto
+          </Button>
+        )}
+        {linkedBudget && (
+          <Button variant="outline" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
+            <FileText className="w-4 h-4 mr-2" /> Ver Presupuesto {linkedBudget.id}
+          </Button>
+        )}
       </div>
 
       {/* Info cards row */}
@@ -92,8 +115,10 @@ export default function ServiceDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
+          <ServiceProtocolChecklist service={service} />
           <ServiceDescription service={service} />
           <ServiceTimeline service={service} />
+          <ServiceMaterials service={service} />
           <ServiceComments
             title="Comentarios internos"
             description="Solo visibles para el equipo interno"

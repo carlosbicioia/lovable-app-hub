@@ -61,6 +61,15 @@ export interface ServiceComment {
   createdAt: string;
 }
 
+export interface ServiceMaterial {
+  id: string;
+  name: string;
+  units: number;
+  costPrice: number;
+  hasKnownPvp: boolean;
+  pvp: number | null; // if known, use this; otherwise costPrice * 1.30
+}
+
 export interface Service {
   id: string;
   clientId: string;
@@ -69,15 +78,18 @@ export interface Service {
   operatorName: string | null;
   collaboratorId: string | null;
   collaboratorName: string | null;
+  clusterId: string;
   origin: ServiceOrigin;
   status: ServiceStatus;
   urgency: UrgencyLevel;
   specialty: Specialty;
   serviceType: ServiceType;
+  serviceCategory: "Correctivo" | "Plan_Preventivo";
   claimStatus: ClaimStatus;
   receivedAt: string;
   contactedAt: string | null;
   scheduledAt: string | null;
+  diagnosisComplete: boolean;
   nps: number | null;
   budgetTotal: number | null;
   budgetStatus: "Pendiente" | "Enviado" | "Aprobado" | "Rechazado" | null;
@@ -87,6 +99,8 @@ export interface Service {
   internalComments?: ServiceComment[];
   managerComments?: ServiceComment[];
   timelineEvents?: TimelineEvent[];
+  materials?: ServiceMaterial[];
+  realHours?: number | null;
 }
 
 export interface Operator {
