@@ -79,9 +79,14 @@ function getServicesForDate(services: Service[], date: Date): Service[] {
   });
 }
 
-function ServiceChip({ service }: { service: Service }) {
+function ServiceChip({ service, showTime = false }: { service: Service; showTime?: boolean }) {
   const navigate = useNavigate();
   const colors = getOperatorColor(service.operatorId);
+
+  const timeStr = service.scheduledAt
+    ? format(new Date(service.scheduledAt), "HH:mm") +
+      (service.scheduledEndAt ? "–" + format(new Date(service.scheduledEndAt), "HH:mm") : "")
+    : "";
 
   return (
     <Tooltip>
@@ -98,7 +103,7 @@ function ServiceChip({ service }: { service: Service }) {
           <span className="flex items-center gap-1">
             {specialtyIcon[service.specialty]}
             <span className="truncate">
-              {service.id} · {service.operatorName ?? "Sin asignar"}
+              {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service.operatorName ?? "Sin asignar"}
             </span>
           </span>
         </button>
@@ -110,8 +115,8 @@ function ServiceChip({ service }: { service: Service }) {
           <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
           <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[service.status] ?? service.status}</p>
-          {service.scheduledAt && (
-            <p className="text-xs"><span className="text-muted-foreground">Hora:</span> {format(new Date(service.scheduledAt), "HH:mm", { locale: es })}</p>
+          {timeStr && (
+            <p className="text-xs"><span className="text-muted-foreground">Horario:</span> {timeStr}</p>
           )}
         </div>
       </TooltipContent>
@@ -200,41 +205,54 @@ function DayView({ date }: { date: Date }) {
 function WeekView({ date }: { date: Date }) {
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7:00 - 18:00
 
   return (
-    <div className="grid grid-cols-7 gap-0 border border-border rounded-lg overflow-hidden h-full">
-      {days.map((day) => {
-        const dayServices = getServicesForDate(mockServices, day);
-        return (
+    <div className="h-full flex flex-col">
+      {/* Day headers */}
+      <div className="grid gap-0 shrink-0" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
+        <div className="border-b border-r border-border" />
+        {days.map((day) => (
           <div
             key={day.toISOString()}
             className={cn(
-              "min-h-[180px] border-r border-border last:border-r-0 flex flex-col",
-              !isSameMonth(day, date) && "bg-muted/30"
+              "px-2 py-1.5 text-center border-b border-r border-border last:border-r-0",
+              isToday(day) && "bg-primary text-primary-foreground"
             )}
           >
-            <div
-              className={cn(
-                "px-2 py-1.5 text-center border-b border-border",
-                isToday(day) && "bg-primary text-primary-foreground"
-              )}
-            >
-              <div className="text-[10px] font-medium uppercase">
-                {format(day, "EEE", { locale: es })}
-              </div>
-              <div className="text-lg font-bold">{format(day, "d")}</div>
+            <div className="text-[10px] font-medium uppercase">
+              {format(day, "EEE", { locale: es })}
             </div>
-            <div className="p-1 space-y-0.5 flex-1 overflow-y-auto">
-              {dayServices.map((s) => (
-                <ServiceChip key={s.id} service={s} />
-              ))}
-              {dayServices.length === 0 && (
-                <p className="text-[10px] text-muted-foreground text-center mt-4">Sin servicios</p>
-              )}
-            </div>
+            <div className="text-lg font-bold">{format(day, "d")}</div>
           </div>
-        );
-      })}
+        ))}
+      </div>
+      {/* Hour rows */}
+      <div className="flex-1 overflow-y-auto">
+        {hours.map((hour) => (
+          <div
+            key={hour}
+            className="grid gap-0 border-b border-border min-h-[52px]"
+            style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}
+          >
+            <div className="p-1 text-[10px] text-muted-foreground border-r border-border font-mono text-right pr-2">
+              {String(hour).padStart(2, "0")}:00
+            </div>
+            {days.map((day) => {
+              const dayServices = mockServices.filter(
+                (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), day) && getHours(new Date(s.scheduledAt)) === hour
+              );
+              return (
+                <div key={day.toISOString()} className="p-0.5 border-r border-border last:border-r-0 space-y-0.5">
+                  {dayServices.map((s) => (
+                    <ServiceChip key={s.id} service={s} showTime />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -291,7 +309,7 @@ function MonthView({ date }: { date: Date }) {
               </div>
               <div className="px-1 pb-1 space-y-0.5 overflow-y-auto flex-1">
                 {dayServices.slice(0, 4).map((s) => (
-                  <ServiceChip key={s.id} service={s} />
+                  <ServiceChip key={s.id} service={s} showTime />
                 ))}
                 {dayServices.length > 4 && (
                   <p className="text-[10px] text-muted-foreground text-center">+{dayServices.length - 4} más</p>

@@ -89,6 +89,7 @@ export interface Service {
   receivedAt: string;
   contactedAt: string | null;
   scheduledAt: string | null;
+  scheduledEndAt: string | null;
   diagnosisComplete: boolean;
   nps: number | null;
   budgetTotal: number | null;
