@@ -165,6 +165,48 @@ export type Database = {
           },
         ]
       }
+      collaborators: {
+        Row: {
+          active_services: number
+          category: string
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          nps_mean: number
+          phone: string
+          total_clients: number
+          updated_at: string
+        }
+        Insert: {
+          active_services?: number
+          category?: string
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id: string
+          nps_mean?: number
+          phone?: string
+          total_clients?: number
+          updated_at?: string
+        }
+        Update: {
+          active_services?: number
+          category?: string
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nps_mean?: number
+          phone?: string
+          total_clients?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           address: string
