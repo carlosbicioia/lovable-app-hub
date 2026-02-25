@@ -345,6 +345,47 @@ export type Database = {
         }
         Relationships: []
       }
+      service_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          service_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          service_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_media_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           address: string | null

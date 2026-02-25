@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, CalendarIcon, Upload, Image, Euro, Camera, File } from "lucide-react";
+import ServiceMediaUpload from "@/components/service-detail/ServiceMediaUpload";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -533,6 +534,9 @@ export default function ServiceEdit() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── SECTION 6: Media ── */}
+      <ServiceMediaUpload serviceId={service.id} />
 
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
