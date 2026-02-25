@@ -96,10 +96,10 @@ export const mockBudgets: Budget[] = [
 ];
 
 export const mockOperators: Operator[] = [
-  { id: "OP-01", name: "Juan Morales", specialty: "Fontanería/Agua", clusterId: "CLU-01", npsMean: 8.9, available: true, totalRevenue: 32400, completedServices: 87 },
-  { id: "OP-02", name: "Pablo Serrano", specialty: "Fontanería/Agua", clusterId: "CLU-03", npsMean: 9.2, available: true, totalRevenue: 28700, completedServices: 74 },
-  { id: "OP-03", name: "Miguel Ángel Rivas", specialty: "Electricidad/Luz", clusterId: "CLU-04", npsMean: 8.5, available: true, totalRevenue: 41200, completedServices: 102 },
-  { id: "OP-04", name: "Antonio Ruiz", specialty: "Clima", clusterId: "CLU-02", npsMean: 9.0, available: false, totalRevenue: 19800, completedServices: 51 },
-  { id: "OP-05", name: "Francisco Delgado", specialty: "Electricidad/Luz", clusterId: "CLU-01", npsMean: 7.8, available: true, totalRevenue: 15600, completedServices: 38 },
-  { id: "OP-06", name: "Carlos Medina", specialty: "Clima", clusterId: "CLU-05", npsMean: 8.3, available: true, totalRevenue: 22100, completedServices: 59 },
+  { id: "OP-01", name: "Juan Morales", specialty: "Fontanería/Agua", clusterId: "CLU-01", npsMean: 8.9, available: true, totalRevenue: 32400, completedServices: 87, color: "210 80% 52%" },
+  { id: "OP-02", name: "Pablo Serrano", specialty: "Fontanería/Agua", clusterId: "CLU-03", npsMean: 9.2, available: true, totalRevenue: 28700, completedServices: 74, color: "152 60% 42%" },
+  { id: "OP-03", name: "Miguel Ángel Rivas", specialty: "Electricidad/Luz", clusterId: "CLU-04", npsMean: 8.5, available: true, totalRevenue: 41200, completedServices: 102, color: "25 95% 53%" },
+  { id: "OP-04", name: "Antonio Ruiz", specialty: "Clima", clusterId: "CLU-02", npsMean: 9.0, available: false, totalRevenue: 19800, completedServices: 51, color: "280 65% 55%" },
+  { id: "OP-05", name: "Francisco Delgado", specialty: "Electricidad/Luz", clusterId: "CLU-01", npsMean: 7.8, available: true, totalRevenue: 15600, completedServices: 38, color: "340 75% 55%" },
+  { id: "OP-06", name: "Carlos Medina", specialty: "Clima", clusterId: "CLU-05", npsMean: 8.3, available: true, totalRevenue: 22100, completedServices: 59, color: "175 60% 42%" },
 ];

@@ -112,6 +112,7 @@ export interface Operator {
   available: boolean;
   totalRevenue: number;
   completedServices: number;
+  color: string; // unique HSL color identifier e.g. "210 80% 52%"
 }
 
 export type TaxRate = 0 | 10 | 21;
