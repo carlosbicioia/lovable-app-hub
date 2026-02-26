@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePurchaseOrders, PurchaseOrderType, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -17,6 +19,7 @@ import {
   Package,
   Receipt,
   AlertTriangle,
+  Truck,
 } from "lucide-react";
 
 const typeLabels: Record<PurchaseOrderType, string> = {
@@ -44,12 +47,20 @@ type TabFilter = "all" | PurchaseOrderType;
 export default function Purchases() {
   const navigate = useNavigate();
   const { data: orders = [], isLoading } = usePurchaseOrders();
+  const { data: suppliers = [] } = useSuppliers();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabFilter>("all");
+  const [supplierFilter, setSupplierFilter] = useState<string>("all");
+
+  const uniqueSuppliers = useMemo(() => {
+    const names = [...new Set(orders.map((o) => o.supplierName).filter(Boolean))];
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [orders]);
 
   const filtered = useMemo(() => {
     let list = orders;
     if (tab !== "all") list = list.filter((o) => o.type === tab);
+    if (supplierFilter !== "all") list = list.filter((o) => o.supplierName === supplierFilter);
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -61,7 +72,7 @@ export default function Purchases() {
       );
     }
     return list;
-  }, [orders, tab, search]);
+  }, [orders, tab, search, supplierFilter]);
 
   const counts = useMemo(() => ({
     all: orders.length,
@@ -119,10 +130,24 @@ export default function Purchases() {
         </TabsList>
       </Tabs>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Buscar por ID, proveedor, operario..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      {/* Search + Supplier filter */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar por ID, proveedor, operario..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+          <SelectTrigger className="w-[220px]">
+            <Truck className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Todos los proveedores" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los proveedores</SelectItem>
+            {uniqueSuppliers.map((name) => (
+              <SelectItem key={name} value={name}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
