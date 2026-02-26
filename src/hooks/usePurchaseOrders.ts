@@ -11,6 +11,7 @@ export interface PurchaseOrderLine {
   description: string;
   units: number;
   costPrice: number;
+  taxRate: number;
   sortOrder: number;
 }
 
@@ -56,6 +57,7 @@ function mapRow(row: any, lines: any[]): PurchaseOrder {
         description: l.description ?? "",
         units: Number(l.units),
         costPrice: Number(l.cost_price),
+        taxRate: Number(l.tax_rate ?? 21),
         sortOrder: l.sort_order,
       })),
   };
@@ -114,7 +116,7 @@ export function useCreatePurchaseOrder() {
       operatorName?: string | null;
       notes?: string;
       status?: PurchaseOrderStatus;
-      lines: { articleName?: string; description?: string; units: number; costPrice: number }[];
+      lines: { articleName?: string; description?: string; units: number; costPrice: number; taxRate?: number }[];
     }) => {
       const totalCost = input.lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
 
@@ -139,6 +141,7 @@ export function useCreatePurchaseOrder() {
             description: l.description ?? "",
             units: l.units,
             cost_price: l.costPrice,
+            tax_rate: l.taxRate ?? 21,
             sort_order: i,
           }))
         );
@@ -180,6 +183,41 @@ export function useUpdatePurchaseOrderPdf() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["purchase_orders"] });
       toast({ title: "PDF actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}
+
+export function useUpdatePurchaseOrderLines() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ orderId, lines }: {
+      orderId: string;
+      lines: { articleName: string; description: string; units: number; costPrice: number; taxRate: number }[];
+    }) => {
+      await supabase.from("purchase_order_lines").delete().eq("purchase_order_id", orderId);
+      if (lines.length > 0) {
+        const { error } = await supabase.from("purchase_order_lines").insert(
+          lines.map((l, i) => ({
+            purchase_order_id: orderId,
+            article_name: l.articleName,
+            description: l.description,
+            units: l.units,
+            cost_price: l.costPrice,
+            tax_rate: l.taxRate,
+            sort_order: i,
+          }))
+        );
+        if (error) throw error;
+      }
+      const totalCost = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
+      const { error: e2 } = await supabase.from("purchase_orders").update({ total_cost: totalCost }).eq("id", orderId);
+      if (e2) throw e2;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["purchase_orders"] });
+      toast({ title: "Líneas actualizadas" });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });

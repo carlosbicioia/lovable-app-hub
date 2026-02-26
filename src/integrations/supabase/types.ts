@@ -709,6 +709,7 @@ export type Database = {
           id: string
           purchase_order_id: string
           sort_order: number
+          tax_rate: number
           units: number
         }
         Insert: {
@@ -719,6 +720,7 @@ export type Database = {
           id?: string
           purchase_order_id: string
           sort_order?: number
+          tax_rate?: number
           units?: number
         }
         Update: {
@@ -729,6 +731,7 @@ export type Database = {
           id?: string
           purchase_order_id?: string
           sort_order?: number
+          tax_rate?: number
           units?: number
         }
         Relationships: [
