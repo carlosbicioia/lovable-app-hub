@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Pencil, Trash2, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2 } from "lucide-react";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -29,15 +29,21 @@ const invStatusConfig: Record<InvoiceStatus, { label: string; cls: string }> = {
   Exportada: { label: "Exportada", cls: "bg-success/15 text-success border-success/30" },
 };
 
+const dnStatusConfig: Record<string, { label: string; cls: string }> = {
+  Pendiente: { label: "Pendiente", cls: "bg-warning/15 text-warning border-warning/30" },
+  Validado: { label: "Validado", cls: "bg-success/15 text-success border-success/30" },
+};
+
 export default function Purchases() {
   const navigate = useNavigate();
   const { data: orders = [], isLoading: loadingOC } = usePurchaseOrders();
   const { data: invoices = [], isLoading: loadingInv } = usePurchaseInvoices();
+  const { data: deliveryNotes = [], isLoading: loadingDN } = useDeliveryNotes();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [tab, setTab] = useState("oc");
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<{ type: "oc" | "invoice"; id: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: "oc" | "invoice" | "dn"; id: string } | null>(null);
 
   const filteredOC = useMemo(() => {
     if (!search) return orders;
@@ -61,6 +67,18 @@ export default function Purchases() {
     );
   }, [invoices, search]);
 
+  const filteredDN = useMemo(() => {
+    if (!search) return deliveryNotes;
+    const q = search.toLowerCase();
+    return deliveryNotes.filter(
+      (d) =>
+        d.code.toLowerCase().includes(q) ||
+        d.supplierName.toLowerCase().includes(q) ||
+        d.serviceId.toLowerCase().includes(q) ||
+        (d.operatorName ?? "").toLowerCase().includes(q)
+    );
+  }, [deliveryNotes, search]);
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     if (deleteTarget.type === "oc") {
@@ -68,16 +86,21 @@ export default function Purchases() {
       const { error } = await supabase.from("purchase_orders").delete().eq("id", deleteTarget.id);
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       else { toast({ title: "Orden eliminada" }); queryClient.invalidateQueries({ queryKey: ["purchase_orders"] }); }
-    } else {
+    } else if (deleteTarget.type === "invoice") {
       await supabase.from("purchase_invoice_lines").delete().eq("invoice_id", deleteTarget.id);
       const { error } = await supabase.from("purchase_invoices").delete().eq("id", deleteTarget.id);
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       else { toast({ title: "Factura eliminada" }); queryClient.invalidateQueries({ queryKey: ["purchase_invoices"] }); }
+    } else {
+      await supabase.from("delivery_note_lines").delete().eq("delivery_note_id", deleteTarget.id);
+      const { error } = await supabase.from("delivery_notes").delete().eq("id", deleteTarget.id);
+      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      else { toast({ title: "Albarán eliminado" }); queryClient.invalidateQueries({ queryKey: ["delivery_notes"] }); }
     }
     setDeleteTarget(null);
   };
 
-  const isLoading = loadingOC || loadingInv;
+  const isLoading = loadingOC || loadingInv || loadingDN;
 
   if (isLoading) {
     return (
@@ -93,7 +116,7 @@ export default function Purchases() {
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Compras</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {orders.length} órdenes de compra · {invoices.length} facturas
+            {orders.length} órdenes · {deliveryNotes.length} albaranes · {invoices.length} facturas
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -113,8 +136,12 @@ export default function Purchases() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="oc" className="gap-1.5">
-            <ShoppingCart className="w-3.5 h-3.5" /> Órdenes de compra
+            <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
             <Badge variant="secondary" className="text-[10px] h-5 ml-1">{orders.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="albaranes" className="gap-1.5">
+            <Truck className="w-3.5 h-3.5" /> Albaranes
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{deliveryNotes.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="facturas" className="gap-1.5">
             <FileText className="w-3.5 h-3.5" /> Facturas
@@ -164,6 +191,60 @@ export default function Purchases() {
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTarget({ type: "oc", id: o.id })}>
+                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="albaranes" className="mt-4">
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Código</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Servicio</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Operario</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
+                    <th className="text-right px-5 py-3 text-muted-foreground font-medium">Coste</th>
+                    <th className="text-center px-5 py-3 text-muted-foreground font-medium">PDF</th>
+                    <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDN.length === 0 ? (
+                    <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No hay albaranes</td></tr>
+                  ) : filteredDN.map((dn) => {
+                    const sc = dnStatusConfig[dn.status] ?? dnStatusConfig.Pendiente;
+                    return (
+                      <tr key={dn.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{dn.code || dn.id.slice(0, 8)}</td>
+                        <td className="px-5 py-3 text-xs">{dn.serviceId}</td>
+                        <td className="px-5 py-3 font-medium text-card-foreground">{dn.supplierName || "—"}</td>
+                        <td className="px-5 py-3 text-muted-foreground">{dn.operatorName ?? "—"}</td>
+                        <td className="px-5 py-3">
+                          <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>{sc.label}</span>
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground text-xs">{format(new Date(dn.createdAt), "dd MMM yyyy", { locale: es })}</td>
+                        <td className="px-5 py-3 text-right font-medium text-card-foreground">€{dn.totalCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                        <td className="px-5 py-3 text-center">
+                          {dn.pdfPath ? (
+                            <a href={dn.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs" onClick={(e) => e.stopPropagation()}>Ver PDF</a>
+                          ) : "—"}
+                        </td>
+                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTarget({ type: "dn", id: dn.id })}>
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </Button>
                           </div>
@@ -233,7 +314,7 @@ export default function Purchases() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar {deleteTarget?.type === "oc" ? "orden" : "factura"}?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar {deleteTarget?.type === "oc" ? "orden" : deleteTarget?.type === "dn" ? "albarán" : "factura"}?</AlertDialogTitle>
             <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
