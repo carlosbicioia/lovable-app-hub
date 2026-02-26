@@ -164,7 +164,7 @@ export default function Budgets() {
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {b.status === "Aprobado" && (
+                        {(b.status === "Aprobado" || b.status === "Pte_Facturación") && (
                           <Button
                             size="sm"
                             variant="outline"
