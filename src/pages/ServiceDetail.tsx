@@ -40,6 +40,7 @@ export default function ServiceDetail() {
   const { budgets, refetch: refetchBudgets } = useBudgets();
   const { data: allPurchaseOrders = [] } = usePurchaseOrders();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
@@ -336,7 +337,7 @@ export default function ServiceDetail() {
                         <Button variant="outline" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
                           <Pencil className="w-4 h-4 mr-2" /> Editar presupuesto
                         </Button>
-                        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={handleDeleteBudget}>
+                        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
                           <Trash2 className="w-4 h-4 mr-2" /> Eliminar
                         </Button>
                       </div>
@@ -540,6 +541,23 @@ export default function ServiceDetail() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDeleteService}>
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        {/* Delete budget confirmation dialog */}
+        <AlertDialog open={showDeleteBudgetDialog} onOpenChange={setShowDeleteBudgetDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar presupuesto {linkedBudget?.id}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminarán el presupuesto <span className="font-semibold">{linkedBudget?.id}</span> y todas sus líneas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDeleteBudget}>
                 Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>
