@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BudgetKanban from "@/components/budgets/BudgetKanban";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -49,7 +50,7 @@ export default function Budgets() {
   const { services } = useServices();
 
   const [sendingProforma, setSendingProforma] = useState<string | null>(null);
-
+  const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
   // Build specialty map from services
   const serviceSpecialtyMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -103,7 +104,6 @@ export default function Budgets() {
   };
 
   const handleDeleteBudget = async (budgetId: string) => {
-    if (!confirm("¿Eliminar este presupuesto? Esta acción no se puede deshacer.")) return;
     try {
       await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
       const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
@@ -111,6 +111,8 @@ export default function Budgets() {
       toast.success("Presupuesto eliminado");
     } catch (err: any) {
       toast.error(err.message || "Error al eliminar presupuesto");
+    } finally {
+      setDeletingBudgetId(null);
     }
   };
 
@@ -295,7 +297,7 @@ export default function Budgets() {
                                     size="icon"
                                     variant="ghost"
                                     className="h-8 w-8 text-destructive hover:text-destructive"
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteBudget(b.id); }}
+                                    onClick={(e) => { e.stopPropagation(); setDeletingBudgetId(b.id); }}
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -318,6 +320,26 @@ export default function Budgets() {
           <BudgetKanban budgets={filtered} onStatusChange={handleStatusChange} />
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!deletingBudgetId} onOpenChange={(open) => { if (!open) setDeletingBudgetId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán el presupuesto y todas sus líneas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deletingBudgetId && handleDeleteBudget(deletingBudgetId)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
