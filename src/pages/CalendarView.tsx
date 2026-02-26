@@ -238,13 +238,16 @@ function DayView({
   date,
   onDropService,
   onHourRangeSelect,
+  filteredServices,
 }: {
   date: Date;
   onDropService: (serviceId: string, targetDate: Date) => void;
   onHourRangeSelect: (day: Date, startHour: number, endHour: number) => void;
+  filteredServices?: Service[];
 }) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
-  const { services } = useServices();
+  const { services: allServices } = useServices();
+  const services = filteredServices ?? allServices;
   const scheduledServices = services.filter(
     (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
   );
@@ -358,13 +361,16 @@ function WeekView({
   date,
   onDropService,
   onHourRangeSelect,
+  filteredServices,
 }: {
   date: Date;
   onDropService: (serviceId: string, targetDate: Date) => void;
   onHourRangeSelect: (day: Date, startHour: number, endHour: number) => void;
+  filteredServices?: Service[];
 }) {
-  const { services } = useServices();
+  const { services: allServices } = useServices();
   const navigate = useNavigate();
+  const services = filteredServices ?? allServices;
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -617,8 +623,9 @@ function computeBarSegments(weekDays: Date[], services: Service[]): BarSegment[]
   return segments;
 }
 
-function MonthView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
-  const { services } = useServices();
+function MonthView({ date, onDropService, filteredServices }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void; filteredServices?: Service[] }) {
+  const { services: allServices } = useServices();
+  const services = filteredServices ?? allServices;
   const navigate = useNavigate();
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
@@ -789,7 +796,7 @@ function MonthView({ date, onDropService }: { date: Date; onDropService: (servic
 }
 
 // ─── OPERATOR SUMMARY PANEL ────────────────────────────────
-function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
+function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: { date: Date; view: ViewMode; selectedOperatorId: string | null; onSelectOperator: (id: string | null) => void }) {
   const { services } = useServices();
   const range = useMemo(() => {
     if (view === "day") return { start: date, end: date };
@@ -804,6 +811,15 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
 
   return (
     <div className="space-y-2">
+      <button
+        onClick={() => onSelectOperator(null)}
+        className={cn(
+          "w-full flex items-center justify-between py-1.5 px-2 rounded-md transition-colors",
+          selectedOperatorId === null ? "bg-primary/10 ring-1 ring-primary/30" : "bg-muted/50 hover:bg-muted"
+        )}
+      >
+        <span className="text-sm font-medium text-foreground">Todos los operarios</span>
+      </button>
       {mockOperators.map((op) => {
         const assignedCount = services.filter(
           (s) =>
@@ -811,8 +827,16 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
             s.scheduledAt &&
             days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
         ).length;
+        const isSelected = selectedOperatorId === op.id;
         return (
-          <div key={op.id} className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/50">
+          <button
+            key={op.id}
+            onClick={() => onSelectOperator(isSelected ? null : op.id)}
+            className={cn(
+              "w-full flex items-center justify-between py-1.5 px-2 rounded-md transition-colors",
+              isSelected ? "bg-primary/10 ring-1 ring-primary/30" : "bg-muted/50 hover:bg-muted"
+            )}
+          >
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(${op.color})` }} />
               <span className="text-sm font-medium text-foreground">{op.name}</span>
@@ -825,7 +849,7 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
                 {assignedCount} srv
               </Badge>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>
@@ -836,9 +860,19 @@ function OperatorSummary({ date, view }: { date: Date; view: ViewMode }) {
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date("2026-02-24"));
   const [view, setView] = useState<ViewMode>("week");
+  const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
   const { services, refetch } = useServices();
   const { toast } = useToast();
   const routerNavigate = useNavigate();
+
+  const filteredServices = useMemo(() => {
+    if (!selectedOperatorId) return undefined;
+    return services.filter((s) => s.operatorId === selectedOperatorId);
+  }, [services, selectedOperatorId]);
+
+  const selectedOperatorName = selectedOperatorId
+    ? mockOperators.find((o) => o.id === selectedOperatorId)?.name ?? null
+    : null;
 
   // ── Create-from-calendar dialog state ──
   const [createDialog, setCreateDialog] = useState<{
@@ -947,14 +981,15 @@ export default function CalendarView() {
       <div className="flex flex-wrap gap-3 shrink-0 mt-3">
         <Collapsible>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5">
+            <Button variant="outline" size="sm" className={cn("gap-1.5", selectedOperatorId && "border-primary text-primary")}>
               <User className="w-4 h-4" />
-              Operarios
+              {selectedOperatorName ?? "Operarios"}
+              {selectedOperatorId && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
               <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="absolute z-50 mt-1 w-80 rounded-lg border border-border bg-popover p-3 shadow-lg">
-            <OperatorSummary date={currentDate} view={view} />
+            <OperatorSummary date={currentDate} view={view} selectedOperatorId={selectedOperatorId} onSelectOperator={setSelectedOperatorId} />
           </CollapsibleContent>
         </Collapsible>
 
@@ -996,9 +1031,9 @@ export default function CalendarView() {
       {/* Calendar full width & height */}
       <Card className="mt-3 flex-1 min-h-0">
         <CardContent className="p-3 h-full overflow-auto">
-          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} />}
-          {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} />}
-          {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} />}
+          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} filteredServices={filteredServices} />}
+          {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} filteredServices={filteredServices} />}
+          {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} filteredServices={filteredServices} />}
         </CardContent>
       </Card>
 
