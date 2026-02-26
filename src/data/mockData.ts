@@ -1,14 +1,27 @@
 import type { Client, Collaborator, Service, Budget, Operator } from "@/types/urbango";
+import { format, addDays } from "date-fns";
+
+// ── Date helpers: all dates are relative to today ──
+const today = new Date();
+/** Returns ISO datetime string for today + offset days at given time */
+function dt(offsetDays: number, time: string = "00:00:00"): string {
+  const d = addDays(today, offsetDays);
+  return `${format(d, "yyyy-MM-dd")}T${time}`;
+}
+/** Returns date-only string for today + offset days */
+function dd(offsetDays: number): string {
+  return format(addDays(today, offsetDays), "yyyy-MM-dd");
+}
 
 export const mockClients: Client[] = [
-  { id: "CLI-001", name: "María García López", dni: "12345678A", email: "maria@email.com", phone: "612345678", address: "C/ Gran Vía 45, 2ºA", postalCode: "28013", city: "Madrid", province: "Madrid", clusterId: "CLU-01", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", planType: "Agua", lastServiceDate: "2026-02-20" },
-  { id: "CLI-002", name: "Carlos Fernández Ruiz", dni: "23456789B", email: "carlos@email.com", phone: "623456789", address: "Av. Diagonal 230, 5ºB", postalCode: "08018", city: "Barcelona", province: "Barcelona", clusterId: "CLU-02", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", planType: "Clima", lastServiceDate: "2026-02-18" },
-  { id: "CLI-003", name: "Ana Martínez Sánchez", dni: "34567890C", email: "ana@email.com", phone: "634567890", address: "C/ Colón 12, 1ºC", postalCode: "46004", city: "Valencia", province: "Valencia", clusterId: "CLU-03", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: "2026-01-15" },
-  { id: "CLI-004", name: "Pedro Rodríguez Díaz", dni: "45678901D", email: "pedro@email.com", phone: "645678901", address: "C/ Sierpes 78", postalCode: "41004", city: "Sevilla", province: "Sevilla", clusterId: "CLU-04", collaboratorId: "COL-003", collaboratorName: "Correduría Andaluza", planType: "Luz", lastServiceDate: "2026-02-22" },
+  { id: "CLI-001", name: "María García López", dni: "12345678A", email: "maria@email.com", phone: "612345678", address: "C/ Gran Vía 45, 2ºA", postalCode: "28013", city: "Madrid", province: "Madrid", clusterId: "CLU-01", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", planType: "Agua", lastServiceDate: dd(-4) },
+  { id: "CLI-002", name: "Carlos Fernández Ruiz", dni: "23456789B", email: "carlos@email.com", phone: "623456789", address: "Av. Diagonal 230, 5ºB", postalCode: "08018", city: "Barcelona", province: "Barcelona", clusterId: "CLU-02", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", planType: "Clima", lastServiceDate: dd(-6) },
+  { id: "CLI-003", name: "Ana Martínez Sánchez", dni: "34567890C", email: "ana@email.com", phone: "634567890", address: "C/ Colón 12, 1ºC", postalCode: "46004", city: "Valencia", province: "Valencia", clusterId: "CLU-03", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: dd(-40) },
+  { id: "CLI-004", name: "Pedro Rodríguez Díaz", dni: "45678901D", email: "pedro@email.com", phone: "645678901", address: "C/ Sierpes 78", postalCode: "41004", city: "Sevilla", province: "Sevilla", clusterId: "CLU-04", collaboratorId: "COL-003", collaboratorName: "Correduría Andaluza", planType: "Luz", lastServiceDate: dd(-2) },
   { id: "CLI-005", name: "Laura Jiménez Mora", dni: "56789012E", email: "laura@email.com", phone: "656789012", address: "C/ Alcalá 100, 3ºD", postalCode: "28009", city: "Madrid", province: "Madrid", clusterId: "CLU-01", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", planType: "Agua", lastServiceDate: null },
-  { id: "CLI-006", name: "Javier López Herrero", dni: "67890123F", email: "javier@email.com", phone: "667890123", address: "Paseo de Gracia 55", postalCode: "08007", city: "Barcelona", province: "Barcelona", clusterId: "CLU-02", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", planType: "Clima", lastServiceDate: "2026-02-10" },
-  { id: "CLI-007", name: "Elena Torres Gil", dni: "78901234G", email: "elena@email.com", phone: "678901234", address: "C/ Larios 22", postalCode: "29005", city: "Málaga", province: "Málaga", clusterId: "CLU-05", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: "2026-02-01" },
-  { id: "CLI-008", name: "Roberto Navarro Peña", dni: "89012345H", email: "roberto@email.com", phone: "689012345", address: "C/ Alfonso I 30", postalCode: "50003", city: "Zaragoza", province: "Zaragoza", clusterId: "CLU-06", collaboratorId: "COL-004", collaboratorName: "Gestoría Norte", planType: "Agua", lastServiceDate: "2026-02-19" },
+  { id: "CLI-006", name: "Javier López Herrero", dni: "67890123F", email: "javier@email.com", phone: "667890123", address: "Paseo de Gracia 55", postalCode: "08007", city: "Barcelona", province: "Barcelona", clusterId: "CLU-02", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", planType: "Clima", lastServiceDate: dd(-14) },
+  { id: "CLI-007", name: "Elena Torres Gil", dni: "78901234G", email: "elena@email.com", phone: "678901234", address: "C/ Larios 22", postalCode: "29005", city: "Málaga", province: "Málaga", clusterId: "CLU-05", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: dd(-23) },
+  { id: "CLI-008", name: "Roberto Navarro Peña", dni: "89012345H", email: "roberto@email.com", phone: "689012345", address: "C/ Alfonso I 30", postalCode: "50003", city: "Zaragoza", province: "Zaragoza", clusterId: "CLU-06", collaboratorId: "COL-004", collaboratorName: "Gestoría Norte", planType: "Agua", lastServiceDate: dd(-5) },
 ];
 
 export const mockCollaborators: Collaborator[] = [
@@ -20,15 +33,146 @@ export const mockCollaborators: Collaborator[] = [
 ];
 
 export const mockServices: Service[] = [
-  { id: "SRV-001", clientId: "CLI-001", clientName: "María García López", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "B2B", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Aceptado", receivedAt: "2026-02-23T08:30:00", contactedAt: "2026-02-23T09:15:00", scheduledAt: "2026-02-24T10:00:00", scheduledEndAt: "2026-02-24T13:00:00", diagnosisComplete: true, nps: null, budgetTotal: 850, budgetStatus: "Aprobado", description: "Fuga en tubería principal del baño. Cliente reporta humedad en pared contigua.", address: "C/ Gran Vía 45, 2ºA, Madrid", media: [{ id: "M-001", type: "photo", url: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400", caption: "Tubería afectada", uploadedAt: "2026-02-23T09:00:00" }, { id: "M-002", type: "photo", url: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400", caption: "Humedad en pared", uploadedAt: "2026-02-23T09:01:00" }], internalComments: [{ id: "IC-001", text: "Cliente muy preocupado por la humedad, posible afectación estructural.", author: "Juan Morales", createdAt: "2026-02-23T09:30:00" }], managerComments: [{ id: "MC-001", text: "Presupuesto aprobado por el administrador. Proceder con la reparación.", author: "Admin", createdAt: "2026-02-23T10:00:00" }], timelineEvents: [{ id: "TE-001", date: "2026-02-23T08:30:00", comment: "Servicio recibido vía B2B", author: "Sistema" }, { id: "TE-002", date: "2026-02-23T09:15:00", comment: "Primer contacto con el cliente realizado", author: "Juan Morales" }, { id: "TE-003", date: "2026-02-23T10:00:00", comment: "Presupuesto enviado y aprobado por el administrador", author: "Admin" }, { id: "TE-004", date: "2026-02-24T10:00:00", comment: "Visita agendada para reparación", author: "Juan Morales" }], materials: [{ id: "MAT-001", name: "Tubería cobre 22mm (2m)", units: 1, costPrice: 28.50, hasKnownPvp: true, pvp: 35.90 }, { id: "MAT-002", name: "Codos cobre 22mm", units: 4, costPrice: 2.10, hasKnownPvp: false, pvp: null }], realHours: null },
-  { id: "SRV-002", clientId: "CLI-002", clientName: "Carlos Fernández Ruiz", operatorId: null, operatorName: null, collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", clusterId: "CLU-02", origin: "App", status: "Pendiente_Contacto", urgency: "24h", specialty: "Clima", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto", receivedAt: "2026-02-24T06:00:00", contactedAt: null, scheduledAt: null, scheduledEndAt: null, diagnosisComplete: false, nps: null, budgetTotal: null, budgetStatus: null, description: "Aire acondicionado no enfría. Modelo split de pared.", address: "Av. Diagonal 230, 5ºB, Barcelona", media: [{ id: "M-003", type: "photo", url: "https://images.unsplash.com/photo-1631545806609-35d4ae440e5f?w=400", caption: "Unidad interior", uploadedAt: "2026-02-24T06:05:00" }], internalComments: [], managerComments: [], timelineEvents: [{ id: "TE-005", date: "2026-02-24T06:00:00", comment: "Servicio recibido vía App", author: "Sistema" }], materials: [], realHours: null },
-  { id: "SRV-003", clientId: "CLI-004", clientName: "Pedro Rodríguez Díaz", operatorId: "OP-03", operatorName: "Miguel Ángel Rivas", collaboratorId: "COL-003", collaboratorName: "Correduría Andaluza", clusterId: "CLU-04", origin: "B2B", status: "Finalizado", urgency: "Estándar", specialty: "Electricidad/Luz", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Cerrado", receivedAt: "2026-02-20T14:00:00", contactedAt: "2026-02-20T15:30:00", scheduledAt: "2026-02-22T09:00:00", scheduledEndAt: "2026-02-22T17:00:00", diagnosisComplete: true, nps: 9, budgetTotal: 1200, budgetStatus: "Aprobado", description: "Renovación de cuadro eléctrico completo. Instalación antigua sin diferencial.", address: "C/ Sierpes 78, Sevilla", media: [{ id: "M-004", type: "photo", url: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400", caption: "Cuadro eléctrico antiguo", uploadedAt: "2026-02-20T15:00:00" }, { id: "M-005", type: "photo", url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400", caption: "Cuadro nuevo instalado", uploadedAt: "2026-02-22T12:00:00" }], internalComments: [{ id: "IC-002", text: "Trabajo completado sin incidencias. Cliente satisfecho.", author: "Miguel Ángel Rivas", createdAt: "2026-02-22T13:00:00" }], managerComments: [{ id: "MC-002", text: "Servicio cerrado correctamente. NPS excelente.", author: "Admin", createdAt: "2026-02-22T14:00:00" }], timelineEvents: [{ id: "TE-006", date: "2026-02-20T14:00:00", comment: "Servicio recibido", author: "Sistema" }, { id: "TE-007", date: "2026-02-20T15:30:00", comment: "Contacto realizado con el cliente", author: "Miguel Ángel Rivas" }, { id: "TE-008", date: "2026-02-22T09:00:00", comment: "Inicio de trabajos en domicilio", author: "Miguel Ángel Rivas" }, { id: "TE-009", date: "2026-02-22T12:30:00", comment: "Trabajo finalizado. Cuadro eléctrico renovado.", author: "Miguel Ángel Rivas" }], materials: [{ id: "MAT-003", name: "Cuadro eléctrico 40 módulos", units: 1, costPrice: 185, hasKnownPvp: true, pvp: 245 }, { id: "MAT-004", name: "Diferencial 40A", units: 1, costPrice: 42, hasKnownPvp: true, pvp: 58.90 }, { id: "MAT-005", name: "Cable 6mm² (50m)", units: 1, costPrice: 38, hasKnownPvp: false, pvp: null }], realHours: 8 },
-  { id: "SRV-004", clientId: "CLI-003", clientName: "Ana Martínez Sánchez", operatorId: "OP-02", operatorName: "Pablo Serrano", collaboratorId: null, collaboratorName: null, clusterId: "CLU-03", origin: "Directo", status: "Agendado", urgency: "Inmediato", specialty: "Fontanería/Agua", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto", receivedAt: "2026-02-24T07:00:00", contactedAt: "2026-02-24T07:20:00", scheduledAt: "2026-02-24T11:00:00", scheduledEndAt: "2026-02-24T13:30:00", diagnosisComplete: true, nps: null, budgetTotal: 4500, budgetStatus: "Pendiente", description: "Inundación por rotura de bajante. Requiere intervención urgente.", address: "C/ Colón 12, 1ºC, Valencia", media: [{ id: "M-006", type: "video", url: "https://example.com/video1.mp4", caption: "Vídeo de la inundación", uploadedAt: "2026-02-24T07:10:00" }], internalComments: [{ id: "IC-003", text: "Urgente: posible daño a vecinos de planta inferior.", author: "Pablo Serrano", createdAt: "2026-02-24T07:25:00" }], managerComments: [], timelineEvents: [{ id: "TE-010", date: "2026-02-24T07:00:00", comment: "Servicio urgente recibido", author: "Sistema" }, { id: "TE-011", date: "2026-02-24T07:20:00", comment: "Contacto inmediato con cliente", author: "Pablo Serrano" }], materials: [], realHours: null },
-  { id: "SRV-005", clientId: "CLI-006", clientName: "Javier López Herrero", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", clusterId: "CLU-02", origin: "API_Externa", status: "Liquidado", urgency: "Estándar", specialty: "Clima", serviceType: "Presupuesto", serviceCategory: "Plan_Preventivo", claimStatus: "Cerrado", receivedAt: "2026-02-15T10:00:00", contactedAt: "2026-02-15T11:00:00", scheduledAt: "2026-02-17T09:00:00", scheduledEndAt: "2026-02-17T14:00:00", diagnosisComplete: true, nps: 10, budgetTotal: 2300, budgetStatus: "Aprobado", description: "Instalación de sistema de climatización centralizado.", address: "Paseo de Gracia 55, Barcelona", media: [], internalComments: [], managerComments: [], timelineEvents: [{ id: "TE-012", date: "2026-02-15T10:00:00", comment: "Servicio recibido vía API", author: "Sistema" }, { id: "TE-013", date: "2026-02-17T09:00:00", comment: "Instalación completada", author: "Juan Morales" }, { id: "TE-014", date: "2026-02-18T10:00:00", comment: "Servicio liquidado", author: "Admin" }], materials: [{ id: "MAT-006", name: "Unidad exterior Daikin 3MXM68N", units: 1, costPrice: 1200, hasKnownPvp: true, pvp: 1650 }, { id: "MAT-007", name: "Unidad interior FTXM25R", units: 3, costPrice: 280, hasKnownPvp: true, pvp: 390 }], realHours: 12 },
-  { id: "SRV-006", clientId: "CLI-008", clientName: "Roberto Navarro Peña", operatorId: null, operatorName: null, collaboratorId: "COL-004", collaboratorName: "Gestoría Norte", clusterId: "CLU-06", origin: "B2B", status: "Pendiente_Contacto", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto", receivedAt: "2026-02-24T09:00:00", contactedAt: null, scheduledAt: null, scheduledEndAt: null, diagnosisComplete: false, nps: null, budgetTotal: null, budgetStatus: null, description: "Revisión general de instalación de agua.", address: "C/ Alfonso I 30, Zaragoza", media: [], internalComments: [], managerComments: [], timelineEvents: [{ id: "TE-015", date: "2026-02-24T09:00:00", comment: "Servicio recibido vía B2B", author: "Sistema" }], materials: [], realHours: null },
-  { id: "SRV-007", clientId: "CLI-005", clientName: "Laura Jiménez Mora", operatorId: "OP-02", operatorName: "Pablo Serrano", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "B2B", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "En_Valoración", receivedAt: "2026-02-22T16:00:00", contactedAt: "2026-02-22T17:00:00", scheduledAt: "2026-02-24T14:00:00", scheduledEndAt: "2026-02-24T16:30:00", diagnosisComplete: true, nps: null, budgetTotal: 680, budgetStatus: "Aprobado", description: "Sustitución de grifería en cocina y baño.", address: "C/ Alcalá 100, 3ºD, Madrid", media: [{ id: "M-007", type: "photo", url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400", caption: "Grifería a sustituir", uploadedAt: "2026-02-22T17:10:00" }], internalComments: [], managerComments: [{ id: "MC-003", text: "Pendiente confirmación del cliente sobre modelo de grifería.", author: "Admin", createdAt: "2026-02-23T09:00:00" }], timelineEvents: [{ id: "TE-016", date: "2026-02-22T16:00:00", comment: "Servicio recibido", author: "Sistema" }, { id: "TE-017", date: "2026-02-22T17:00:00", comment: "Contacto realizado", author: "Pablo Serrano" }], materials: [{ id: "MAT-008", name: "Grifo monomando cocina Grohe", units: 1, costPrice: 65, hasKnownPvp: true, pvp: 89.90 }, { id: "MAT-009", name: "Grifo lavabo baño Grohe", units: 1, costPrice: 52, hasKnownPvp: true, pvp: 72.50 }], realHours: null },
-  { id: "SRV-008", clientId: "CLI-007", clientName: "Elena Torres Gil", operatorId: "OP-03", operatorName: "Miguel Ángel Rivas", collaboratorId: null, collaboratorName: null, clusterId: "CLU-05", origin: "Directo", status: "Finalizado", urgency: "24h", specialty: "Electricidad/Luz", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Cerrado", receivedAt: "2026-02-19T08:00:00", contactedAt: "2026-02-19T08:30:00", scheduledAt: "2026-02-20T08:00:00", scheduledEndAt: "2026-02-20T11:00:00", diagnosisComplete: true, nps: 7, budgetTotal: 350, budgetStatus: "Aprobado", description: "Cortocircuito en enchufe de salón. Saltan los plomos frecuentemente.", address: "C/ Larios 22, Málaga", media: [{ id: "M-008", type: "photo", url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400", caption: "Enchufe dañado", uploadedAt: "2026-02-19T09:00:00" }], internalComments: [{ id: "IC-004", text: "Instalación muy antigua, recomendado revisión completa.", author: "Miguel Ángel Rivas", createdAt: "2026-02-20T10:00:00" }], managerComments: [], timelineEvents: [{ id: "TE-018", date: "2026-02-19T08:00:00", comment: "Servicio recibido", author: "Sistema" }, { id: "TE-019", date: "2026-02-19T08:30:00", comment: "Contacto realizado", author: "Miguel Ángel Rivas" }, { id: "TE-020", date: "2026-02-20T08:00:00", comment: "Reparación completada", author: "Miguel Ángel Rivas" }], materials: [{ id: "MAT-010", name: "Mecanismo enchufe Schuko", units: 2, costPrice: 4.50, hasKnownPvp: false, pvp: null }], realHours: 3 },
-  { id: "SRV-009", clientId: "CLI-001", clientName: "María García López", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "Directo", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Abierto", receivedAt: "2026-02-22T10:00:00", contactedAt: "2026-02-22T11:00:00", scheduledAt: "2026-02-24T09:00:00", scheduledEndAt: "2026-02-27T17:00:00", diagnosisComplete: true, nps: null, budgetTotal: 3200, budgetStatus: "Aprobado", description: "Reforma integral de fontanería en vivienda. Trabajo de 4 días.", address: "C/ Gran Vía 45, 2ºA, Madrid", media: [], internalComments: [], managerComments: [], timelineEvents: [{ id: "TE-021", date: "2026-02-22T10:00:00", comment: "Servicio recibido", author: "Sistema" }], materials: [], realHours: null },
+  {
+    id: "SRV-001", clientId: "CLI-001", clientName: "María García López", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "B2B", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Aceptado",
+    receivedAt: dt(-1, "08:30:00"), contactedAt: dt(-1, "09:15:00"), scheduledAt: dt(0, "10:00:00"), scheduledEndAt: dt(0, "13:00:00"),
+    diagnosisComplete: true, nps: null, budgetTotal: 850, budgetStatus: "Aprobado",
+    description: "Fuga en tubería principal del baño. Cliente reporta humedad en pared contigua.", address: "C/ Gran Vía 45, 2ºA, Madrid",
+    media: [
+      { id: "M-001", type: "photo", url: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400", caption: "Tubería afectada", uploadedAt: dt(-1, "09:00:00") },
+      { id: "M-002", type: "photo", url: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400", caption: "Humedad en pared", uploadedAt: dt(-1, "09:01:00") },
+    ],
+    internalComments: [{ id: "IC-001", text: "Cliente muy preocupado por la humedad, posible afectación estructural.", author: "Juan Morales", createdAt: dt(-1, "09:30:00") }],
+    managerComments: [{ id: "MC-001", text: "Presupuesto aprobado por el administrador. Proceder con la reparación.", author: "Admin", createdAt: dt(-1, "10:00:00") }],
+    timelineEvents: [
+      { id: "TE-001", date: dt(-1, "08:30:00"), comment: "Servicio recibido vía B2B", author: "Sistema" },
+      { id: "TE-002", date: dt(-1, "09:15:00"), comment: "Primer contacto con el cliente realizado", author: "Juan Morales" },
+      { id: "TE-003", date: dt(-1, "10:00:00"), comment: "Presupuesto enviado y aprobado por el administrador", author: "Admin" },
+      { id: "TE-004", date: dt(0, "10:00:00"), comment: "Visita agendada para reparación", author: "Juan Morales" },
+    ],
+    materials: [
+      { id: "MAT-001", name: "Tubería cobre 22mm (2m)", units: 1, costPrice: 28.50, hasKnownPvp: true, pvp: 35.90 },
+      { id: "MAT-002", name: "Codos cobre 22mm", units: 4, costPrice: 2.10, hasKnownPvp: false, pvp: null },
+    ],
+    realHours: null,
+  },
+  {
+    id: "SRV-002", clientId: "CLI-002", clientName: "Carlos Fernández Ruiz", operatorId: null, operatorName: null, collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", clusterId: "CLU-02", origin: "App", status: "Pendiente_Contacto", urgency: "24h", specialty: "Clima", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto",
+    receivedAt: dt(0, "06:00:00"), contactedAt: null, scheduledAt: null, scheduledEndAt: null,
+    diagnosisComplete: false, nps: null, budgetTotal: null, budgetStatus: null,
+    description: "Aire acondicionado no enfría. Modelo split de pared.", address: "Av. Diagonal 230, 5ºB, Barcelona",
+    media: [{ id: "M-003", type: "photo", url: "https://images.unsplash.com/photo-1631545806609-35d4ae440e5f?w=400", caption: "Unidad interior", uploadedAt: dt(0, "06:05:00") }],
+    internalComments: [], managerComments: [],
+    timelineEvents: [{ id: "TE-005", date: dt(0, "06:00:00"), comment: "Servicio recibido vía App", author: "Sistema" }],
+    materials: [], realHours: null,
+  },
+  {
+    id: "SRV-003", clientId: "CLI-004", clientName: "Pedro Rodríguez Díaz", operatorId: "OP-03", operatorName: "Miguel Ángel Rivas", collaboratorId: "COL-003", collaboratorName: "Correduría Andaluza", clusterId: "CLU-04", origin: "B2B", status: "Finalizado", urgency: "Estándar", specialty: "Electricidad/Luz", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Cerrado",
+    receivedAt: dt(-4, "14:00:00"), contactedAt: dt(-4, "15:30:00"), scheduledAt: dt(-2, "09:00:00"), scheduledEndAt: dt(-2, "17:00:00"),
+    diagnosisComplete: true, nps: 9, budgetTotal: 1200, budgetStatus: "Aprobado",
+    description: "Renovación de cuadro eléctrico completo. Instalación antigua sin diferencial.", address: "C/ Sierpes 78, Sevilla",
+    media: [
+      { id: "M-004", type: "photo", url: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400", caption: "Cuadro eléctrico antiguo", uploadedAt: dt(-4, "15:00:00") },
+      { id: "M-005", type: "photo", url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400", caption: "Cuadro nuevo instalado", uploadedAt: dt(-2, "12:00:00") },
+    ],
+    internalComments: [{ id: "IC-002", text: "Trabajo completado sin incidencias. Cliente satisfecho.", author: "Miguel Ángel Rivas", createdAt: dt(-2, "13:00:00") }],
+    managerComments: [{ id: "MC-002", text: "Servicio cerrado correctamente. NPS excelente.", author: "Admin", createdAt: dt(-2, "14:00:00") }],
+    timelineEvents: [
+      { id: "TE-006", date: dt(-4, "14:00:00"), comment: "Servicio recibido", author: "Sistema" },
+      { id: "TE-007", date: dt(-4, "15:30:00"), comment: "Contacto realizado con el cliente", author: "Miguel Ángel Rivas" },
+      { id: "TE-008", date: dt(-2, "09:00:00"), comment: "Inicio de trabajos en domicilio", author: "Miguel Ángel Rivas" },
+      { id: "TE-009", date: dt(-2, "12:30:00"), comment: "Trabajo finalizado. Cuadro eléctrico renovado.", author: "Miguel Ángel Rivas" },
+    ],
+    materials: [
+      { id: "MAT-003", name: "Cuadro eléctrico 40 módulos", units: 1, costPrice: 185, hasKnownPvp: true, pvp: 245 },
+      { id: "MAT-004", name: "Diferencial 40A", units: 1, costPrice: 42, hasKnownPvp: true, pvp: 58.90 },
+      { id: "MAT-005", name: "Cable 6mm² (50m)", units: 1, costPrice: 38, hasKnownPvp: false, pvp: null },
+    ],
+    realHours: 8,
+  },
+  {
+    id: "SRV-004", clientId: "CLI-003", clientName: "Ana Martínez Sánchez", operatorId: "OP-02", operatorName: "Pablo Serrano", collaboratorId: null, collaboratorName: null, clusterId: "CLU-03", origin: "Directo", status: "Agendado", urgency: "Inmediato", specialty: "Fontanería/Agua", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto",
+    receivedAt: dt(0, "07:00:00"), contactedAt: dt(0, "07:20:00"), scheduledAt: dt(0, "11:00:00"), scheduledEndAt: dt(0, "13:30:00"),
+    diagnosisComplete: true, nps: null, budgetTotal: 4500, budgetStatus: "Pendiente",
+    description: "Inundación por rotura de bajante. Requiere intervención urgente.", address: "C/ Colón 12, 1ºC, Valencia",
+    media: [{ id: "M-006", type: "video", url: "https://example.com/video1.mp4", caption: "Vídeo de la inundación", uploadedAt: dt(0, "07:10:00") }],
+    internalComments: [{ id: "IC-003", text: "Urgente: posible daño a vecinos de planta inferior.", author: "Pablo Serrano", createdAt: dt(0, "07:25:00") }],
+    managerComments: [],
+    timelineEvents: [
+      { id: "TE-010", date: dt(0, "07:00:00"), comment: "Servicio urgente recibido", author: "Sistema" },
+      { id: "TE-011", date: dt(0, "07:20:00"), comment: "Contacto inmediato con cliente", author: "Pablo Serrano" },
+    ],
+    materials: [], realHours: null,
+  },
+  {
+    id: "SRV-005", clientId: "CLI-006", clientName: "Javier López Herrero", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-002", collaboratorName: "InmoGest BCN", clusterId: "CLU-02", origin: "API_Externa", status: "Liquidado", urgency: "Estándar", specialty: "Clima", serviceType: "Presupuesto", serviceCategory: "Plan_Preventivo", claimStatus: "Cerrado",
+    receivedAt: dt(-9, "10:00:00"), contactedAt: dt(-9, "11:00:00"), scheduledAt: dt(-7, "09:00:00"), scheduledEndAt: dt(-7, "14:00:00"),
+    diagnosisComplete: true, nps: 10, budgetTotal: 2300, budgetStatus: "Aprobado",
+    description: "Instalación de sistema de climatización centralizado.", address: "Paseo de Gracia 55, Barcelona",
+    media: [], internalComments: [], managerComments: [],
+    timelineEvents: [
+      { id: "TE-012", date: dt(-9, "10:00:00"), comment: "Servicio recibido vía API", author: "Sistema" },
+      { id: "TE-013", date: dt(-7, "09:00:00"), comment: "Instalación completada", author: "Juan Morales" },
+      { id: "TE-014", date: dt(-6, "10:00:00"), comment: "Servicio liquidado", author: "Admin" },
+    ],
+    materials: [
+      { id: "MAT-006", name: "Unidad exterior Daikin 3MXM68N", units: 1, costPrice: 1200, hasKnownPvp: true, pvp: 1650 },
+      { id: "MAT-007", name: "Unidad interior FTXM25R", units: 3, costPrice: 280, hasKnownPvp: true, pvp: 390 },
+    ],
+    realHours: 12,
+  },
+  {
+    id: "SRV-006", clientId: "CLI-008", clientName: "Roberto Navarro Peña", operatorId: null, operatorName: null, collaboratorId: "COL-004", collaboratorName: "Gestoría Norte", clusterId: "CLU-06", origin: "B2B", status: "Pendiente_Contacto", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Abierto",
+    receivedAt: dt(0, "09:00:00"), contactedAt: null, scheduledAt: null, scheduledEndAt: null,
+    diagnosisComplete: false, nps: null, budgetTotal: null, budgetStatus: null,
+    description: "Revisión general de instalación de agua.", address: "C/ Alfonso I 30, Zaragoza",
+    media: [], internalComments: [], managerComments: [],
+    timelineEvents: [{ id: "TE-015", date: dt(0, "09:00:00"), comment: "Servicio recibido vía B2B", author: "Sistema" }],
+    materials: [], realHours: null,
+  },
+  {
+    id: "SRV-007", clientId: "CLI-005", clientName: "Laura Jiménez Mora", operatorId: "OP-02", operatorName: "Pablo Serrano", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "B2B", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "En_Valoración",
+    receivedAt: dt(-2, "16:00:00"), contactedAt: dt(-2, "17:00:00"), scheduledAt: dt(0, "14:00:00"), scheduledEndAt: dt(0, "16:30:00"),
+    diagnosisComplete: true, nps: null, budgetTotal: 680, budgetStatus: "Aprobado",
+    description: "Sustitución de grifería en cocina y baño.", address: "C/ Alcalá 100, 3ºD, Madrid",
+    media: [{ id: "M-007", type: "photo", url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400", caption: "Grifería a sustituir", uploadedAt: dt(-2, "17:10:00") }],
+    internalComments: [],
+    managerComments: [{ id: "MC-003", text: "Pendiente confirmación del cliente sobre modelo de grifería.", author: "Admin", createdAt: dt(-1, "09:00:00") }],
+    timelineEvents: [
+      { id: "TE-016", date: dt(-2, "16:00:00"), comment: "Servicio recibido", author: "Sistema" },
+      { id: "TE-017", date: dt(-2, "17:00:00"), comment: "Contacto realizado", author: "Pablo Serrano" },
+    ],
+    materials: [
+      { id: "MAT-008", name: "Grifo monomando cocina Grohe", units: 1, costPrice: 65, hasKnownPvp: true, pvp: 89.90 },
+      { id: "MAT-009", name: "Grifo lavabo baño Grohe", units: 1, costPrice: 52, hasKnownPvp: true, pvp: 72.50 },
+    ],
+    realHours: null,
+  },
+  {
+    id: "SRV-008", clientId: "CLI-007", clientName: "Elena Torres Gil", operatorId: "OP-03", operatorName: "Miguel Ángel Rivas", collaboratorId: null, collaboratorName: null, clusterId: "CLU-05", origin: "Directo", status: "Finalizado", urgency: "24h", specialty: "Electricidad/Luz", serviceType: "Reparación_Directa", serviceCategory: "Correctivo", claimStatus: "Cerrado",
+    receivedAt: dt(-5, "08:00:00"), contactedAt: dt(-5, "08:30:00"), scheduledAt: dt(-4, "08:00:00"), scheduledEndAt: dt(-4, "11:00:00"),
+    diagnosisComplete: true, nps: 7, budgetTotal: 350, budgetStatus: "Aprobado",
+    description: "Cortocircuito en enchufe de salón. Saltan los plomos frecuentemente.", address: "C/ Larios 22, Málaga",
+    media: [{ id: "M-008", type: "photo", url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400", caption: "Enchufe dañado", uploadedAt: dt(-5, "09:00:00") }],
+    internalComments: [{ id: "IC-004", text: "Instalación muy antigua, recomendado revisión completa.", author: "Miguel Ángel Rivas", createdAt: dt(-4, "10:00:00") }],
+    managerComments: [],
+    timelineEvents: [
+      { id: "TE-018", date: dt(-5, "08:00:00"), comment: "Servicio recibido", author: "Sistema" },
+      { id: "TE-019", date: dt(-5, "08:30:00"), comment: "Contacto realizado", author: "Miguel Ángel Rivas" },
+      { id: "TE-020", date: dt(-4, "08:00:00"), comment: "Reparación completada", author: "Miguel Ángel Rivas" },
+    ],
+    materials: [{ id: "MAT-010", name: "Mecanismo enchufe Schuko", units: 2, costPrice: 4.50, hasKnownPvp: false, pvp: null }],
+    realHours: 3,
+  },
+  {
+    id: "SRV-009", clientId: "CLI-001", clientName: "María García López", operatorId: "OP-01", operatorName: "Juan Morales", collaboratorId: "COL-001", collaboratorName: "Fincas Reunidas SL", clusterId: "CLU-01", origin: "Directo", status: "En_Curso", urgency: "Estándar", specialty: "Fontanería/Agua", serviceType: "Presupuesto", serviceCategory: "Correctivo", claimStatus: "Abierto",
+    receivedAt: dt(-2, "10:00:00"), contactedAt: dt(-2, "11:00:00"), scheduledAt: dt(0, "09:00:00"), scheduledEndAt: dt(3, "17:00:00"),
+    diagnosisComplete: true, nps: null, budgetTotal: 3200, budgetStatus: "Aprobado",
+    description: "Reforma integral de fontanería en vivienda. Trabajo de 4 días.", address: "C/ Gran Vía 45, 2ºA, Madrid",
+    media: [], internalComments: [], managerComments: [],
+    timelineEvents: [{ id: "TE-021", date: dt(-2, "10:00:00"), comment: "Servicio recibido", author: "Sistema" }],
+    materials: [], realHours: null,
+  },
 ];
 
 export const mockBudgets: Budget[] = [
@@ -39,7 +183,7 @@ export const mockBudgets: Budget[] = [
     clientName: "María García López",
     clientAddress: "C/ Gran Vía 45, 2ºA, Madrid",
     collaboratorName: "Fincas Reunidas SL",
-    createdAt: "2026-02-23T10:00:00",
+    createdAt: dt(-1, "10:00:00"),
     status: "Aprobado",
     lines: [
       { id: "L1", concept: "Reparación tubería cobre", description: "Sustitución tramo 2m tubería cobre 22mm", units: 1, costPrice: 180, margin: 30, taxRate: 21 },
@@ -55,7 +199,7 @@ export const mockBudgets: Budget[] = [
     clientName: "Pedro Rodríguez Díaz",
     clientAddress: "C/ Sierpes 78, Sevilla",
     collaboratorName: "Correduría Andaluza",
-    createdAt: "2026-02-20T16:00:00",
+    createdAt: dt(-4, "16:00:00"),
     status: "Aprobado",
     lines: [
       { id: "L4", concept: "Cuadro eléctrico completo", description: "Cuadro 40 módulos con diferencial e ICP", units: 1, costPrice: 420, margin: 30, taxRate: 21 },
@@ -71,7 +215,7 @@ export const mockBudgets: Budget[] = [
     clientName: "Javier López Herrero",
     clientAddress: "Paseo de Gracia 55, Barcelona",
     collaboratorName: "InmoGest BCN",
-    createdAt: "2026-02-15T12:00:00",
+    createdAt: dt(-9, "12:00:00"),
     status: "Enviado",
     lines: [
       { id: "L7", concept: "Unidad exterior multi-split", description: "Daikin 3MXM68N", units: 1, costPrice: 1200, margin: 30, taxRate: 21 },
@@ -87,7 +231,7 @@ export const mockBudgets: Budget[] = [
     clientName: "Laura Jiménez Mora",
     clientAddress: "C/ Alcalá 100, 3ºD, Madrid",
     collaboratorName: "Fincas Reunidas SL",
-    createdAt: "2026-02-22T18:00:00",
+    createdAt: dt(-2, "18:00:00"),
     status: "Borrador",
     lines: [
       { id: "L10", concept: "Sustitución de jambas", description: "Marco de puerta de entrada dañada", units: 1, costPrice: 84, margin: 30, taxRate: 21 },
@@ -105,7 +249,7 @@ export const mockOperators: Operator[] = [
     status: "Activo", available: true, npsMean: 8.9, totalRevenue: 32400, completedServices: 87, activeServices: 2,
     color: "210 80% 52%", hireDate: "2023-03-15", vehiclePlate: "1234 ABC", avgResponseTime: 35,
     certifications: ["Carnet de instalador autorizado IA", "PRL 60h"],
-    lastServiceDate: "2026-02-24",
+    lastServiceDate: dd(0),
     monthlyRevenue: [
       { month: "2025-09", revenue: 4200, services: 12 }, { month: "2025-10", revenue: 3800, services: 10 },
       { month: "2025-11", revenue: 5100, services: 14 }, { month: "2025-12", revenue: 2900, services: 8 },
@@ -120,7 +264,7 @@ export const mockOperators: Operator[] = [
     status: "Activo", available: true, npsMean: 9.2, totalRevenue: 28700, completedServices: 74, activeServices: 2,
     color: "152 60% 42%", hireDate: "2023-06-01", vehiclePlate: "5678 DEF", avgResponseTime: 28,
     certifications: ["Carnet de instalador autorizado IA", "PRL 60h", "Manipulador de gases fluorados"],
-    lastServiceDate: "2026-02-24",
+    lastServiceDate: dd(0),
     monthlyRevenue: [
       { month: "2025-09", revenue: 3600, services: 10 }, { month: "2025-10", revenue: 4100, services: 11 },
       { month: "2025-11", revenue: 3900, services: 10 }, { month: "2025-12", revenue: 3200, services: 9 },
@@ -135,7 +279,7 @@ export const mockOperators: Operator[] = [
     status: "Activo", available: true, npsMean: 8.5, totalRevenue: 41200, completedServices: 102, activeServices: 0,
     color: "25 95% 53%", hireDate: "2022-09-10", vehiclePlate: "9012 GHI", avgResponseTime: 42,
     certifications: ["REBT Categoría básica", "PRL 60h", "Certificado IRVE"],
-    lastServiceDate: "2026-02-22",
+    lastServiceDate: dd(-2),
     monthlyRevenue: [
       { month: "2025-09", revenue: 5800, services: 15 }, { month: "2025-10", revenue: 6200, services: 16 },
       { month: "2025-11", revenue: 4900, services: 13 }, { month: "2025-12", revenue: 5500, services: 14 },
@@ -150,7 +294,7 @@ export const mockOperators: Operator[] = [
     status: "Vacaciones", available: false, npsMean: 9.0, totalRevenue: 19800, completedServices: 51, activeServices: 0,
     color: "280 65% 55%", hireDate: "2024-01-20", vehiclePlate: "3456 JKL", avgResponseTime: 30,
     certifications: ["Manipulador de gases fluorados", "PRL 20h"],
-    lastServiceDate: "2026-02-10",
+    lastServiceDate: dd(-14),
     monthlyRevenue: [
       { month: "2025-09", revenue: 3100, services: 8 }, { month: "2025-10", revenue: 3400, services: 9 },
       { month: "2025-11", revenue: 2800, services: 7 }, { month: "2025-12", revenue: 3600, services: 10 },
@@ -165,7 +309,7 @@ export const mockOperators: Operator[] = [
     status: "Activo", available: true, npsMean: 7.8, totalRevenue: 15600, completedServices: 38, activeServices: 1,
     color: "340 75% 55%", hireDate: "2024-06-15", vehiclePlate: null, avgResponseTime: 55,
     certifications: ["REBT Categoría básica", "PRL 20h"],
-    lastServiceDate: "2026-02-21",
+    lastServiceDate: dd(-3),
     monthlyRevenue: [
       { month: "2025-09", revenue: 2100, services: 5 }, { month: "2025-10", revenue: 2400, services: 6 },
       { month: "2025-11", revenue: 2800, services: 7 }, { month: "2025-12", revenue: 1900, services: 5 },
@@ -180,7 +324,7 @@ export const mockOperators: Operator[] = [
     status: "Activo", available: true, npsMean: 8.3, totalRevenue: 22100, completedServices: 59, activeServices: 1,
     color: "175 60% 42%", hireDate: "2023-11-01", vehiclePlate: "7890 MNO", avgResponseTime: 38,
     certifications: ["Manipulador de gases fluorados", "PRL 60h", "Carnet de instalador autorizado IA"],
-    lastServiceDate: "2026-02-23",
+    lastServiceDate: dd(-1),
     monthlyRevenue: [
       { month: "2025-09", revenue: 3200, services: 9 }, { month: "2025-10", revenue: 3600, services: 10 },
       { month: "2025-11", revenue: 4100, services: 11 }, { month: "2025-12", revenue: 2700, services: 7 },
