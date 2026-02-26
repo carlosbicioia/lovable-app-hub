@@ -20,6 +20,7 @@ import {
   Receipt,
   AlertTriangle,
   Truck,
+  CreditCard,
 } from "lucide-react";
 
 const typeLabels: Record<PurchaseOrderType, string> = {
@@ -99,9 +100,14 @@ export default function Purchases() {
             {orders.length} órdenes de compra · Gestión de suministros y materiales
           </p>
         </div>
-        <Button onClick={() => navigate("/compras/nueva")}>
-          <Plus className="w-4 h-4 mr-2" /> Nueva OC
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => navigate("/compras/nueva?direct=true")}>
+            <CreditCard className="w-4 h-4 mr-2" /> Compra directa
+          </Button>
+          <Button onClick={() => navigate("/compras/nueva")}>
+            <Plus className="w-4 h-4 mr-2" /> Nueva OC
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
