@@ -1,12 +1,16 @@
-import { useMemo, useEffect, useRef, useState } from "react";
-import { Bell, Clock, AlertTriangle, ShoppingCart, UserX, Wrench } from "lucide-react";
+import { useMemo, useEffect, useRef, useState, useCallback } from "react";
+import { Bell, Clock, AlertTriangle, ShoppingCart, UserX, Wrench, CheckCheck, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { useServices } from "@/hooks/useServices";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, parseISO, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Notification {
   id: string;
@@ -18,18 +22,37 @@ interface Notification {
   time?: string;
 }
 
+function useDismissedNotifications() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["notification_dismissals", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_dismissals" as any)
+        .select("notification_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set((data as any[]).map((d: any) => d.notification_id));
+    },
+    staleTime: 30_000,
+  });
+}
+
 export default function NotificationsPopover() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { services } = useServices();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
+  const { data: dismissedSet = new Set<string>() } = useDismissedNotifications();
+  const queryClient = useQueryClient();
   const [ringing, setRinging] = useState(false);
   const [badgePop, setBadgePop] = useState(false);
   const prevCountRef = useRef<number | null>(null);
 
-  const notifications = useMemo<Notification[]>(() => {
+  const allNotifications = useMemo<Notification[]>(() => {
     const items: Notification[] = [];
 
-    // 1. Emergency purchase orders
     purchaseOrders
       .filter((o) => o.isEmergency && o.status !== "Conciliada")
       .forEach((o) => {
@@ -44,7 +67,6 @@ export default function NotificationsPopover() {
         });
       });
 
-    // 2. Purchase orders pending approval
     purchaseOrders
       .filter((o) => o.status === "Pendiente_Aprobación")
       .forEach((o) => {
@@ -59,7 +81,6 @@ export default function NotificationsPopover() {
         });
       });
 
-    // 3. Services pending contact (SLA breach > 12h)
     services
       .filter((s) => {
         if (s.status !== "Pendiente_Contacto") return false;
@@ -82,7 +103,6 @@ export default function NotificationsPopover() {
         });
       });
 
-    // 4. Urgent services in progress
     services
       .filter((s) => s.urgency !== "Estándar" && s.status === "En_Curso")
       .slice(0, 5)
@@ -98,7 +118,6 @@ export default function NotificationsPopover() {
         });
       });
 
-    // 5. Services without operator assigned
     services
       .filter((s) => !s.operatorId && s.status === "En_Curso")
       .slice(0, 3)
@@ -117,6 +136,11 @@ export default function NotificationsPopover() {
     return items;
   }, [services, purchaseOrders]);
 
+  const notifications = useMemo(
+    () => allNotifications.filter((n) => !dismissedSet.has(n.id)),
+    [allNotifications, dismissedSet]
+  );
+
   // Detect new notifications and trigger bell animation
   useEffect(() => {
     const count = notifications.length;
@@ -132,6 +156,40 @@ export default function NotificationsPopover() {
     }
     prevCountRef.current = count;
   }, [notifications.length]);
+
+  const dismissOne = useCallback(async (notificationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user?.id) return;
+    // Optimistic update
+    queryClient.setQueryData(
+      ["notification_dismissals", user.id],
+      (old: Set<string> | undefined) => {
+        const next = new Set(old);
+        next.add(notificationId);
+        return next;
+      }
+    );
+    await supabase.from("notification_dismissals" as any).insert({
+      user_id: user.id,
+      notification_id: notificationId,
+    } as any);
+  }, [user?.id, queryClient]);
+
+  const dismissAll = useCallback(async () => {
+    if (!user?.id || notifications.length === 0) return;
+    const ids = notifications.map((n) => n.id);
+    queryClient.setQueryData(
+      ["notification_dismissals", user.id],
+      (old: Set<string> | undefined) => {
+        const next = new Set(old);
+        ids.forEach((id) => next.add(id));
+        return next;
+      }
+    );
+    await supabase.from("notification_dismissals" as any).insert(
+      ids.map((id) => ({ user_id: user.id, notification_id: id })) as any
+    );
+  }, [user?.id, notifications, queryClient]);
 
   const variantStyles: Record<string, string> = {
     destructive: "border-l-2 border-l-destructive bg-destructive/5",
@@ -163,7 +221,20 @@ export default function NotificationsPopover() {
             <Wrench className="w-4 h-4 text-primary" />
             Notificaciones
           </h3>
-          <span className="text-xs text-muted-foreground">{notifications.length} alerta(s)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{notifications.length}</span>
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                onClick={dismissAll}
+              >
+                <CheckCheck className="w-3.5 h-3.5 mr-1" />
+                Leer todas
+              </Button>
+            )}
+          </div>
         </div>
         <div className="overflow-y-auto flex-1">
           {notifications.length === 0 ? (
@@ -175,7 +246,7 @@ export default function NotificationsPopover() {
               <div
                 key={n.id}
                 className={cn(
-                  "px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors animate-notification-in",
+                  "px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors animate-notification-in group relative",
                   variantStyles[n.variant]
                 )}
                 style={{ animationDelay: `${i * 50}ms` }}
@@ -198,6 +269,13 @@ export default function NotificationsPopover() {
                       </p>
                     )}
                   </div>
+                  <button
+                    onClick={(e) => dismissOne(n.id, e)}
+                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted"
+                    title="Marcar como leída"
+                  >
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
                 </div>
               </div>
             ))
