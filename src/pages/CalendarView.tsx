@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, DragEvent } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "react";
 import { mockOperators } from "@/data/mockData";
 import { useServices } from "@/hooks/useServices";
 import {
@@ -18,6 +18,7 @@ import {
   isSameMonth,
   isToday,
   getHours,
+  getMinutes,
   differenceInCalendarDays,
 } from "date-fns";
 import { es } from "date-fns/locale";
@@ -198,6 +199,40 @@ function ServiceChip({
   );
 }
 
+// ─── CURRENT TIME LINE ─────────────────────────────────────
+function useCurrentTime() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+/** Red line indicating current time. Place inside a relative-positioned hour row container. */
+function CurrentTimeLine({ hour, colStart, colSpan }: { hour: number; colStart: number; colSpan: number }) {
+  const now = useCurrentTime();
+  const currentHour = getHours(now);
+  const currentMinute = getMinutes(now);
+  if (currentHour !== hour) return null;
+  const topPercent = (currentMinute / 60) * 100;
+
+  return (
+    <div
+      className="absolute left-0 right-0 z-20 pointer-events-none"
+      style={{
+        top: `${topPercent}%`,
+        gridColumn: `${colStart} / span ${colSpan}`,
+      }}
+    >
+      <div className="flex items-center">
+        <div className="w-2 h-2 rounded-full bg-destructive shrink-0 -ml-1" />
+        <div className="flex-1 h-[2px] bg-destructive" />
+      </div>
+    </div>
+  );
+}
+
 // ─── DAY VIEW ──────────────────────────────────────────────
 function DayView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
@@ -237,11 +272,12 @@ function DayView({ date, onDropService }: { date: Date; onDropService: (serviceI
           <div
             key={hour}
             className={cn(
-              "grid gap-0 border-b border-border min-h-[56px]",
+              "relative grid gap-0 border-b border-border min-h-[56px]",
               isToday(date) && getHours(new Date()) === hour && "bg-primary/5"
             )}
             style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}
           >
+            {isToday(date) && <CurrentTimeLine hour={hour} colStart={2} colSpan={operators.length + (unassigned.length ? 1 : 0)} />}
             <div className="p-2 text-xs text-muted-foreground border-r border-border font-mono">
               {String(hour).padStart(2, "0")}:00
             </div>
@@ -429,12 +465,16 @@ function WeekView({
 
       {/* Hour rows — with selection support */}
       <div className="flex-1 overflow-y-auto select-none">
-        {hours.map((hour) => (
+        {hours.map((hour) => {
+          const hasToday = days.some((d) => isToday(d));
+          const todayColIdx = days.findIndex((d) => isToday(d));
+          return (
           <div
             key={hour}
-            className="grid gap-0 border-b border-border min-h-[52px]"
+            className="relative grid gap-0 border-b border-border min-h-[52px]"
             style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}
           >
+            {hasToday && <CurrentTimeLine hour={hour} colStart={todayColIdx + 2} colSpan={1} />}
             <div className="p-1 text-[10px] text-muted-foreground border-r border-border font-mono text-right pr-2">
               {String(hour).padStart(2, "0")}:00
             </div>
@@ -476,7 +516,8 @@ function WeekView({
               );
             })}
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
