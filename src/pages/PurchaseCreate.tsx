@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
 
 interface LineInput {
@@ -81,30 +81,50 @@ export default function PurchaseCreate() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Servicio *</Label>
-              <Select value={serviceId} onValueChange={setServiceId}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar servicio" /></SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.id} - {s.clientName}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={serviceId}
+                onValueChange={setServiceId}
+                placeholder="Buscar servicio…"
+                searchPlaceholder="Nº servicio, cliente…"
+                emptyText="Sin servicios"
+                options={services.map((s) => ({
+                  value: s.id,
+                  label: `${s.id} - ${s.clientName}`,
+                  subtitle: s.address ?? undefined,
+                  searchText: `${s.description ?? ""} ${s.address ?? ""}`,
+                }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Proveedor *</Label>
-              <Select value={supplierName} onValueChange={setSupplierName}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar proveedor" /></SelectTrigger>
-                <SelectContent>
-                  {suppliers.filter((s) => s.active).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={supplierName}
+                onValueChange={setSupplierName}
+                placeholder="Buscar proveedor…"
+                searchPlaceholder="Nombre, CIF…"
+                emptyText="Sin proveedores"
+                options={suppliers.filter((s) => s.active).map((s) => ({
+                  value: s.name,
+                  label: s.name,
+                  subtitle: s.city || undefined,
+                  searchText: `${s.taxId} ${s.contactPerson}`,
+                }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Operario</Label>
-              <Select value={operatorId} onValueChange={setOperatorId}>
-                <SelectTrigger><SelectValue placeholder="Asignar operario" /></SelectTrigger>
-                <SelectContent>
-                  {mockOperators.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={operatorId}
+                onValueChange={setOperatorId}
+                placeholder="Asignar operario…"
+                searchPlaceholder="Nombre del operario…"
+                emptyText="Sin operarios"
+                options={mockOperators.map((o) => ({
+                  value: o.id,
+                  label: o.name,
+                  subtitle: `${o.specialty} · NPS ${o.npsMean}`,
+                }))}
+              />
             </div>
           </div>
           <div className="space-y-1.5">
