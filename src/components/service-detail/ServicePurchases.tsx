@@ -176,7 +176,7 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
               <CardTitle className="text-base flex items-center gap-2">
                 <Truck className="w-4 h-4 text-muted-foreground" /> Albaranes / Compras directas
               </CardTitle>
-              <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}&type=albaran`)}>
+              <Button size="sm" onClick={() => navigate(`/compras/albaran/nuevo?serviceId=${serviceId}`)}>
                 <Plus className="w-4 h-4 mr-1" /> Nuevo albarán
               </Button>
             </CardHeader>
@@ -230,6 +230,9 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" /> Facturas de compra
               </CardTitle>
+              <Button size="sm" onClick={() => navigate(`/compras/factura/nueva?serviceId=${serviceId}`)}>
+                <Plus className="w-4 h-4 mr-1" /> Nueva factura
+              </Button>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
