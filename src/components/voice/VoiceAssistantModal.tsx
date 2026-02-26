@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { X, Mic, MicOff, Volume2, Loader2 } from "lucide-react";
+import { X, Mic, MicOff, Loader2, Headset, AudioLines } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -100,11 +100,11 @@ export default function VoiceAssistantModal({
               {isProcessing ? (
                 <Loader2 className="w-8 h-8 animate-spin" />
               ) : isSpeaking ? (
-                <Volume2 className="w-8 h-8" />
+                <AudioLines className="w-8 h-8 animate-pulse" />
               ) : isListening ? (
                 <Mic className="w-8 h-8 animate-pulse" />
               ) : (
-                "A"
+                <Headset className="w-8 h-8" />
               )}
             </div>
 
