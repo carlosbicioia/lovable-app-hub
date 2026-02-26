@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseInvoice } from "@/hooks/usePurchaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useServices } from "@/hooks/useServices";
@@ -33,6 +33,8 @@ const emptyLine = (): InvoiceLine => ({
 
 export default function InvoiceCreate() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preServiceId = searchParams.get("serviceId") ?? null;
   const { toast } = useToast();
   const createInvoice = useCreatePurchaseInvoice();
   const { data: suppliers = [] } = useSuppliers();
@@ -54,7 +56,7 @@ export default function InvoiceCreate() {
   const [dueDate, setDueDate] = useState("");
   const [taxRate, setTaxRate] = useState(21);
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<InvoiceLine[]>([emptyLine()]);
+  const [lines, setLines] = useState<InvoiceLine[]>([{ ...emptyLine(), serviceId: preServiceId }]);
 
   const selectedOc = useMemo(() => orders.find((o) => o.id === selectedOcId), [orders, selectedOcId]);
 
