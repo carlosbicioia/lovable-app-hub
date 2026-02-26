@@ -225,10 +225,10 @@ export default function ServiceDetail() {
           <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap">
             <TabsTrigger value="overview" className="text-sm">Visión general</TabsTrigger>
             <TabsTrigger value="details" className="text-sm">Detalles del servicio</TabsTrigger>
+            <TabsTrigger value="budget" className="text-sm">Presupuesto</TabsTrigger>
             <TabsTrigger value="purchases" className="text-sm">
               Compras {linkedOrders.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{linkedOrders.length}</span>}
             </TabsTrigger>
-            <TabsTrigger value="budget" className="text-sm">Presupuesto</TabsTrigger>
           </TabsList>
 
           {/* Tab: Visión general */}
