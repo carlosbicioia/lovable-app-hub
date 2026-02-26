@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Building2, Users, Shield, FileText, Bell, Palette, Mail,
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
-  Pencil, Droplets, Zap, Wind,
+  Pencil, Droplets, Zap, Wind, Percent,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ import {
   type SpecialtyRow, type CertificationRow,
 } from "@/hooks/useIndustrialConfig";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import TaxTypesConfigTab from "@/components/settings/TaxTypesConfigTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -459,6 +460,7 @@ export default function Settings() {
           <TabsTrigger value="appearance" className="text-sm gap-1.5"><Palette className="w-3.5 h-3.5" /> Apariencia</TabsTrigger>
           <TabsTrigger value="protocol" className="text-sm gap-1.5"><Wrench className="w-3.5 h-3.5" /> Protocolo</TabsTrigger>
           <TabsTrigger value="industrial" className="text-sm gap-1.5"><HardHat className="w-3.5 h-3.5" /> Industriales</TabsTrigger>
+          <TabsTrigger value="fiscal" className="text-sm gap-1.5"><Percent className="w-3.5 h-3.5" /> Fiscal</TabsTrigger>
         </TabsList>
 
         {/* ===== EMPRESA ===== */}
@@ -927,6 +929,11 @@ export default function Settings() {
         {/* ===== INDUSTRIALES ===== */}
         <TabsContent value="industrial" className="space-y-6 mt-4">
           <IndustrialConfigTab />
+        </TabsContent>
+
+        {/* ===== FISCAL ===== */}
+        <TabsContent value="fiscal" className="space-y-6 mt-4">
+          <TaxTypesConfigTab />
         </TabsContent>
       </Tabs>
 

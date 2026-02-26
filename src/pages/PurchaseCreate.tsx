@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId, PurchaseOrderType } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { mockOperators } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,22 +25,24 @@ import {
 } from "lucide-react";
 
 interface LineInput {
-  articleName: string;
+  supplierCode: string;
   description: string;
   units: number;
   costPrice: number;
-  hasKnownPvp: boolean;
-  pvp: number | null;
+  discountPercent: number;
 }
 
 const emptyLine = (): LineInput => ({
-  articleName: "",
+  supplierCode: "",
   description: "",
   units: 1,
   costPrice: 0,
-  hasKnownPvp: false,
-  pvp: null,
+  discountPercent: 0,
 });
+
+function lineTotal(l: LineInput): number {
+  return l.units * l.costPrice * (1 - l.discountPercent / 100);
+}
 
 export default function PurchaseCreate() {
   const navigate = useNavigate();
@@ -50,8 +53,11 @@ export default function PurchaseCreate() {
   const { services } = useServices();
   const { data: nextId, isLoading: idLoading } = useNextPurchaseOrderId();
   const { data: suppliers = [] } = useSuppliers();
+  const { data: taxTypes = [] } = useActiveTaxTypes();
   const activeSuppliers = suppliers.filter((s) => s.active);
   const createMutation = useCreatePurchaseOrder();
+
+  const defaultTaxType = taxTypes.find((t) => t.is_default) ?? taxTypes[0];
 
   const [type, setType] = useState<PurchaseOrderType>(isDirect ? "Servicio" : (preselectedServiceId ? "Servicio" : "Servicio"));
   const [serviceId, setServiceId] = useState<string>(preselectedServiceId);
@@ -60,6 +66,12 @@ export default function PurchaseCreate() {
   const [isEmergency, setIsEmergency] = useState(false);
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
+  const [taxTypeId, setTaxTypeId] = useState<string>("");
+
+  // Set default tax type when loaded
+  const effectiveTaxTypeId = taxTypeId || defaultTaxType?.id || "";
+  const selectedTaxType = taxTypes.find((t) => t.id === effectiveTaxTypeId);
+  const taxRate = selectedTaxType?.rate ?? 21;
 
   const selectedOperator = mockOperators.find((o) => o.id === operatorId);
 
@@ -71,21 +83,19 @@ export default function PurchaseCreate() {
     );
   };
 
-  const totalCost = lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
-  const totalSale = lines.reduce((sum, l) => {
-    const sale = l.hasKnownPvp && l.pvp ? l.pvp : l.costPrice * 1.3;
-    return sum + l.units * sale;
-  }, 0);
+  const subtotal = lines.reduce((sum, l) => sum + lineTotal(l), 0);
+  const taxAmount = subtotal * (taxRate / 100);
+  const total = subtotal + taxAmount;
 
   const canSubmit = !!(
     nextId &&
     supplierName.trim() &&
-    lines.some((l) => l.articleName.trim() && l.costPrice > 0) &&
-    serviceId // always require service for direct purchases; for OC only when type is Servicio
+    lines.some((l) => l.supplierCode.trim() && l.costPrice > 0) &&
+    serviceId
   ) || !!(
     nextId &&
     supplierName.trim() &&
-    lines.some((l) => l.articleName.trim() && l.costPrice > 0) &&
+    lines.some((l) => l.supplierCode.trim() && l.costPrice > 0) &&
     !isDirect &&
     type !== "Servicio"
   );
@@ -101,15 +111,15 @@ export default function PurchaseCreate() {
       supplierName,
       isEmergency: isDirect ? false : isEmergency,
       notes: isDirect ? `[Compra directa] ${notes}`.trim() : notes,
+      taxTypeId: effectiveTaxTypeId || null,
       lines: lines
-        .filter((l) => l.articleName.trim())
+        .filter((l) => l.supplierCode.trim())
         .map((l) => ({
-          articleName: l.articleName,
+          supplierCode: l.supplierCode,
           description: l.description,
           units: l.units,
           costPrice: l.costPrice,
-          hasKnownPvp: l.hasKnownPvp,
-          pvp: l.hasKnownPvp ? l.pvp : null,
+          discountPercent: l.discountPercent,
         })),
       status: isDirect ? "Conciliada" : undefined,
     });
@@ -205,6 +215,20 @@ export default function PurchaseCreate() {
             </Select>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Tipo impositivo</Label>
+            <Select value={effectiveTaxTypeId} onValueChange={setTaxTypeId}>
+              <SelectTrigger><SelectValue placeholder="Seleccionar impuesto..." /></SelectTrigger>
+              <SelectContent>
+                {taxTypes.map((tt) => (
+                  <SelectItem key={tt.id} value={tt.id}>
+                    {tt.name} ({tt.rate}%)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {!isDirect && (
             <div className="flex items-center gap-3 col-span-full">
               <Switch checked={isEmergency} onCheckedChange={setIsEmergency} />
@@ -239,25 +263,25 @@ export default function PurchaseCreate() {
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Header */}
-          <div className="hidden md:grid grid-cols-[1fr_1fr_80px_100px_80px_100px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
-            <span>Material</span>
+          <div className="hidden md:grid grid-cols-[120px_1fr_80px_100px_90px_100px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
+            <span>Cód. proveedor</span>
             <span>Descripción</span>
             <span>Uds.</span>
             <span>Coste ud.</span>
-            <span>¿PVP?</span>
-            <span>PVP</span>
+            <span>Dto. %</span>
+            <span className="text-right">Total</span>
             <span />
           </div>
 
           {lines.map((line, idx) => (
-            <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_80px_100px_80px_100px_40px] gap-2 items-center bg-muted/30 rounded-lg p-2">
+            <div key={idx} className="grid grid-cols-1 md:grid-cols-[120px_1fr_80px_100px_90px_100px_40px] gap-2 items-center bg-muted/30 rounded-lg p-2">
               <Input
-                placeholder="Nombre del material"
-                value={line.articleName}
-                onChange={(e) => updateLine(idx, "articleName", e.target.value)}
+                placeholder="Código"
+                value={line.supplierCode}
+                onChange={(e) => updateLine(idx, "supplierCode", e.target.value)}
               />
               <Input
-                placeholder="Referencia / descripción"
+                placeholder="Descripción del material"
                 value={line.description}
                 onChange={(e) => updateLine(idx, "description", e.target.value)}
               />
@@ -275,21 +299,18 @@ export default function PurchaseCreate() {
                 onChange={(e) => updateLine(idx, "costPrice", Number(e.target.value))}
                 placeholder="€"
               />
-              <div className="flex justify-center">
-                <Switch
-                  checked={line.hasKnownPvp}
-                  onCheckedChange={(v) => updateLine(idx, "hasKnownPvp", v)}
-                />
-              </div>
               <Input
                 type="number"
                 min={0}
-                step={0.01}
-                disabled={!line.hasKnownPvp}
-                value={line.hasKnownPvp ? (line.pvp ?? "") : ""}
-                onChange={(e) => updateLine(idx, "pvp", Number(e.target.value))}
-                placeholder={line.hasKnownPvp ? "€" : "×1.30"}
+                max={100}
+                step={0.5}
+                value={line.discountPercent || ""}
+                onChange={(e) => updateLine(idx, "discountPercent", Number(e.target.value))}
+                placeholder="%"
               />
+              <div className="text-right font-medium text-sm text-foreground pr-1">
+                €{lineTotal(line).toFixed(2)}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -303,20 +324,20 @@ export default function PurchaseCreate() {
           ))}
 
           {/* Totals */}
-          <div className="flex justify-end gap-6 pt-3 border-t border-border text-sm">
-            <div>
-              <span className="text-muted-foreground">Coste total: </span>
-              <span className="font-bold text-foreground">€{totalCost.toFixed(2)}</span>
+          <div className="flex flex-col items-end gap-1 pt-3 border-t border-border text-sm">
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 text-right">Base imponible:</span>
+              <span className="font-bold text-foreground w-28 text-right">€{subtotal.toFixed(2)}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">PVP estimado: </span>
-              <span className="font-bold text-success">€{totalSale.toFixed(2)}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Margen: </span>
-              <span className="font-bold text-info">
-                €{(totalSale - totalCost).toFixed(2)}
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 text-right">
+                {selectedTaxType ? selectedTaxType.name : `IVA ${taxRate}%`}:
               </span>
+              <span className="font-bold text-foreground w-28 text-right">€{taxAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex gap-2 pt-1 border-t border-border">
+              <span className="text-muted-foreground w-32 text-right font-semibold">Total:</span>
+              <span className="font-bold text-foreground text-base w-28 text-right">€{total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
