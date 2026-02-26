@@ -43,6 +43,7 @@ export default function Budgets() {
   const [search, setSearch] = useState("");
   const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
@@ -79,7 +80,8 @@ export default function Budgets() {
       b.serviceId.toLowerCase().includes(search.toLowerCase());
     const matchCollaborator = filterCollaborator === "all" || b.collaboratorName === filterCollaborator;
     const matchSpecialty = filterSpecialty === "all" || serviceSpecialtyMap[b.serviceId] === filterSpecialty;
-    return matchSearch && matchCollaborator && matchSpecialty;
+    const matchStatus = filterStatus === "all" || b.status === filterStatus;
+    return matchSearch && matchCollaborator && matchSpecialty && matchStatus;
   });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
@@ -170,6 +172,17 @@ export default function Budgets() {
               <SelectItem value="all">Todas las especialidades</SelectItem>
               {specialtyOptions.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              {allStatuses.map((s) => (
+                <SelectItem key={s} value={s}>{statusConfig[s].label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
