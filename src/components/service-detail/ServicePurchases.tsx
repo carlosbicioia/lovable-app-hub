@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, AlertTriangle, Plus, Package, Euro, TrendingUp } from "lucide-react";
+import { ShoppingCart, AlertTriangle, Plus, Package, Euro, TrendingUp, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -71,9 +71,14 @@ export default function ServicePurchases({ serviceId, linkedOrders }: ServicePur
             <ShoppingCart className="w-4 h-4 text-muted-foreground" />
             Órdenes de compra
           </CardTitle>
-          <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}`)}>
-            <Plus className="w-4 h-4 mr-1" /> Nueva OC
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}&direct=true`)}>
+              <CreditCard className="w-4 h-4 mr-1" /> Compra directa
+            </Button>
+            <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}`)}>
+              <Plus className="w-4 h-4 mr-1" /> Nueva OC
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {linkedOrders.length === 0 ? (
