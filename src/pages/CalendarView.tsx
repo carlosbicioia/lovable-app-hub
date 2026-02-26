@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, DragEvent } from "react";
+import { useState, useMemo, useCallback, useRef, DragEvent } from "react";
 import { mockOperators } from "@/data/mockData";
 import { useServices } from "@/hooks/useServices";
 import {
@@ -34,10 +34,21 @@ import {
   Zap,
   Wind,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import type { Service, Operator, Specialty } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -263,12 +274,56 @@ function DayView({ date, onDropService }: { date: Date; onDropService: (serviceI
 }
 
 // ─── WEEK VIEW ─────────────────────────────────────────────
-function WeekView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
+function WeekView({
+  date,
+  onDropService,
+  onHourRangeSelect,
+}: {
+  date: Date;
+  onDropService: (serviceId: string, targetDate: Date) => void;
+  onHourRangeSelect: (day: Date, startHour: number, endHour: number) => void;
+}) {
   const { services } = useServices();
   const navigate = useNavigate();
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
   const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  // ── Hour range selection state ──
+  const [selecting, setSelecting] = useState(false);
+  const [selDay, setSelDay] = useState<number | null>(null);
+  const [selStart, setSelStart] = useState<number | null>(null);
+  const [selEnd, setSelEnd] = useState<number | null>(null);
+
+  const handleSelMouseDown = (dayIdx: number, hour: number) => {
+    setSelecting(true);
+    setSelDay(dayIdx);
+    setSelStart(hour);
+    setSelEnd(hour);
+  };
+
+  const handleSelMouseEnter = (dayIdx: number, hour: number) => {
+    if (selecting && dayIdx === selDay) setSelEnd(hour);
+  };
+
+  const handleSelMouseUp = () => {
+    if (selecting && selDay !== null && selStart !== null && selEnd !== null) {
+      const minH = Math.min(selStart, selEnd);
+      const maxH = Math.max(selStart, selEnd) + 1;
+      onHourRangeSelect(days[selDay], minH, maxH);
+    }
+    setSelecting(false);
+    setSelDay(null);
+    setSelStart(null);
+    setSelEnd(null);
+  };
+
+  const isHourSelected = (dayIdx: number, hour: number) => {
+    if (!selecting || selDay !== dayIdx || selStart === null || selEnd === null) return false;
+    const minH = Math.min(selStart, selEnd);
+    const maxH = Math.max(selStart, selEnd);
+    return hour >= minH && hour <= maxH;
+  };
 
   const weekServices = services.filter((s) => {
     if (!s.scheduledAt) return false;
@@ -289,7 +344,7 @@ function WeekView({ date, onDropService }: { date: Date; onDropService: (service
   const maxBarRows = barSegments.length > 0 ? Math.max(...barSegments.map((b) => b.row)) + 1 : 0;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
       {/* Day headers */}
       <div className="grid gap-0 shrink-0" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
         <div className="border-b border-r border-border" />
@@ -372,8 +427,8 @@ function WeekView({ date, onDropService }: { date: Date; onDropService: (service
         </div>
       )}
 
-      {/* Hour rows — single-day services only */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Hour rows — with selection support */}
+      <div className="flex-1 overflow-y-auto select-none">
         {hours.map((hour) => (
           <div
             key={hour}
@@ -383,7 +438,7 @@ function WeekView({ date, onDropService }: { date: Date; onDropService: (service
             <div className="p-1 text-[10px] text-muted-foreground border-r border-border font-mono text-right pr-2">
               {String(hour).padStart(2, "0")}:00
             </div>
-            {days.map((day) => {
+            {days.map((day, dayIdx) => {
               const dayServices = singleDayServices.filter(
                 (s) => {
                   if (!s.scheduledAt) return false;
@@ -391,16 +446,32 @@ function WeekView({ date, onDropService }: { date: Date; onDropService: (service
                   return isSameDay(start, day) && getHours(start) === hour;
                 }
               );
+              const selected = isHourSelected(dayIdx, hour);
               return (
                 <DroppableCell
                   key={day.toISOString()}
                   date={day}
                   onDropService={onDropService}
-                  className="p-0.5 border-r border-border last:border-r-0 space-y-0.5"
+                  className={cn(
+                    "p-0.5 border-r border-border last:border-r-0 space-y-0.5 cursor-cell",
+                    selected && "bg-primary/15 ring-1 ring-inset ring-primary/40"
+                  )}
                 >
-                  {dayServices.map((s) => (
-                    <ServiceChip key={s.id} service={s} />
-                  ))}
+                  <div
+                    className="w-full h-full min-h-[44px]"
+                    onMouseDown={(e) => {
+                      if (e.button === 0 && !(e.target as HTMLElement).closest('[data-service-chip]')) {
+                        handleSelMouseDown(dayIdx, hour);
+                      }
+                    }}
+                    onMouseEnter={() => handleSelMouseEnter(dayIdx, hour)}
+                  >
+                    {dayServices.map((s) => (
+                      <div key={s.id} data-service-chip>
+                        <ServiceChip service={s} />
+                      </div>
+                    ))}
+                  </div>
                 </DroppableCell>
               );
             })}
@@ -682,6 +753,28 @@ export default function CalendarView() {
   const [view, setView] = useState<ViewMode>("week");
   const { services, refetch } = useServices();
   const { toast } = useToast();
+  const routerNavigate = useNavigate();
+
+  // ── Create-from-calendar dialog state ──
+  const [createDialog, setCreateDialog] = useState<{
+    open: boolean;
+    day: Date;
+    startHour: number;
+    endHour: number;
+  }>({ open: false, day: new Date(), startHour: 9, endHour: 10 });
+
+  const handleHourRangeSelect = useCallback((day: Date, startHour: number, endHour: number) => {
+    setCreateDialog({ open: true, day, startHour, endHour });
+  }, []);
+
+  const handleConfirmCreate = () => {
+    const { day, startHour, endHour } = createDialog;
+    const dateStr = format(day, "yyyy-MM-dd");
+    const startTime = `${String(startHour).padStart(2, "0")}:00`;
+    const endTime = `${String(endHour).padStart(2, "0")}:00`;
+    setCreateDialog((prev) => ({ ...prev, open: false }));
+    routerNavigate(`/servicios/nuevo?date=${dateStr}&startTime=${startTime}&endTime=${endTime}`);
+  };
 
   const handleDropService = useCallback(async (serviceId: string, targetDate: Date) => {
     const service = services.find((s) => s.id === serviceId);
@@ -691,7 +784,6 @@ export default function CalendarView() {
     const dayDelta = differenceInCalendarDays(targetDate, new Date(oldStart.getFullYear(), oldStart.getMonth(), oldStart.getDate()));
     if (dayDelta === 0) return;
 
-    // Shift both scheduled_at and scheduled_end_at by the same delta
     const newStart = addDays(oldStart, dayDelta);
     const updates: Record<string, string> = {
       scheduled_at: newStart.toISOString(),
@@ -820,10 +912,43 @@ export default function CalendarView() {
       <Card className="mt-3 flex-1 min-h-0">
         <CardContent className="p-3 h-full overflow-auto">
           {view === "day" && <DayView date={currentDate} onDropService={handleDropService} />}
-          {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} />}
+          {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} />}
           {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} />}
         </CardContent>
       </Card>
+
+      {/* Confirmation dialog for creating service from calendar */}
+      <AlertDialog open={createDialog.open} onOpenChange={(open) => setCreateDialog((prev) => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              Crear nuevo servicio
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Deseas crear un nuevo servicio para el{" "}
+              <span className="font-semibold text-foreground">
+                {format(createDialog.day, "EEEE d 'de' MMMM", { locale: es })}
+              </span>{" "}
+              de{" "}
+              <span className="font-semibold text-foreground">
+                {String(createDialog.startHour).padStart(2, "0")}:00
+              </span>{" "}
+              a{" "}
+              <span className="font-semibold text-foreground">
+                {String(createDialog.endHour).padStart(2, "0")}:00
+              </span>
+              ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCreate}>
+              Crear servicio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

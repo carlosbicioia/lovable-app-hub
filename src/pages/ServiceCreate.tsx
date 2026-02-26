@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Euro, Camera, File } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -28,6 +28,7 @@ export default function ServiceCreate() {
   const { refetch } = useServices();
   const { budgets } = useBudgets();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
   const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
@@ -86,6 +87,22 @@ export default function ServiceCreate() {
       } catch {}
     }
   }, []);
+
+  // ── Pre-fill from calendar query params ──
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    const startTimeParam = searchParams.get("startTime");
+    const endTimeParam = searchParams.get("endTime");
+    if (dateParam) {
+      const d = new Date(dateParam + "T00:00:00");
+      if (!isNaN(d.getTime())) {
+        setScheduledDate(d);
+        setScheduledEndDate(d);
+      }
+    }
+    if (startTimeParam) setScheduledTime(startTimeParam);
+    if (endTimeParam) setScheduledEndTime(endTimeParam);
+  }, [searchParams]);
 
   // Check if pending service has a linked budget
   const linkedBudget = pendingServiceId
