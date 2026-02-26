@@ -115,9 +115,6 @@ export default function Purchases() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Compras</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {orders.length} órdenes · {deliveryNotes.length} albaranes · {invoices.length} facturas
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {tab === "oc" && (
