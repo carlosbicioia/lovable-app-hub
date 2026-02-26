@@ -115,6 +115,8 @@ export default function BudgetCreate() {
       status: send ? "Enviado" as const : "Borrador" as const,
       lines,
       termsAndConditions: terms,
+      proformaPaid: false,
+      proformaPaidAt: null,
     };
 
     await addBudget(newBudget);

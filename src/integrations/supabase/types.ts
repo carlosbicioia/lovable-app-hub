@@ -98,6 +98,8 @@ export type Database = {
           collaborator_name: string | null
           created_at: string
           id: string
+          proforma_paid: boolean
+          proforma_paid_at: string | null
           service_id: string
           service_name: string
           status: string
@@ -110,6 +112,8 @@ export type Database = {
           collaborator_name?: string | null
           created_at?: string
           id: string
+          proforma_paid?: boolean
+          proforma_paid_at?: string | null
           service_id: string
           service_name?: string
           status?: string
@@ -122,6 +126,8 @@ export type Database = {
           collaborator_name?: string | null
           created_at?: string
           id?: string
+          proforma_paid?: boolean
+          proforma_paid_at?: string | null
           service_id?: string
           service_name?: string
           status?: string

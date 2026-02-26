@@ -191,6 +191,8 @@ export const mockBudgets: Budget[] = [
       { id: "L3", concept: "Mano de obra", description: "4 horas de trabajo", units: 4, costPrice: 35, margin: 30, taxRate: 21 },
     ],
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+    proformaPaid: false,
+    proformaPaidAt: null,
   },
   {
     id: "PRE-15271350",
@@ -207,6 +209,8 @@ export const mockBudgets: Budget[] = [
       { id: "L6", concept: "Mano de obra electricista", description: "8 horas de trabajo", units: 8, costPrice: 40, margin: 30, taxRate: 21 },
     ],
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+    proformaPaid: false,
+    proformaPaidAt: null,
   },
   {
     id: "PRE-15271351",
@@ -223,6 +227,8 @@ export const mockBudgets: Budget[] = [
       { id: "L9", concept: "Instalación completa", description: "Tubería, cableado y puesta en marcha", units: 1, costPrice: 450, margin: 30, taxRate: 10 },
     ],
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+    proformaPaid: false,
+    proformaPaidAt: null,
   },
   {
     id: "PRE-15271352",
@@ -237,6 +243,8 @@ export const mockBudgets: Budget[] = [
       { id: "L10", concept: "Sustitución de jambas", description: "Marco de puerta de entrada dañada", units: 1, costPrice: 84, margin: 30, taxRate: 21 },
     ],
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
+    proformaPaid: false,
+    proformaPaidAt: null,
   },
 ];
 
