@@ -27,16 +27,26 @@ export function useAppUsers() {
 export function useCreateAppUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (user: { name: string; email: string; role: string }) => {
-      const { error } = await supabase.from("app_users").insert(user);
+    mutationFn: async (user: { name: string; email: string; role: string; password: string }) => {
+      const { data, error } = await supabase.functions.invoke("register-user", {
+        body: {
+          email: user.email,
+          full_name: user.name,
+          password: user.password,
+          role: user.role,
+        },
+      });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["app_users"] });
-      toast.success("Usuario creado");
+      toast.success(data?.message ?? "Usuario registrado");
+      if (data?.warning) toast.warning(data.warning);
     },
     onError: (e: any) => {
-      toast.error(e.message?.includes("duplicate") ? "Email ya existe" : "Error al crear usuario");
+      toast.error(e.message || "Error al registrar usuario");
     },
   });
 }
