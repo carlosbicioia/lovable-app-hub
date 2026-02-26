@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, CalendarIcon } from "lucide-react";
+import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, CalendarIcon, ShoppingCart } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useServices } from "@/hooks/useServices";
+import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,6 +18,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function Dashboard() {
   const navigate = useNavigate();
   const { services, loading } = useServices();
+  const { data: purchaseOrders = [] } = usePurchaseOrders();
+
+  const pendingApprovalOrders = purchaseOrders.filter((o) => o.status === "Pendiente_Aprobación");
+  const emergencyOrders = purchaseOrders.filter((o) => o.isEmergency && o.status !== "Conciliada");
+  const alertOrders = [...new Map([...pendingApprovalOrders, ...emergencyOrders].map((o) => [o.id, o])).values()];
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
@@ -214,6 +220,44 @@ export default function Dashboard() {
               />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Purchase orders alerts */}
+      {alertOrders.length > 0 && (
+        <div className="bg-card rounded-xl border border-border shadow-sm">
+          <div className="p-5 border-b border-border flex items-center justify-between">
+            <h2 className="font-display font-semibold text-card-foreground flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4 text-primary" />
+              Compras que requieren atención
+            </h2>
+            <span className="text-xs text-muted-foreground">{alertOrders.length} orden(es)</span>
+          </div>
+          <div className="divide-y divide-border">
+            {alertOrders.map((o) => (
+              <div
+                key={o.id}
+                className="flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => navigate(`/compras/${o.id}`)}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-muted-foreground">{o.id}</span>
+                  {o.isEmergency && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-destructive/15 text-destructive border border-destructive/30">
+                      <AlertTriangle className="w-3 h-3" /> Emergencia
+                    </span>
+                  )}
+                  {o.status === "Pendiente_Aprobación" && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-warning/15 text-warning border border-warning/30">
+                      Pte. Aprobación
+                    </span>
+                  )}
+                  <span className="text-sm text-foreground font-medium">{o.supplierName}</span>
+                </div>
+                <span className="text-sm font-semibold text-foreground">€{o.totalCost.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
