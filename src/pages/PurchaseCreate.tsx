@@ -3,12 +3,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { mockOperators } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
 
@@ -17,9 +19,10 @@ interface LineInput {
   description: string;
   units: number;
   costPrice: number;
+  taxRate: number;
 }
 
-const emptyLine = (): LineInput => ({ articleName: "", description: "", units: 1, costPrice: 0 });
+const emptyLine = (): LineInput => ({ articleName: "", description: "", units: 1, costPrice: 0, taxRate: 21 });
 
 export default function PurchaseCreate() {
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ export default function PurchaseCreate() {
   const preServiceId = params.get("serviceId") ?? "";
   const { services } = useServices();
   const { data: suppliers = [] } = useSuppliers();
+  const { data: taxTypes = [] } = useActiveTaxTypes();
   const { data: nextId, isLoading: loadingId } = useNextPurchaseOrderId();
   const createOrder = useCreatePurchaseOrder();
 
@@ -37,7 +41,9 @@ export default function PurchaseCreate() {
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
 
   const selectedOp = mockOperators.find((o) => o.id === operatorId);
-  const total = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
+  const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
+  const totalTax = lines.reduce((s, l) => s + l.units * l.costPrice * (l.taxRate / 100), 0);
+  const total = subtotal + totalTax;
 
   const updateLine = (i: number, field: keyof LineInput, val: any) => {
     setLines((prev) => prev.map((l, j) => (j === i ? { ...l, [field]: val } : l)));
@@ -143,7 +149,7 @@ export default function PurchaseCreate() {
           <div className="space-y-3">
             {lines.map((l, i) => (
               <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-4 space-y-1">
+                <div className="col-span-3 space-y-1">
                   {i === 0 && <Label className="text-xs">Artículo</Label>}
                   <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre" />
                 </div>
@@ -151,13 +157,25 @@ export default function PurchaseCreate() {
                   {i === 0 && <Label className="text-xs">Descripción</Label>}
                   <Input value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Desc." />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="col-span-1 space-y-1">
                   {i === 0 && <Label className="text-xs">Uds.</Label>}
                   <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
                 </div>
                 <div className="col-span-2 space-y-1">
                   {i === 0 && <Label className="text-xs">Coste</Label>}
                   <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  {i === 0 && <Label className="text-xs">IVA</Label>}
+                  <Select value={String(l.taxRate)} onValueChange={(v) => updateLine(i, "taxRate", Number(v))}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {taxTypes.length > 0
+                        ? taxTypes.map((tt) => <SelectItem key={tt.id} value={String(tt.rate)}>{tt.name} ({tt.rate}%)</SelectItem>)
+                        : [0, 4, 10, 21].map((r) => <SelectItem key={r} value={String(r)}>{r}%</SelectItem>)
+                      }
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="col-span-1">
                   <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
@@ -167,8 +185,10 @@ export default function PurchaseCreate() {
               </div>
             ))}
           </div>
-          <div className="flex justify-end mt-4 text-sm font-semibold text-foreground">
-            Total: €{total.toFixed(2)}
+          <div className="border-t border-border pt-4 mt-4 space-y-1 text-sm text-right">
+            <p className="text-muted-foreground">Base imponible: <span className="font-medium text-foreground">€{subtotal.toFixed(2)}</span></p>
+            <p className="text-muted-foreground">Impuestos: <span className="font-medium text-foreground">€{totalTax.toFixed(2)}</span></p>
+            <p className="text-base font-semibold text-foreground">Total: €{total.toFixed(2)}</p>
           </div>
         </CardContent>
       </Card>
