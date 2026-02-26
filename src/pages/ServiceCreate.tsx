@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Euro, Camera, File } from "lucide-react";
+import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
-import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, BudgetStatus } from "@/types/urbango";
+import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
 
 const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
@@ -60,10 +60,11 @@ export default function ServiceCreate() {
   // ── Flags ──
   const [diagnosisComplete, setDiagnosisComplete] = useState(false);
 
-  // ── Economics ──
-  const [budgetTotal, setBudgetTotal] = useState<number | "">("");
-  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | "">("");
-  const [realHours, setRealHours] = useState<number | "">("");
+  // ── Media ──
+  const [currentStateImages, setCurrentStateImages] = useState<File[]>([]);
+  const [repairedStateImages, setRepairedStateImages] = useState<File[]>([]);
+  const currentStateRef = useRef<HTMLInputElement>(null);
+  const repairedStateRef = useRef<HTMLInputElement>(null);
 
   // ── Restore pending service from sessionStorage (returning from budget creation) ──
   useEffect(() => {
@@ -191,9 +192,9 @@ export default function ServiceCreate() {
       scheduled_at: scheduledAtIso,
       scheduled_end_at: scheduledEndAtIso,
       contacted_at: null as string | null,
-      budget_total: budgetTotal !== "" ? Number(budgetTotal) : null,
-      budget_status: budgetStatus ? (budgetStatus as string) : null,
-      real_hours: realHours !== "" ? Number(realHours) : null,
+      budget_total: null,
+      budget_status: null,
+      real_hours: null,
     };
   };
 
@@ -573,43 +574,105 @@ export default function ServiceCreate() {
         </CardContent>
       </Card>
 
-      {/* ── SECTION 4: Media & Documents (separated) ── */}
+      {/* ── SECTION 4: Photos ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">4. Archivos Adjuntos</CardTitle>
+          <CardTitle className="text-base">4. Fotografías</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Multimedia */}
+        <CardContent className="space-y-6">
+          {/* Estado actual */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Camera className="w-4 h-4 text-muted-foreground" />
-              Fotos y Vídeos
+              Estado actual
             </Label>
-            <p className="text-xs text-muted-foreground">Imágenes del problema, estado del inmueble, vídeos de la avería</p>
-            <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <p className="text-xs text-muted-foreground">Fotos del estado actual antes de la intervención</p>
+            <input
+              ref={currentStateRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                setCurrentStateImages((prev) => [...prev, ...files]);
+                e.target.value = "";
+              }}
+            />
+            {currentStateImages.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-2">
+                {currentStateImages.map((f, i) => (
+                  <div key={i} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border">
+                    <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStateImages((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute top-1 right-1 bg-background/80 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3.5 h-3.5 text-destructive" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div
+              className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={() => currentStateRef.current?.click()}
+            >
               <Image className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
               <p className="text-sm text-muted-foreground">
-                Arrastra fotos o vídeos o <span className="text-primary font-medium">seleccionar archivos</span>
+                Arrastra fotos o <span className="text-primary font-medium">seleccionar archivos</span>
               </p>
-              <p className="text-[11px] text-muted-foreground mt-1">JPG, PNG, MP4 · Máx. 20MB por archivo</p>
+              <p className="text-[11px] text-muted-foreground mt-1">JPG, PNG · Máx. 20MB por archivo</p>
             </div>
           </div>
 
           <Separator />
 
-          {/* Documents */}
+          {/* Estado reparado */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <File className="w-4 h-4 text-muted-foreground" />
-              Documentación
+              <Image className="w-4 h-4 text-muted-foreground" />
+              Estado reparado
             </Label>
-            <p className="text-xs text-muted-foreground">Partes del seguro, pólizas, informes previos, facturas</p>
-            <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-info/50 transition-colors cursor-pointer">
-              <Upload className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
+            <p className="text-xs text-muted-foreground">Fotos del estado tras la reparación</p>
+            <input
+              ref={repairedStateRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                setRepairedStateImages((prev) => [...prev, ...files]);
+                e.target.value = "";
+              }}
+            />
+            {repairedStateImages.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-2">
+                {repairedStateImages.map((f, i) => (
+                  <div key={i} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border">
+                    <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setRepairedStateImages((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute top-1 right-1 bg-background/80 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3.5 h-3.5 text-destructive" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div
+              className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-success/50 transition-colors cursor-pointer"
+              onClick={() => repairedStateRef.current?.click()}
+            >
+              <Image className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
               <p className="text-sm text-muted-foreground">
-                Arrastra documentos o <span className="text-info font-medium">seleccionar archivos</span>
+                Arrastra fotos o <span className="text-success font-medium">seleccionar archivos</span>
               </p>
-              <p className="text-[11px] text-muted-foreground mt-1">PDF, DOC, XLS · Máx. 20MB por archivo</p>
+              <p className="text-[11px] text-muted-foreground mt-1">JPG, PNG · Máx. 20MB por archivo</p>
             </div>
           </div>
         </CardContent>
@@ -706,87 +769,12 @@ export default function ServiceCreate() {
         </CardContent>
       </Card>
 
-      {/* ── SECTION 6: Economics ── */}
+      
+
+      {/* ── SECTION 6: Internal notes ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Euro className="w-4 h-4" />
-            6. Datos Económicos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Importe presupuesto (€)</Label>
-              <Input
-                type="number"
-                min={0}
-                step={0.01}
-                value={budgetTotal}
-                onChange={(e) => setBudgetTotal(e.target.value ? parseFloat(e.target.value) : "")}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Estado presupuesto</Label>
-              <Select value={budgetStatus} onValueChange={(v) => setBudgetStatus(v as BudgetStatus)}>
-                <SelectTrigger><SelectValue placeholder="Sin presupuesto" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin presupuesto</SelectItem>
-                  <SelectItem value="Pendiente">Pendiente</SelectItem>
-                  <SelectItem value="Enviado">Enviado</SelectItem>
-                  <SelectItem value="Aprobado">Aprobado</SelectItem>
-                  <SelectItem value="Rechazado">Rechazado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Horas reales trabajadas</Label>
-              <Input
-                type="number"
-                min={0}
-                step={0.5}
-                value={realHours}
-                onChange={(e) => setRealHours(e.target.value ? parseFloat(e.target.value) : "")}
-                placeholder="—"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Coste/hora operario</Label>
-              <Input
-                value={selectedOperator ? `${(selectedOperator.totalRevenue / Math.max(selectedOperator.completedServices, 1)).toFixed(2)} €/srv` : "—"}
-                readOnly
-                className="bg-muted"
-              />
-              <p className="text-[11px] text-muted-foreground">Media del operario seleccionado</p>
-            </div>
-          </div>
-
-          {budgetTotal && realHours ? (
-            <div className="mt-4 bg-muted/50 rounded-lg p-3 border border-border">
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Importe presupuesto</span>
-                  <p className="font-medium text-foreground">{Number(budgetTotal).toFixed(2)} €</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Horas reales</span>
-                  <p className="font-medium text-foreground">{realHours}h</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">€/hora efectiva</span>
-                  <p className="font-medium text-foreground">{(Number(budgetTotal) / Number(realHours)).toFixed(2)} €/h</p>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {/* ── SECTION 7: Internal notes ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">7. Notas internas</CardTitle>
+          <CardTitle className="text-base">6. Notas internas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
