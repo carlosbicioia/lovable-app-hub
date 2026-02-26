@@ -251,57 +251,59 @@ export default function Budgets() {
                         <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-center">
-                          {b.status === "Aprobado" && (
-                            <TooltipProvider delayDuration={200}>
-                              <div className="flex items-center justify-center gap-1">
-                                {/* Emitir proforma */}
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className={cn("h-8 w-8", b.proformaSent && "text-success")}
-                                      disabled={sendingProforma === b.id}
-                                      onClick={(e) => { e.stopPropagation(); if (!b.proformaSent) handleSendProforma(b); }}
-                                    >
-                                      {sendingProforma === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>{b.proformaSent ? "Proforma emitida" : "Emitir proforma del 50%"}</TooltipContent>
-                                </Tooltip>
+                          <TooltipProvider delayDuration={200}>
+                            <div className="flex items-center justify-center gap-1">
+                              {b.status === "Aprobado" && (
+                                <>
+                                  {/* Emitir proforma */}
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className={cn("h-8 w-8", b.proformaSent && "text-success")}
+                                        disabled={sendingProforma === b.id}
+                                        onClick={(e) => { e.stopPropagation(); if (!b.proformaSent) handleSendProforma(b); }}
+                                      >
+                                        {sendingProforma === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{b.proformaSent ? "Proforma emitida" : "Emitir proforma del 50%"}</TooltipContent>
+                                  </Tooltip>
 
-                                {/* Proforma pagada */}
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className={cn("h-8 w-8", b.proformaPaid && "text-success")}
-                                      onClick={(e) => { e.stopPropagation(); if (!b.proformaPaid) handleMarkProformaPaid(b.id); }}
-                                    >
-                                      <CheckCircle2 className="w-4 h-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>{b.proformaPaid ? "Proforma pagada" : "Marcar proforma como pagada"}</TooltipContent>
-                                </Tooltip>
+                                  {/* Proforma pagada */}
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className={cn("h-8 w-8", b.proformaPaid && "text-success")}
+                                        onClick={(e) => { e.stopPropagation(); if (!b.proformaPaid) handleMarkProformaPaid(b.id); }}
+                                      >
+                                        <CheckCircle2 className="w-4 h-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{b.proformaPaid ? "Proforma pagada" : "Marcar proforma como pagada"}</TooltipContent>
+                                  </Tooltip>
+                                </>
+                              )}
 
-                                {/* Eliminar */}
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-8 w-8 text-destructive hover:text-destructive"
-                                      onClick={(e) => { e.stopPropagation(); handleDeleteBudget(b.id); }}
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Eliminar presupuesto</TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          )}
+                              {/* Eliminar - visible en todos los estados */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteBudget(b.id); }}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Eliminar presupuesto</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TooltipProvider>
                         </td>
                       </tr>
                     );
