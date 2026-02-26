@@ -65,6 +65,7 @@ export default function CollaboratorDetail() {
     email: "", phone: "", contactPerson: "",
   });
   const [saving, setSaving] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
   const [clients, setClients] = useState<AssignedClient[]>([]);
   const [services, setServices] = useState<AssignedService[]>([]);
   const [portalEnabled, setPortalEnabled] = useState(false);
@@ -96,7 +97,10 @@ export default function CollaboratorDetail() {
       companyName: c.companyName, category: c.category,
       email: c.email, phone: c.phone, contactPerson: c.contactPerson,
     });
-    setPortalEmail(c.email);
+    setPortalEnabled(!!row.portal_enabled);
+    setPortalEmail(row.portal_email || c.email);
+    setLogoUrl(row.logo_url || "");
+    setContacts(Array.isArray(row.additional_contacts) ? row.additional_contacts : []);
     setLoading(false);
   }, [id, navigate]);
 
@@ -162,6 +166,26 @@ export default function CollaboratorDetail() {
   };
 
   const addContact = () => setContacts((c) => [...c, { name: "", email: "", phone: "" }]);
+
+  const handleSaveConfig = async () => {
+    if (!id) return;
+    setSavingConfig(true);
+    const { error } = await supabase
+      .from("collaborators" as any)
+      .update({
+        portal_enabled: portalEnabled,
+        portal_email: portalEmail,
+        logo_url: logoUrl || null,
+        additional_contacts: contacts,
+      } as any)
+      .eq("id", id);
+    setSavingConfig(false);
+    if (error) {
+      toast({ title: "Error", description: "No se pudo guardar la configuración", variant: "destructive" });
+    } else {
+      toast({ title: "Configuración guardada" });
+    }
+  };
   const removeContact = (i: number) => setContacts((c) => c.filter((_, idx) => idx !== i));
   const updateContact = (i: number, field: string, value: string) =>
     setContacts((c) => c.map((ct, idx) => idx === i ? { ...ct, [field]: value } : ct));
@@ -440,7 +464,29 @@ export default function CollaboratorDetail() {
                 )}
               </div>
               <div>
-                <Button variant="outline" size="sm">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  id="logo-upload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !id) return;
+                    const ext = file.name.split(".").pop();
+                    const path = `collaborator-logos/${id}.${ext}`;
+                    const { error: uploadError } = await supabase.storage
+                      .from("service-media")
+                      .upload(path, file, { upsert: true });
+                    if (uploadError) {
+                      toast({ title: "Error", description: "No se pudo subir el logo", variant: "destructive" });
+                      return;
+                    }
+                    const { data: urlData } = supabase.storage.from("service-media").getPublicUrl(path);
+                    setLogoUrl(urlData.publicUrl);
+                    toast({ title: "Logo subido" });
+                  }}
+                />
+                <Button variant="outline" size="sm" onClick={() => document.getElementById("logo-upload")?.click()}>
                   <Upload className="w-3.5 h-3.5 mr-1.5" /> Subir logo
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">PNG, JPG hasta 2MB</p>
@@ -488,6 +534,13 @@ export default function CollaboratorDetail() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Save config button */}
+          <div className="flex justify-end">
+            <Button onClick={handleSaveConfig} disabled={savingConfig}>
+              {savingConfig ? "Guardando..." : "Guardar configuración"}
+            </Button>
           </div>
         </TabsContent>
       </Tabs>

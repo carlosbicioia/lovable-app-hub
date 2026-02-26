@@ -195,40 +195,52 @@ export type Database = {
       collaborators: {
         Row: {
           active_services: number
+          additional_contacts: Json
           category: string
           company_name: string
           contact_person: string
           created_at: string
           email: string
           id: string
+          logo_url: string | null
           nps_mean: number
           phone: string
+          portal_email: string
+          portal_enabled: boolean
           total_clients: number
           updated_at: string
         }
         Insert: {
           active_services?: number
+          additional_contacts?: Json
           category?: string
           company_name?: string
           contact_person?: string
           created_at?: string
           email?: string
           id: string
+          logo_url?: string | null
           nps_mean?: number
           phone?: string
+          portal_email?: string
+          portal_enabled?: boolean
           total_clients?: number
           updated_at?: string
         }
         Update: {
           active_services?: number
+          additional_contacts?: Json
           category?: string
           company_name?: string
           contact_person?: string
           created_at?: string
           email?: string
           id?: string
+          logo_url?: string | null
           nps_mean?: number
           phone?: string
+          portal_email?: string
+          portal_enabled?: boolean
           total_clients?: number
           updated_at?: string
         }
