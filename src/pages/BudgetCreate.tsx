@@ -247,8 +247,8 @@ export default function BudgetCreate() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="hidden md:grid grid-cols-[2fr_1fr_80px_80px_80px_80px_80px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
-            <span>Concepto</span>
+          <div className="hidden md:grid grid-cols-[1fr_2fr_80px_80px_80px_80px_80px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
+            <span>Artículo</span>
             <span>Descripción</span>
             <span>Uds.</span>
             <span>Coste</span>
@@ -261,7 +261,7 @@ export default function BudgetCreate() {
           {lines.map((line, i) => {
             const { salePrice } = calcLine(line);
             return (
-              <div key={line.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_80px_80px_80px_80px_40px] gap-2 items-start border-b border-border pb-3 last:border-0">
+              <div key={line.id} className="grid grid-cols-1 md:grid-cols-[1fr_2fr_80px_80px_80px_80px_80px_40px] gap-2 items-start border-b border-border pb-3 last:border-0">
                 <div className="flex gap-1">
                   <Popover open={openPopoverIndex === i} onOpenChange={(open) => setOpenPopoverIndex(open ? i : null)}>
                     <PopoverTrigger asChild>
@@ -289,16 +289,18 @@ export default function BudgetCreate() {
                     </PopoverContent>
                   </Popover>
                   <Input
-                    placeholder="Concepto"
+                    placeholder="Artículo"
                     value={line.concept}
                     onChange={(e) => updateLine(i, "concept", e.target.value)}
                     className="flex-1"
                   />
                 </div>
-                <Input
-                  placeholder="Descripción"
+                <Textarea
+                  placeholder="Descripción detallada..."
                   value={line.description ?? ""}
                   onChange={(e) => updateLine(i, "description", e.target.value)}
+                  className="min-h-[40px] resize-y text-sm"
+                  rows={1}
                 />
                 <Input type="number" min={0} step={0.01} value={line.units} onChange={(e) => updateLine(i, "units", parseFloat(e.target.value) || 0)} />
                 <Input type="number" min={0} step={0.01} value={line.costPrice} onChange={(e) => updateLine(i, "costPrice", parseFloat(e.target.value) || 0)} />
