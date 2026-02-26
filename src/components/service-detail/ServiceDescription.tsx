@@ -1,12 +1,7 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FileText, AlertCircle, CalendarIcon, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import type { Service } from "@/types/urbango";
 
 interface Props {
@@ -22,23 +17,7 @@ const claimStatusLabels: Record<string, string> = {
   Cerrado: "Cerrado",
 };
 
-export default function ServiceDescription({ service, onUpdate }: Props) {
-  const [scheduling, setScheduling] = useState(false);
-
-  const handleSchedule = async (date: Date | undefined) => {
-    if (!date || !onUpdate) return;
-    const updates: Record<string, any> = {
-      scheduled_at: date.toISOString(),
-    };
-    // Auto-transition to Agendado if currently pending
-    if (service.status === "Pendiente_Contacto") {
-      updates.status = "Agendado";
-      updates.contacted_at = new Date().toISOString();
-    }
-    await onUpdate(updates);
-    setScheduling(false);
-  };
-
+export default function ServiceDescription({ service }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -68,47 +47,23 @@ export default function ServiceDescription({ service, onUpdate }: Props) {
               <span className="text-xs text-muted-foreground font-medium">Fecha de cita</span>
             </div>
             {service.scheduledAt ? (
-              <div className="flex items-center gap-2">
+              <div className="space-y-0.5">
                 <p className="text-sm font-medium text-card-foreground">
                   {format(new Date(service.scheduledAt), "dd MMM yyyy · HH:mm", { locale: es })}
+                  {service.scheduledEndAt && (
+                    <>
+                      {" — "}
+                      {format(new Date(service.scheduledAt), "dd MMM yyyy", { locale: es }) ===
+                      format(new Date(service.scheduledEndAt), "dd MMM yyyy", { locale: es })
+                        ? format(new Date(service.scheduledEndAt), "HH:mm", { locale: es })
+                        : format(new Date(service.scheduledEndAt), "dd MMM yyyy · HH:mm", { locale: es })}
+                    </>
+                  )}
                 </p>
-                {onUpdate && (
-                  <Popover open={scheduling} onOpenChange={setScheduling}>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <CalendarPlus className="w-3.5 h-3.5 text-muted-foreground" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={new Date(service.scheduledAt)}
-                        onSelect={handleSchedule}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        locale={es}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
+                <p className="text-[11px] text-muted-foreground italic">Solo editable desde el calendario</p>
               </div>
             ) : (
-              <Popover open={scheduling} onOpenChange={setScheduling}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">
-                    <CalendarPlus className="w-3.5 h-3.5" /> Agendar cita
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    onSelect={handleSchedule}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                    locale={es}
-                  />
-                </PopoverContent>
-              </Popover>
+              <p className="text-sm text-muted-foreground italic">Sin agendar — programa desde el calendario</p>
             )}
           </div>
         </div>
