@@ -8,13 +8,16 @@ export type PurchaseOrderStatus = "Borrador" | "Pendiente_Aprobación" | "Aproba
 export interface PurchaseOrderLine {
   id: string;
   purchaseOrderId: string;
-  articleName: string;
+  supplierCode: string;
   description: string;
   units: number;
   costPrice: number;
+  discountPercent: number;
+  sortOrder: number;
+  // Legacy fields kept for backwards compatibility
+  articleName: string;
   hasKnownPvp: boolean;
   pvp: number | null;
-  sortOrder: number;
 }
 
 export interface PurchaseOrder {
@@ -30,6 +33,7 @@ export interface PurchaseOrder {
   deliveryNoteUrl: string | null;
   notes: string;
   totalCost: number;
+  taxTypeId: string | null;
   approvedBy: string | null;
   approvedAt: string | null;
   collectedAt: string | null;
@@ -53,6 +57,7 @@ function mapRow(row: any, lines: any[]): PurchaseOrder {
     deliveryNoteUrl: row.delivery_note_url,
     notes: row.notes ?? "",
     totalCost: Number(row.total_cost ?? 0),
+    taxTypeId: row.tax_type_id ?? null,
     approvedBy: row.approved_by,
     approvedAt: row.approved_at,
     collectedAt: row.collected_at,
@@ -65,11 +70,13 @@ function mapRow(row: any, lines: any[]): PurchaseOrder {
       .map((l: any) => ({
         id: l.id,
         purchaseOrderId: l.purchase_order_id,
-        articleName: l.article_name,
+        supplierCode: l.supplier_code ?? "",
+        articleName: l.article_name ?? "",
         description: l.description ?? "",
         units: Number(l.units),
         costPrice: Number(l.cost_price),
-        hasKnownPvp: l.has_known_pvp,
+        discountPercent: Number(l.discount_percent ?? 0),
+        hasKnownPvp: l.has_known_pvp ?? false,
         pvp: l.pvp ? Number(l.pvp) : null,
         sortOrder: l.sort_order,
       })),
@@ -121,9 +128,23 @@ export function useCreatePurchaseOrder() {
       isEmergency?: boolean;
       notes?: string;
       status?: PurchaseOrderStatus;
-      lines: { articleName: string; description?: string; units: number; costPrice: number; hasKnownPvp: boolean; pvp?: number | null }[];
+      taxTypeId?: string | null;
+      lines: {
+        supplierCode?: string;
+        articleName?: string;
+        description?: string;
+        units: number;
+        costPrice: number;
+        discountPercent?: number;
+        hasKnownPvp?: boolean;
+        pvp?: number | null;
+      }[];
     }) => {
-      const totalCost = input.lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
+      const totalCost = input.lines.reduce((sum, l) => {
+        const discount = l.discountPercent ?? 0;
+        return sum + l.units * l.costPrice * (1 - discount / 100);
+      }, 0);
+
       const { error: e1 } = await supabase.from("purchase_orders").insert({
         id: input.id,
         type: input.type,
@@ -135,6 +156,7 @@ export function useCreatePurchaseOrder() {
         notes: input.notes ?? "",
         total_cost: totalCost,
         status: input.status ?? "Borrador",
+        tax_type_id: input.taxTypeId ?? null,
         reconciled_at: input.status === "Conciliada" ? new Date().toISOString() : null,
       });
       if (e1) throw e1;
@@ -143,11 +165,13 @@ export function useCreatePurchaseOrder() {
         const { error: e2 } = await supabase.from("purchase_order_lines").insert(
           input.lines.map((l, i) => ({
             purchase_order_id: input.id,
-            article_name: l.articleName,
+            supplier_code: l.supplierCode ?? "",
+            article_name: l.articleName ?? l.supplierCode ?? "",
             description: l.description ?? "",
             units: l.units,
             cost_price: l.costPrice,
-            has_known_pvp: l.hasKnownPvp,
+            discount_percent: l.discountPercent ?? 0,
+            has_known_pvp: l.hasKnownPvp ?? false,
             pvp: l.pvp ?? null,
             sort_order: i,
           }))

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePurchaseOrder, useUpdatePurchaseOrderStatus, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,7 @@ export default function PurchaseDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: order, isLoading } = usePurchaseOrder(id);
+  const { data: taxTypes = [] } = useActiveTaxTypes();
   const updateStatus = useUpdatePurchaseOrderStatus();
 
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
@@ -72,7 +74,6 @@ export default function PurchaseDetail() {
 
   const handleAdvance = () => {
     if (!nextStatus) return;
-    // If advancing to "Recogida", show delivery note upload dialog
     if (nextStatus.status === "Recogida") {
       setShowDeliveryDialog(true);
       return;
@@ -91,7 +92,6 @@ export default function PurchaseDetail() {
     setUploading(true);
     try {
       let deliveryNoteUrl: string | null = null;
-
       if (deliveryFile) {
         const ext = deliveryFile.name.split(".").pop();
         const path = `${order.id}/albaran-${Date.now()}.${ext}`;
@@ -99,19 +99,16 @@ export default function PurchaseDetail() {
           .from("delivery-notes")
           .upload(path, deliveryFile);
         if (uploadError) throw uploadError;
-
         const { data: urlData } = supabase.storage
           .from("delivery-notes")
           .getPublicUrl(path);
         deliveryNoteUrl = urlData.publicUrl;
       }
-
       updateStatus.mutate({
         id: order.id,
         status: "Recogida",
         extra: deliveryNoteUrl ? { delivery_note_url: deliveryNoteUrl } : undefined,
       });
-
       setShowDeliveryDialog(false);
       setDeliveryFile(null);
       setPreviewUrl(null);
@@ -122,11 +119,16 @@ export default function PurchaseDetail() {
     }
   };
 
-  const totalCost = order.lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
-  const totalSale = order.lines.reduce((sum, l) => {
-    const sale = l.hasKnownPvp && l.pvp ? l.pvp : l.costPrice * 1.3;
-    return sum + l.units * sale;
+  // Calculate totals with new discount logic
+  const subtotal = order.lines.reduce((sum, l) => {
+    const discount = l.discountPercent ?? 0;
+    return sum + l.units * l.costPrice * (1 - discount / 100);
   }, 0);
+
+  const selectedTaxType = taxTypes.find((t) => t.id === order.taxTypeId);
+  const taxRate = selectedTaxType?.rate ?? 21;
+  const taxAmount = subtotal * (taxRate / 100);
+  const total = subtotal + taxAmount;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -218,7 +220,6 @@ export default function PurchaseDetail() {
         </Card>
       )}
 
-      {/* Authorization code */}
       {order.authorizationCode && (
         <Card className="border-info/30 bg-info/5">
           <CardContent className="py-4 flex items-center gap-3">
@@ -228,7 +229,6 @@ export default function PurchaseDetail() {
         </Card>
       )}
 
-      {/* Delivery note preview */}
       {order.deliveryNoteUrl && (
         <Card className="border-primary/30">
           <CardHeader className="pb-2">
@@ -238,19 +238,9 @@ export default function PurchaseDetail() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              <img
-                src={order.deliveryNoteUrl}
-                alt="Albarán de entrega"
-                className="h-32 w-auto rounded-lg border border-border object-cover"
-              />
-              <a
-                href={order.deliveryNoteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Ver imagen completa
+              <img src={order.deliveryNoteUrl} alt="Albarán de entrega" className="h-32 w-auto rounded-lg border border-border object-cover" />
+              <a href={order.deliveryNoteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <ExternalLink className="w-3.5 h-3.5" /> Ver imagen completa
               </a>
             </div>
           </CardContent>
@@ -266,48 +256,48 @@ export default function PurchaseDetail() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left px-3 py-2 text-muted-foreground font-medium">Material</th>
+                <th className="text-left px-3 py-2 text-muted-foreground font-medium">Cód. proveedor</th>
                 <th className="text-left px-3 py-2 text-muted-foreground font-medium">Descripción</th>
                 <th className="text-right px-3 py-2 text-muted-foreground font-medium">Uds.</th>
                 <th className="text-right px-3 py-2 text-muted-foreground font-medium">Coste ud.</th>
-                <th className="text-right px-3 py-2 text-muted-foreground font-medium">PVP ud.</th>
-                <th className="text-right px-3 py-2 text-muted-foreground font-medium">Total coste</th>
-                <th className="text-right px-3 py-2 text-muted-foreground font-medium">Total PVP</th>
+                <th className="text-right px-3 py-2 text-muted-foreground font-medium">Dto. %</th>
+                <th className="text-right px-3 py-2 text-muted-foreground font-medium">Total</th>
               </tr>
             </thead>
             <tbody>
               {order.lines.map((l) => {
-                const pvp = l.hasKnownPvp && l.pvp ? l.pvp : l.costPrice * 1.3;
+                const discount = l.discountPercent ?? 0;
+                const lineTotal = l.units * l.costPrice * (1 - discount / 100);
                 return (
                   <tr key={l.id} className="border-b border-border last:border-0">
-                    <td className="px-3 py-2 font-medium text-foreground">{l.articleName}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-foreground">{l.supplierCode || l.articleName || "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground">{l.description || "—"}</td>
                     <td className="px-3 py-2 text-right">{l.units}</td>
                     <td className="px-3 py-2 text-right">€{l.costPrice.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
-                      €{pvp.toFixed(2)}
-                      {!l.hasKnownPvp && <span className="text-[10px] text-muted-foreground ml-1">×1.30</span>}
+                      {discount > 0 ? `${discount}%` : "—"}
                     </td>
-                    <td className="px-3 py-2 text-right font-medium">€{(l.units * l.costPrice).toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right font-medium text-success">€{(l.units * pvp).toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right font-medium">€{lineTotal.toFixed(2)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
 
-          <div className="flex justify-end gap-6 pt-3 mt-3 border-t border-border text-sm">
-            <div>
-              <span className="text-muted-foreground">Coste total: </span>
-              <span className="font-bold">€{totalCost.toFixed(2)}</span>
+          <div className="flex flex-col items-end gap-1 pt-3 mt-3 border-t border-border text-sm">
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 text-right">Base imponible:</span>
+              <span className="font-bold w-28 text-right">€{subtotal.toFixed(2)}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">PVP total: </span>
-              <span className="font-bold text-success">€{totalSale.toFixed(2)}</span>
+            <div className="flex gap-2">
+              <span className="text-muted-foreground w-32 text-right">
+                {selectedTaxType ? selectedTaxType.name : `IVA ${taxRate}%`}:
+              </span>
+              <span className="font-bold w-28 text-right">€{taxAmount.toFixed(2)}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Margen: </span>
-              <span className="font-bold text-info">€{(totalSale - totalCost).toFixed(2)}</span>
+            <div className="flex gap-2 pt-1 border-t border-border">
+              <span className="text-muted-foreground w-32 text-right font-semibold">Total:</span>
+              <span className="font-bold text-base w-28 text-right">€{total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
@@ -343,36 +333,18 @@ export default function PurchaseDetail() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-primary" />
-              Confirmar recogida
+              <Truck className="w-5 h-5 text-primary" /> Confirmar recogida
             </DialogTitle>
             <DialogDescription>
               Sube una foto del albarán de entrega firmado para confirmar la recogida del material.
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
             {previewUrl ? (
               <div className="relative">
-                <img
-                  src={previewUrl}
-                  alt="Preview albarán"
-                  className="w-full h-48 object-cover rounded-lg border border-border"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="absolute bottom-2 right-2"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <img src={previewUrl} alt="Preview albarán" className="w-full h-48 object-cover rounded-lg border border-border" />
+                <Button variant="secondary" size="sm" className="absolute bottom-2 right-2" onClick={() => fileInputRef.current?.click()}>
                   Cambiar foto
                 </Button>
               </div>
@@ -387,11 +359,8 @@ export default function PurchaseDetail() {
               </button>
             )}
           </div>
-
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDeliveryDialog(false)} disabled={uploading}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => setShowDeliveryDialog(false)} disabled={uploading}>Cancelar</Button>
             <Button onClick={handleDeliverySubmit} disabled={uploading}>
               {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Truck className="w-4 h-4 mr-2" />}
               {deliveryFile ? "Subir y confirmar" : "Confirmar sin albarán"}

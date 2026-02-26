@@ -432,11 +432,13 @@ export type Database = {
           cost_price: number
           created_at: string
           description: string | null
+          discount_percent: number
           has_known_pvp: boolean
           id: string
           purchase_order_id: string
           pvp: number | null
           sort_order: number
+          supplier_code: string
           units: number
         }
         Insert: {
@@ -444,11 +446,13 @@ export type Database = {
           cost_price?: number
           created_at?: string
           description?: string | null
+          discount_percent?: number
           has_known_pvp?: boolean
           id?: string
           purchase_order_id: string
           pvp?: number | null
           sort_order?: number
+          supplier_code?: string
           units?: number
         }
         Update: {
@@ -456,11 +460,13 @@ export type Database = {
           cost_price?: number
           created_at?: string
           description?: string | null
+          discount_percent?: number
           has_known_pvp?: boolean
           id?: string
           purchase_order_id?: string
           pvp?: number | null
           sort_order?: number
+          supplier_code?: string
           units?: number
         }
         Relationships: [
@@ -490,6 +496,7 @@ export type Database = {
           service_id: string | null
           status: string
           supplier_name: string
+          tax_type_id: string | null
           total_cost: number | null
           type: string
           updated_at: string
@@ -510,6 +517,7 @@ export type Database = {
           service_id?: string | null
           status?: string
           supplier_name?: string
+          tax_type_id?: string | null
           total_cost?: number | null
           type?: string
           updated_at?: string
@@ -530,11 +538,20 @@ export type Database = {
           service_id?: string | null
           status?: string
           supplier_name?: string
+          tax_type_id?: string | null
           total_cost?: number | null
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_tax_type_id_fkey"
+            columns: ["tax_type_id"]
+            isOneToOne: false
+            referencedRelation: "tax_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_media: {
         Row: {
@@ -754,6 +771,36 @@ export type Database = {
           province?: string
           tax_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tax_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          rate: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          rate?: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          rate?: number
+          sort_order?: number
         }
         Relationships: []
       }
