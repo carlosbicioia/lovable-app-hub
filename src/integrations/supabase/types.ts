@@ -100,6 +100,8 @@ export type Database = {
           id: string
           proforma_paid: boolean
           proforma_paid_at: string | null
+          proforma_sent: boolean
+          proforma_sent_at: string | null
           service_id: string
           service_name: string
           status: string
@@ -114,6 +116,8 @@ export type Database = {
           id: string
           proforma_paid?: boolean
           proforma_paid_at?: string | null
+          proforma_sent?: boolean
+          proforma_sent_at?: string | null
           service_id: string
           service_name?: string
           status?: string
@@ -128,6 +132,8 @@ export type Database = {
           id?: string
           proforma_paid?: boolean
           proforma_paid_at?: string | null
+          proforma_sent?: boolean
+          proforma_sent_at?: string | null
           service_id?: string
           service_name?: string
           status?: string

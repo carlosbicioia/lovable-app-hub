@@ -126,6 +126,8 @@ export default function Budgets() {
         },
       });
       if (error) throw error;
+      // Mark as sent in DB
+      await supabase.from("budgets").update({ proforma_sent: true, proforma_sent_at: new Date().toISOString() }).eq("id", budget.id);
       toast.success(`Proforma del 50% enviada a Holded para ${budget.id}`);
     } catch (err: any) {
       console.error("Error sending proforma:", err);
@@ -258,14 +260,14 @@ export default function Budgets() {
                                     <Button
                                       size="icon"
                                       variant="ghost"
-                                      className="h-8 w-8"
+                                      className={cn("h-8 w-8", b.proformaSent && "text-success")}
                                       disabled={sendingProforma === b.id}
-                                      onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
+                                      onClick={(e) => { e.stopPropagation(); if (!b.proformaSent) handleSendProforma(b); }}
                                     >
                                       {sendingProforma === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>Emitir proforma del 50%</TooltipContent>
+                                  <TooltipContent>{b.proformaSent ? "Proforma emitida" : "Emitir proforma del 50%"}</TooltipContent>
                                 </Tooltip>
 
                                 {/* Proforma pagada */}

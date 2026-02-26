@@ -117,6 +117,8 @@ export default function BudgetCreate() {
       termsAndConditions: terms,
       proformaPaid: false,
       proformaPaidAt: null,
+      proformaSent: false,
+      proformaSentAt: null,
     };
 
     await addBudget(newBudget);
