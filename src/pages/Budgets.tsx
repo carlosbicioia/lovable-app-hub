@@ -1,4 +1,4 @@
-import { Search, Plus, FileText, Receipt, Loader2, CheckCircle2, List, Columns3 } from "lucide-react";
+import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BudgetKanban from "@/components/budgets/BudgetKanban";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -66,6 +67,18 @@ export default function Budgets() {
       toast.success("Proforma marcada como pagada");
     } catch (err: any) {
       toast.error(err.message || "Error al marcar proforma como pagada");
+    }
+  };
+
+  const handleDeleteBudget = async (budgetId: string) => {
+    if (!confirm("¿Eliminar este presupuesto? Esta acción no se puede deshacer.")) return;
+    try {
+      await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
+      const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
+      if (error) throw error;
+      toast.success("Presupuesto eliminado");
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar presupuesto");
     }
   };
 
@@ -171,34 +184,57 @@ export default function Budgets() {
                         <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            {b.status === "Aprobado" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs gap-1"
-                                disabled={sendingProforma === b.id}
-                                onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
-                              >
-                                {sendingProforma === b.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Receipt className="w-3 h-3" />}
-                                Proforma 50%
-                              </Button>
-                            )}
-                            {b.proformaPaid ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
-                                <CheckCircle2 className="w-3 h-3" /> Pagada
-                              </span>
-                            ) : (b.status === "Aprobado" || b.status === "Pte_Facturación" || b.status === "Finalizado") ? (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 text-xs gap-1 text-muted-foreground"
-                                onClick={(e) => { e.stopPropagation(); handleMarkProformaPaid(b.id); }}
-                              >
-                                Marcar pagada
-                              </Button>
-                            ) : null}
-                          </div>
+                          {b.status === "Aprobado" && (
+                            <TooltipProvider delayDuration={200}>
+                              <div className="flex items-center justify-center gap-1">
+                                {/* Emitir proforma */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                      disabled={sendingProforma === b.id}
+                                      onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
+                                    >
+                                      {sendingProforma === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Emitir proforma del 50%</TooltipContent>
+                                </Tooltip>
+
+                                {/* Proforma pagada */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className={cn("h-8 w-8", b.proformaPaid && "text-success")}
+                                      onClick={(e) => { e.stopPropagation(); if (!b.proformaPaid) handleMarkProformaPaid(b.id); }}
+                                    >
+                                      <CheckCircle2 className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{b.proformaPaid ? "Proforma pagada" : "Marcar proforma como pagada"}</TooltipContent>
+                                </Tooltip>
+
+                                {/* Eliminar */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-destructive hover:text-destructive"
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteBudget(b.id); }}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Eliminar presupuesto</TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
+                          )}
                         </td>
                       </tr>
                     );
