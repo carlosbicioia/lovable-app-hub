@@ -20,6 +20,9 @@ import BudgetCreate from "@/pages/BudgetCreate";
 import Articles from "@/pages/Articles";
 import CalendarView from "@/pages/CalendarView";
 import Operators from "@/pages/Operators";
+import Purchases from "@/pages/Purchases";
+import PurchaseCreate from "@/pages/PurchaseCreate";
+import PurchaseDetail from "@/pages/PurchaseDetail";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
 import Settings from "@/pages/Settings";
@@ -78,6 +81,9 @@ function AppRoutes() {
         <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
         <Route path="/presupuestos/:id" element={<BudgetDetail />} />
         <Route path="/articulos" element={<Articles />} />
+        <Route path="/compras" element={<Purchases />} />
+        <Route path="/compras/nueva" element={<PurchaseCreate />} />
+        <Route path="/compras/:id" element={<PurchaseDetail />} />
         <Route path="/calendario" element={<CalendarView />} />
         <Route path="/operarios" element={<Operators />} />
         <Route path="/configuracion" element={<Settings />} />

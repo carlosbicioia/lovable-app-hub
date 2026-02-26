@@ -426,6 +426,116 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_order_lines: {
+        Row: {
+          article_name: string
+          cost_price: number
+          created_at: string
+          description: string | null
+          has_known_pvp: boolean
+          id: string
+          purchase_order_id: string
+          pvp: number | null
+          sort_order: number
+          units: number
+        }
+        Insert: {
+          article_name?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          has_known_pvp?: boolean
+          id?: string
+          purchase_order_id: string
+          pvp?: number | null
+          sort_order?: number
+          units?: number
+        }
+        Update: {
+          article_name?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          has_known_pvp?: boolean
+          id?: string
+          purchase_order_id?: string
+          pvp?: number | null
+          sort_order?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_lines_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          authorization_code: string | null
+          collected_at: string | null
+          created_at: string
+          delivery_note_url: string | null
+          id: string
+          is_emergency: boolean
+          notes: string | null
+          operator_id: string | null
+          operator_name: string | null
+          reconciled_at: string | null
+          service_id: string | null
+          status: string
+          supplier_name: string
+          total_cost: number | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          authorization_code?: string | null
+          collected_at?: string | null
+          created_at?: string
+          delivery_note_url?: string | null
+          id: string
+          is_emergency?: boolean
+          notes?: string | null
+          operator_id?: string | null
+          operator_name?: string | null
+          reconciled_at?: string | null
+          service_id?: string | null
+          status?: string
+          supplier_name?: string
+          total_cost?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          authorization_code?: string | null
+          collected_at?: string | null
+          created_at?: string
+          delivery_note_url?: string | null
+          id?: string
+          is_emergency?: boolean
+          notes?: string | null
+          operator_id?: string | null
+          operator_name?: string | null
+          reconciled_at?: string | null
+          service_id?: string | null
+          status?: string
+          supplier_name?: string
+          total_cost?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_media: {
         Row: {
           caption: string | null
