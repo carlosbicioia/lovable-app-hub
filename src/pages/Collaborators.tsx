@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus, Filter, Star, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const emptyForm: CollaboratorInput = {
 };
 
 export default function Collaborators() {
+  const navigate = useNavigate();
   const { collaborators, loading, create, update, remove } = useCollaborators();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -153,7 +155,8 @@ export default function Collaborators() {
           {filtered.map((c) => (
             <div
               key={c.id}
-              className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow group"
+              className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+              onClick={() => navigate(`/colaboradores/${c.id}`)}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0 flex-1">
@@ -166,10 +169,10 @@ export default function Collaborators() {
                     {c.category}
                   </span>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 ml-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEdit(c); }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(c)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
