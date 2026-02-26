@@ -211,15 +211,15 @@ export function useNextPurchaseOrderId() {
   return useQuery({
     queryKey: ["purchase_orders", "next_id"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("purchase_orders")
-        .select("id")
-        .order("created_at", { ascending: false })
-        .limit(1);
+      const [{ data: orders, error }, { data: settings }] = await Promise.all([
+        supabase.from("purchase_orders").select("id").order("created_at", { ascending: false }).limit(1),
+        supabase.from("company_settings").select("purchase_order_prefix").limit(1).single(),
+      ]);
       if (error) throw error;
-      if (!data || data.length === 0) return "OC-001";
-      const lastNum = parseInt(data[0].id.replace(/\D/g, ""), 10) || 0;
-      return `OC-${String(lastNum + 1).padStart(3, "0")}`;
+      const prefix = (settings as any)?.purchase_order_prefix || "OC-";
+      if (!orders || orders.length === 0) return `${prefix}001`;
+      const lastNum = parseInt(orders[0].id.replace(/\D/g, ""), 10) || 0;
+      return `${prefix}${String(lastNum + 1).padStart(3, "0")}`;
     },
   });
 }
