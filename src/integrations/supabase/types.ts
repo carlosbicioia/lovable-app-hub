@@ -278,6 +278,7 @@ export type Database = {
           legal_conditions: string
           logo_url: string | null
           phone: string
+          purchase_order_prefix: string
           service_prefix: string
           sla_first_contact_hours: number
           sla_resolution_hours: number
@@ -306,6 +307,7 @@ export type Database = {
           legal_conditions?: string
           logo_url?: string | null
           phone?: string
+          purchase_order_prefix?: string
           service_prefix?: string
           sla_first_contact_hours?: number
           sla_resolution_hours?: number
@@ -334,6 +336,7 @@ export type Database = {
           legal_conditions?: string
           logo_url?: string | null
           phone?: string
+          purchase_order_prefix?: string
           service_prefix?: string
           sla_first_contact_hours?: number
           sla_resolution_hours?: number

@@ -463,6 +463,7 @@ export default function Settings() {
         document_footer: settings.document_footer,
         service_prefix: settings.service_prefix,
         invoice_prefix: settings.invoice_prefix,
+        purchase_order_prefix: (settings as any).purchase_order_prefix ?? "OC-",
       });
       setAppearanceForm({
         theme: settings.theme,
@@ -778,6 +779,10 @@ export default function Settings() {
                 <div className="space-y-2">
                   <Label>Prefijo de factura</Label>
                   <Input value={docsForm.invoice_prefix ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, invoice_prefix: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prefijo de orden de compra</Label>
+                  <Input value={docsForm.purchase_order_prefix ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, purchase_order_prefix: e.target.value }))} />
                 </div>
               </div>
               <div className="flex justify-end">
