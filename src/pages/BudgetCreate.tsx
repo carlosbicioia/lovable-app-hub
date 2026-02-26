@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch, ChevronsUpDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { useServices } from "@/hooks/useServices";
 import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ export default function BudgetCreate() {
     { id: "1", concept: "", description: "", units: 1, costPrice: 0, margin: 30, taxRate: 21 },
   ]);
   const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
+  const [serviceSearchOpen, setServiceSearchOpen] = useState(false);
 
   const servicesWithBudget = services.filter((s) => s.serviceType === "Presupuesto");
   const selectedService = services.find((s) => s.id === serviceId);
@@ -148,20 +150,46 @@ export default function BudgetCreate() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+           <div className="space-y-2">
               <Label>Servicio vinculado</Label>
-              <Select value={serviceId} onValueChange={setServiceId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar servicio..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {servicesWithBudget.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.id} — {s.clientName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={serviceSearchOpen} onOpenChange={setServiceSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={serviceSearchOpen} className="w-full justify-between font-normal">
+                    {selectedService
+                      ? `${selectedService.id} — ${selectedService.clientName}`
+                      : "Buscar servicio..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[450px] p-0 bg-popover" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar por nº, cliente, dirección o colaborador..." />
+                    <CommandList>
+                      <CommandEmpty>No se encontraron servicios</CommandEmpty>
+                      <CommandGroup>
+                        {servicesWithBudget.map((s) => (
+                          <CommandItem
+                            key={s.id}
+                            value={`${s.id} ${s.clientName} ${s.address ?? ""} ${s.collaboratorName ?? ""}`}
+                            onSelect={() => {
+                              setServiceId(s.id);
+                              setServiceSearchOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", serviceId === s.id ? "opacity-100" : "opacity-0")} />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{s.id} — {s.clientName}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {s.address || "Sin dirección"}{s.collaboratorName ? ` · ${s.collaboratorName}` : ""}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             {selectedService && (
               <>
