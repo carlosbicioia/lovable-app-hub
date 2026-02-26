@@ -1,10 +1,15 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import type { Budget, BudgetStatus } from "@/types/urbango";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const columns: { status: BudgetStatus; label: string; color: string }[] = [
   { status: "Borrador", label: "Borrador", color: "border-t-muted-foreground" },
@@ -33,6 +38,20 @@ export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanPr
   const navigate = useNavigate();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<BudgetStatus | null>(null);
+  const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
+
+  const handleDeleteBudget = async (budgetId: string) => {
+    try {
+      await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
+      const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
+      if (error) throw error;
+      toast.success("Presupuesto eliminado");
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar presupuesto");
+    } finally {
+      setDeletingBudgetId(null);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, budgetId: string) => {
     setDraggedId(budgetId);
@@ -122,9 +141,26 @@ export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanPr
                           <span className="text-xs text-muted-foreground">
                             {format(new Date(b.createdAt), "dd MMM", { locale: es })}
                           </span>
-                          <span className="text-sm font-semibold text-card-foreground">
-                            {total.toFixed(0)} €
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-semibold text-card-foreground">
+                              {total.toFixed(0)} €
+                            </span>
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={(e) => { e.stopPropagation(); setDeletingBudgetId(b.id); }}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Eliminar</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -140,6 +176,25 @@ export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanPr
           </div>
         );
       })}
+      <AlertDialog open={!!deletingBudgetId} onOpenChange={(open) => { if (!open) setDeletingBudgetId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán el presupuesto y todas sus líneas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deletingBudgetId && handleDeleteBudget(deletingBudgetId)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
