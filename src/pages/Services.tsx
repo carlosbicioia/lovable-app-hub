@@ -13,7 +13,22 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { BudgetStatus, Service } from "@/types/urbango";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types/urbango";
+
+const statusOptions: { value: ServiceStatus; label: string }[] = [
+  { value: "Pendiente_Contacto", label: "Pte. Contacto" },
+  { value: "Agendado", label: "Agendado" },
+  { value: "En_Curso", label: "En Curso" },
+  { value: "Finalizado", label: "Finalizado" },
+  { value: "Liquidado", label: "Liquidado" },
+];
+
+const urgencyOptions: { value: UrgencyLevel; label: string }[] = [
+  { value: "Estándar", label: "Estándar" },
+  { value: "24h", label: "24h" },
+  { value: "Inmediato", label: "Urgente" },
+];
 
 type TabValue = "all" | "billing";
 
@@ -24,8 +39,23 @@ export default function Services() {
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
-  const { services, loading } = useServices();
+  const { services, loading, updateService } = useServices();
   const { toast } = useToast();
+
+  const handleStatusChange = async (serviceId: string, newStatus: string) => {
+    const updates: Record<string, any> = { status: newStatus };
+    if (newStatus === "Agendado" || newStatus === "En_Curso" || newStatus === "Finalizado") {
+      const svc = services.find(s => s.id === serviceId);
+      if (svc && !svc.contactedAt) updates.contacted_at = new Date().toISOString();
+    }
+    const { error } = await updateService(serviceId, updates);
+    if (error) toast({ title: "Error", description: "No se pudo cambiar el estado", variant: "destructive" });
+  };
+
+  const handleUrgencyChange = async (serviceId: string, newUrgency: string) => {
+    const { error } = await updateService(serviceId, { urgency: newUrgency });
+    if (error) toast({ title: "Error", description: "No se pudo cambiar la urgencia", variant: "destructive" });
+  };
 
   const getBudgetStatusForService = (serviceId: string): BudgetStatus | null => {
     const budget = budgets.find((b) => b.serviceId === serviceId);
@@ -290,8 +320,19 @@ export default function Services() {
                       <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.operatorName ?? "—"}</td>
-                      <td className="px-5 py-3">
-                        <StatusBadge status={s.status} />
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
+                          <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
+                            <StatusBadge status={s.status} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <StatusBadge status={opt.value} />
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         {isBillingTab && !closedStatuses.includes(s.status) && (
                           <span className="block text-[10px] text-destructive mt-0.5">Servicio no cerrado</span>
                         )}
@@ -322,7 +363,20 @@ export default function Services() {
                         )}
                         {!sla && <span className="text-xs text-muted-foreground">—</span>}
                       </td>
-                      <td className="px-5 py-3"><StatusBadge urgency={s.urgency} /></td>
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
+                          <SelectTrigger className="h-7 w-auto min-w-[90px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
+                            <StatusBadge urgency={s.urgency} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {urgencyOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <StatusBadge urgency={opt.value} />
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
                       <td className="px-5 py-3">
                         {(() => {
                           const bStatus = getBudgetStatusForService(s.id);
