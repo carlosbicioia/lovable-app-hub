@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +37,13 @@ export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { services, loading: servicesLoading } = useServices();
-  const service = services.find((s) => s.id === id);
+  const { budgets, refetch: refetchBudgets } = useBudgets();
+  const { data: allPurchaseOrders = [] } = usePurchaseOrders();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const service = services.find((s) => s.id === id);
+  const linkedBudget = budgets.find((b) => b.serviceId === id);
+  const linkedOrders = allPurchaseOrders.filter((o) => o.serviceId === id);
 
   if (servicesLoading) {
     return (
@@ -58,12 +64,6 @@ export default function ServiceDetail() {
     );
   }
 
-  const { budgets } = useBudgets();
-  const linkedBudget = budgets.find((b) => b.serviceId === service.id);
-
-  const { data: allPurchaseOrders = [] } = usePurchaseOrders();
-  const linkedOrders = allPurchaseOrders.filter((o) => o.serviceId === service.id);
-
   const getSlaStatus = () => {
     if (service.contactedAt) return null;
     const hours = differenceInHours(new Date(), new Date(service.receivedAt));
@@ -75,13 +75,33 @@ export default function ServiceDetail() {
   const sla = getSlaStatus();
   const claimCfg = claimStatusConfig[service.claimStatus];
 
-  const handleDeleteService = () => {
-    toast.success("Servicio eliminado correctamente");
-    navigate("/servicios");
+  const handleDeleteService = async () => {
+    try {
+      if (linkedBudget) {
+        await supabase.from("budget_lines").delete().eq("budget_id", linkedBudget.id);
+        await supabase.from("budgets").delete().eq("id", linkedBudget.id);
+      }
+      await supabase.from("service_media").delete().eq("service_id", service.id);
+      const { error } = await supabase.from("services").delete().eq("id", service.id);
+      if (error) throw error;
+      toast.success("Servicio eliminado correctamente");
+      navigate("/servicios");
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar el servicio");
+    }
   };
 
-  const handleDeleteBudget = () => {
-    toast.success("Presupuesto eliminado correctamente");
+  const handleDeleteBudget = async () => {
+    if (!linkedBudget) return;
+    try {
+      await supabase.from("budget_lines").delete().eq("budget_id", linkedBudget.id);
+      const { error } = await supabase.from("budgets").delete().eq("id", linkedBudget.id);
+      if (error) throw error;
+      await refetchBudgets();
+      toast.success("Presupuesto eliminado correctamente");
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar el presupuesto");
+    }
   };
 
   return (
