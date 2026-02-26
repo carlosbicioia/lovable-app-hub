@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId, PurchaseOrderType } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { mockOperators } from "@/data/mockData";
@@ -41,12 +41,15 @@ const emptyLine = (): LineInput => ({
 
 export default function PurchaseCreate() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedServiceId = searchParams.get("serviceId") ?? "";
+
   const { services } = useServices();
   const { data: nextId, isLoading: idLoading } = useNextPurchaseOrderId();
   const createMutation = useCreatePurchaseOrder();
 
-  const [type, setType] = useState<PurchaseOrderType>("Servicio");
-  const [serviceId, setServiceId] = useState<string>("");
+  const [type, setType] = useState<PurchaseOrderType>(preselectedServiceId ? "Servicio" : "Servicio");
+  const [serviceId, setServiceId] = useState<string>(preselectedServiceId);
   const [operatorId, setOperatorId] = useState<string>("");
   const [supplierName, setSupplierName] = useState("");
   const [isEmergency, setIsEmergency] = useState(false);

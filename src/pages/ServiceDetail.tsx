@@ -187,6 +187,9 @@ export default function ServiceDetail() {
                   <FileText className="w-4 h-4 mr-2" /> Ver presupuesto
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
                 <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
@@ -212,8 +215,8 @@ export default function ServiceDetail() {
                 <ServiceProtocolChecklist service={service} />
 
                 {/* Linked purchase orders */}
-                {linkedOrders.length > 0 && (
-                  <Card>
+                {/* Linked purchase orders — always show */}
+                <Card>
                     <CardHeader className="flex-row items-center justify-between space-y-0">
                       <CardTitle className="text-base flex items-center gap-2">
                         <ShoppingCart className="w-4 h-4 text-muted-foreground" />
@@ -224,43 +227,48 @@ export default function ServiceDetail() {
                       </Button>
                     </CardHeader>
                     <CardContent>
-                      <div className="divide-y divide-border">
-                        {linkedOrders.map((o) => {
-                          const statusCfg: Record<string, { label: string; cls: string }> = {
-                            Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
-                            Pendiente_Aprobación: { label: "Pte. Aprobación", cls: "bg-warning/15 text-warning border-warning/30" },
-                            Aprobada: { label: "Aprobada", cls: "bg-info/15 text-info border-info/30" },
-                            Recogida: { label: "Recogida", cls: "bg-primary/15 text-primary border-primary/30" },
-                            Conciliada: { label: "Conciliada", cls: "bg-success/15 text-success border-success/30" },
-                          };
-                          const sc = statusCfg[o.status] ?? statusCfg.Borrador;
-                          return (
-                            <div
-                              key={o.id}
-                              className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-1 px-1 rounded transition-colors cursor-pointer"
-                              onClick={() => navigate(`/compras/${o.id}`)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className="font-mono text-xs text-muted-foreground">{o.id}</span>
-                                <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>
-                                  {sc.label}
-                                </span>
-                                {o.isEmergency && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-destructive/15 text-destructive border border-destructive/30">
-                                    <AlertTriangleIcon className="w-3 h-3" /> Emergencia
+                      {linkedOrders.length > 0 ? (
+                        <div className="divide-y divide-border">
+                          {linkedOrders.map((o) => {
+                            const statusCfg: Record<string, { label: string; cls: string }> = {
+                              Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
+                              Pendiente_Aprobación: { label: "Pte. Aprobación", cls: "bg-warning/15 text-warning border-warning/30" },
+                              Aprobada: { label: "Aprobada", cls: "bg-info/15 text-info border-info/30" },
+                              Recogida: { label: "Recogida", cls: "bg-primary/15 text-primary border-primary/30" },
+                              Conciliada: { label: "Conciliada", cls: "bg-success/15 text-success border-success/30" },
+                            };
+                            const sc = statusCfg[o.status] ?? statusCfg.Borrador;
+                            return (
+                              <div
+                                key={o.id}
+                                className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-1 px-1 rounded transition-colors cursor-pointer"
+                                onClick={() => navigate(`/compras/${o.id}`)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="font-mono text-xs text-muted-foreground">{o.id}</span>
+                                  <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>
+                                    {sc.label}
                                   </span>
-                                )}
-                                <span className="text-sm text-foreground">{o.supplierName}</span>
-                                <span className="text-xs text-muted-foreground">{o.lines.length} material(es)</span>
+                                  {o.isEmergency && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-destructive/15 text-destructive border border-destructive/30">
+                                      <AlertTriangleIcon className="w-3 h-3" /> Emergencia
+                                    </span>
+                                  )}
+                                  <span className="text-sm text-foreground">{o.supplierName}</span>
+                                  <span className="text-xs text-muted-foreground">{o.lines.length} material(es)</span>
+                                </div>
+                                <span className="text-sm font-semibold text-foreground">€{o.totalCost.toFixed(2)}</span>
                               </div>
-                              <span className="text-sm font-semibold text-foreground">€{o.totalCost.toFixed(2)}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No hay órdenes de compra vinculadas a este servicio
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
-                )}
                 <ServiceTimeline service={service} />
               </div>
               <ServiceSidebar service={service} />
