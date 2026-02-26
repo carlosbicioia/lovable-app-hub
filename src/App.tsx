@@ -31,6 +31,7 @@ import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Profile from "@/pages/Profile";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ function AppRoutes() {
         <Route path="/calendario" element={<CalendarView />} />
         <Route path="/operarios" element={<Operators />} />
         <Route path="/configuracion" element={<Settings />} />
+        <Route path="/perfil" element={<Profile />} />
       </Route>
       <Route path="/auth" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />

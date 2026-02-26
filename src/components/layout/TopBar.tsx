@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, MessageSquare, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ChatPanel from "@/components/chat/ChatPanel";
@@ -37,15 +38,19 @@ export default function TopBar() {
             )}
           </button>
           <NotificationsPopover />
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-semibold">{initials}</span>
+          <Link to="/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-lg transition-colors group">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-primary/20 transition-all">
+              {user?.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-primary-foreground text-xs font-semibold">{initials}</span>
+              )}
             </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium leading-none">{displayName}</p>
+            <div className="hidden sm:block text-left">
+              <p className="text-sm font-medium leading-none group-hover:text-primary transition-colors">{displayName}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={signOut}
             className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
