@@ -16,6 +16,7 @@ const statusConfig: Record<BudgetStatus, { label: string; className: string }> =
   Aprobado: { label: "Aprobado", className: "bg-success/15 text-success" },
   Rechazado: { label: "Rechazado", className: "bg-destructive/15 text-destructive" },
   Pte_Facturación: { label: "Pte. Facturación", className: "bg-warning/15 text-warning" },
+  Finalizado: { label: "Finalizado", className: "bg-primary/15 text-primary" },
 };
 
 export default function BudgetDetail() {

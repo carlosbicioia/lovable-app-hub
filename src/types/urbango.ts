@@ -158,7 +158,7 @@ export interface BudgetLine {
   taxRate: TaxRate;
 }
 
-export type BudgetStatus = "Borrador" | "Enviado" | "Aprobado" | "Rechazado" | "Pte_Facturación";
+export type BudgetStatus = "Borrador" | "Enviado" | "Aprobado" | "Rechazado" | "Pte_Facturación" | "Finalizado";
 
 export interface Budget {
   id: string;
