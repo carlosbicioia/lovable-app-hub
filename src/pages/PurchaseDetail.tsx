@@ -1,11 +1,15 @@
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePurchaseOrder, useUpdatePurchaseOrderStatus, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   Loader2,
@@ -15,6 +19,9 @@ import {
   Truck,
   ClipboardCheck,
   Send,
+  Upload,
+  FileImage,
+  ExternalLink,
 } from "lucide-react";
 
 const statusFlow: { status: PurchaseOrderStatus; label: string; icon: React.ReactNode }[] = [
@@ -42,8 +49,15 @@ const typeLabels: Record<string, string> = {
 export default function PurchaseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { data: order, isLoading } = usePurchaseOrder(id);
   const updateStatus = useUpdatePurchaseOrderStatus();
+
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [deliveryFile, setDeliveryFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (isLoading || !order) {
     return (
@@ -57,8 +71,54 @@ export default function PurchaseDetail() {
   const nextStatus = currentIdx < statusFlow.length - 1 ? statusFlow[currentIdx + 1] : null;
 
   const handleAdvance = () => {
-    if (nextStatus) {
-      updateStatus.mutate({ id: order.id, status: nextStatus.status });
+    if (!nextStatus) return;
+    // If advancing to "Recogida", show delivery note upload dialog
+    if (nextStatus.status === "Recogida") {
+      setShowDeliveryDialog(true);
+      return;
+    }
+    updateStatus.mutate({ id: order.id, status: nextStatus.status });
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDeliveryFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleDeliverySubmit = async () => {
+    setUploading(true);
+    try {
+      let deliveryNoteUrl: string | null = null;
+
+      if (deliveryFile) {
+        const ext = deliveryFile.name.split(".").pop();
+        const path = `${order.id}/albaran-${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("delivery-notes")
+          .upload(path, deliveryFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("delivery-notes")
+          .getPublicUrl(path);
+        deliveryNoteUrl = urlData.publicUrl;
+      }
+
+      updateStatus.mutate({
+        id: order.id,
+        status: "Recogida",
+        extra: deliveryNoteUrl ? { delivery_note_url: deliveryNoteUrl } : undefined,
+      });
+
+      setShowDeliveryDialog(false);
+      setDeliveryFile(null);
+      setPreviewUrl(null);
+    } catch (err: any) {
+      toast({ title: "Error al subir albarán", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -168,6 +228,35 @@ export default function PurchaseDetail() {
         </Card>
       )}
 
+      {/* Delivery note preview */}
+      {order.deliveryNoteUrl && (
+        <Card className="border-primary/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-1.5">
+              <FileImage className="w-3.5 h-3.5" /> Albarán de entrega
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <img
+                src={order.deliveryNoteUrl}
+                alt="Albarán de entrega"
+                className="h-32 w-auto rounded-lg border border-border object-cover"
+              />
+              <a
+                href={order.deliveryNoteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Ver imagen completa
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Lines */}
       <Card>
         <CardHeader>
@@ -248,6 +337,68 @@ export default function PurchaseDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delivery note upload dialog */}
+      <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-primary" />
+              Confirmar recogida
+            </DialogTitle>
+            <DialogDescription>
+              Sube una foto del albarán de entrega firmado para confirmar la recogida del material.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+
+            {previewUrl ? (
+              <div className="relative">
+                <img
+                  src={previewUrl}
+                  alt="Preview albarán"
+                  className="w-full h-48 object-cover rounded-lg border border-border"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute bottom-2 right-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Cambiar foto
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-40 rounded-lg border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground"
+              >
+                <Upload className="w-8 h-8" />
+                <span className="text-sm font-medium">Pulsa para subir foto del albarán</span>
+                <span className="text-xs">JPG, PNG — máx. 10 MB</span>
+              </button>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDeliveryDialog(false)} disabled={uploading}>
+              Cancelar
+            </Button>
+            <Button onClick={handleDeliverySubmit} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Truck className="w-4 h-4 mr-2" />}
+              {deliveryFile ? "Subir y confirmar" : "Confirmar sin albarán"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
