@@ -1,15 +1,19 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePurchaseOrders, PurchaseOrderType, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { usePurchaseOrders, useUpdatePurchaseOrderStatus, PurchaseOrderType, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 import {
   Plus,
   Search,
@@ -21,6 +25,9 @@ import {
   AlertTriangle,
   Truck,
   CreditCard,
+  Pencil,
+  CheckCircle2,
+  Trash2,
 } from "lucide-react";
 
 const typeLabels: Record<PurchaseOrderType, string> = {
@@ -49,9 +56,13 @@ export default function Purchases() {
   const navigate = useNavigate();
   const { data: orders = [], isLoading } = usePurchaseOrders();
   const { data: suppliers = [] } = useSuppliers();
+  const updateStatus = useUpdatePurchaseOrderStatus();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabFilter>("all");
   const [supplierFilter, setSupplierFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const uniqueSuppliers = useMemo(() => {
     const names = [...new Set(orders.map((o) => o.supplierName).filter(Boolean))];
@@ -81,6 +92,34 @@ export default function Purchases() {
     Fungible: orders.filter((o) => o.type === "Fungible").length,
     Gasto_General: orders.filter((o) => o.type === "Gasto_General").length,
   }), [orders]);
+
+  const nextStatusMap: Partial<Record<PurchaseOrderStatus, PurchaseOrderStatus>> = {
+    Borrador: "Pendiente_Aprobación",
+    Pendiente_Aprobación: "Aprobada",
+    Aprobada: "Recogida",
+    Recogida: "Conciliada",
+  };
+
+  const handleValidate = (e: React.MouseEvent, id: string, currentStatus: PurchaseOrderStatus) => {
+    e.stopPropagation();
+    const next = nextStatusMap[currentStatus];
+    if (!next) return;
+    updateStatus.mutate({ id, status: next });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    // Delete lines first, then the order
+    await supabase.from("purchase_order_lines").delete().eq("purchase_order_id", deleteTarget);
+    const { error } = await supabase.from("purchase_orders").delete().eq("id", deleteTarget);
+    if (error) {
+      toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Orden eliminada" });
+      queryClient.invalidateQueries({ queryKey: ["purchase_orders"] });
+    }
+    setDeleteTarget(null);
+  };
 
   if (isLoading) {
     return (
@@ -170,7 +209,7 @@ export default function Purchases() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Coste</th>
-                <th className="text-center px-5 py-3 text-muted-foreground font-medium">Líneas</th>
+                <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -183,6 +222,7 @@ export default function Purchases() {
               ) : (
                 filtered.map((o) => {
                   const sc = statusConfig[o.status];
+                  const canValidate = !!nextStatusMap[o.status];
                   return (
                     <tr
                       key={o.id}
@@ -215,8 +255,38 @@ export default function Purchases() {
                       <td className="px-5 py-3 text-right font-medium text-card-foreground">
                         €{o.totalCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-5 py-3 text-center">
-                        <Badge variant="secondary" className="text-[10px]">{o.lines.length}</Badge>
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Editar"
+                            onClick={() => navigate(`/compras/${o.id}`)}
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                          </Button>
+                          {canValidate && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              title={`Validar → ${statusConfig[nextStatusMap[o.status]!].label}`}
+                              onClick={(e) => handleValidate(e, o.id, o.status)}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Eliminar"
+                            onClick={() => setDeleteTarget(o.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -226,6 +296,24 @@ export default function Purchases() {
           </table>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar orden {deleteTarget}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán la orden y todas sus líneas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
