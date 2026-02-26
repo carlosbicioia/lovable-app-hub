@@ -120,6 +120,7 @@ export function useCreatePurchaseOrder() {
       supplierName: string;
       isEmergency?: boolean;
       notes?: string;
+      status?: PurchaseOrderStatus;
       lines: { articleName: string; description?: string; units: number; costPrice: number; hasKnownPvp: boolean; pvp?: number | null }[];
     }) => {
       const totalCost = input.lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
@@ -133,7 +134,8 @@ export function useCreatePurchaseOrder() {
         is_emergency: input.isEmergency ?? false,
         notes: input.notes ?? "",
         total_cost: totalCost,
-        status: "Borrador",
+        status: input.status ?? "Borrador",
+        reconciled_at: input.status === "Conciliada" ? new Date().toISOString() : null,
       });
       if (e1) throw e1;
 

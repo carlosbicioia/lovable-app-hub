@@ -20,6 +20,7 @@ import {
   Loader2,
   AlertTriangle,
   ShoppingCart,
+  CreditCard,
 } from "lucide-react";
 
 interface LineInput {
@@ -44,6 +45,7 @@ export default function PurchaseCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedServiceId = searchParams.get("serviceId") ?? "";
+  const isDirect = searchParams.get("direct") === "true";
 
   const { services } = useServices();
   const { data: nextId, isLoading: idLoading } = useNextPurchaseOrderId();
@@ -51,7 +53,7 @@ export default function PurchaseCreate() {
   const activeSuppliers = suppliers.filter((s) => s.active);
   const createMutation = useCreatePurchaseOrder();
 
-  const [type, setType] = useState<PurchaseOrderType>(preselectedServiceId ? "Servicio" : "Servicio");
+  const [type, setType] = useState<PurchaseOrderType>(isDirect ? "Servicio" : (preselectedServiceId ? "Servicio" : "Servicio"));
   const [serviceId, setServiceId] = useState<string>(preselectedServiceId);
   const [operatorId, setOperatorId] = useState<string>("");
   const [supplierName, setSupplierName] = useState("");
@@ -79,20 +81,26 @@ export default function PurchaseCreate() {
     nextId &&
     supplierName.trim() &&
     lines.some((l) => l.articleName.trim() && l.costPrice > 0) &&
-    (type !== "Servicio" || serviceId)
+    serviceId // always require service for direct purchases; for OC only when type is Servicio
+  ) || !!(
+    nextId &&
+    supplierName.trim() &&
+    lines.some((l) => l.articleName.trim() && l.costPrice > 0) &&
+    !isDirect &&
+    type !== "Servicio"
   );
 
   const handleSubmit = async () => {
     if (!canSubmit || !nextId) return;
     await createMutation.mutateAsync({
       id: nextId,
-      type,
-      serviceId: type === "Servicio" ? serviceId : null,
+      type: isDirect ? "Servicio" : type,
+      serviceId: (isDirect || type === "Servicio") ? serviceId : null,
       operatorId: operatorId || null,
       operatorName: selectedOperator?.name ?? null,
       supplierName,
-      isEmergency,
-      notes,
+      isEmergency: isDirect ? false : isEmergency,
+      notes: isDirect ? `[Compra directa] ${notes}`.trim() : notes,
       lines: lines
         .filter((l) => l.articleName.trim())
         .map((l) => ({
@@ -103,6 +111,7 @@ export default function PurchaseCreate() {
           hasKnownPvp: l.hasKnownPvp,
           pvp: l.hasKnownPvp ? l.pvp : null,
         })),
+      status: isDirect ? "Conciliada" : undefined,
     });
     navigate("/compras");
   };
@@ -116,14 +125,20 @@ export default function PurchaseCreate() {
         </Button>
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6 text-primary" />
-            Nueva Orden de Compra
+            {isDirect ? (
+              <CreditCard className="w-6 h-6 text-primary" />
+            ) : (
+              <ShoppingCart className="w-6 h-6 text-primary" />
+            )}
+            {isDirect ? "Compra Directa" : "Nueva Orden de Compra"}
             {!idLoading && nextId && (
               <Badge variant="outline" className="text-sm font-mono">{nextId}</Badge>
             )}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Registra materiales para recogida en proveedor
+            {isDirect
+              ? "Registra una compra ya realizada vinculada a un servicio"
+              : "Registra materiales para recogida en proveedor"}
           </p>
         </div>
       </div>
@@ -134,21 +149,23 @@ export default function PurchaseCreate() {
           <CardTitle className="text-base">Datos generales</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label>Tipo de compra</Label>
-            <Select value={type} onValueChange={(v) => setType(v as PurchaseOrderType)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Servicio">Servicio (vinculada a un servicio)</SelectItem>
-                <SelectItem value="Fungible">Fungible (stock de furgoneta)</SelectItem>
-                <SelectItem value="Gasto_General">Gasto general</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {type === "Servicio" && (
+          {!isDirect && (
             <div className="space-y-1.5">
-              <Label>Servicio vinculado</Label>
+              <Label>Tipo de compra</Label>
+              <Select value={type} onValueChange={(v) => setType(v as PurchaseOrderType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Servicio">Servicio (vinculada a un servicio)</SelectItem>
+                  <SelectItem value="Fungible">Fungible (stock de furgoneta)</SelectItem>
+                  <SelectItem value="Gasto_General">Gasto general</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {(isDirect || type === "Servicio") && (
+            <div className="space-y-1.5">
+              <Label>Servicio vinculado *</Label>
               <Select value={serviceId} onValueChange={setServiceId}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar servicio..." /></SelectTrigger>
                 <SelectContent>
@@ -188,15 +205,17 @@ export default function PurchaseCreate() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-3 col-span-full">
-            <Switch checked={isEmergency} onCheckedChange={setIsEmergency} />
-            <div className="flex items-center gap-1.5">
-              {isEmergency && <AlertTriangle className="w-4 h-4 text-destructive" />}
-              <Label className={cn(isEmergency && "text-destructive font-semibold")}>
-                Compra de emergencia (pieza faltante en obra)
-              </Label>
+          {!isDirect && (
+            <div className="flex items-center gap-3 col-span-full">
+              <Switch checked={isEmergency} onCheckedChange={setIsEmergency} />
+              <div className="flex items-center gap-1.5">
+                {isEmergency && <AlertTriangle className="w-4 h-4 text-destructive" />}
+                <Label className={cn(isEmergency && "text-destructive font-semibold")}>
+                  Compra de emergencia (pieza faltante en obra)
+                </Label>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="col-span-full space-y-1.5">
             <Label>Notas</Label>
@@ -311,10 +330,12 @@ export default function PurchaseCreate() {
         <Button disabled={!canSubmit || createMutation.isPending} onClick={handleSubmit}>
           {createMutation.isPending ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : isDirect ? (
+            <CreditCard className="w-4 h-4 mr-2" />
           ) : (
             <ShoppingCart className="w-4 h-4 mr-2" />
           )}
-          Crear orden de compra
+          {isDirect ? "Registrar compra directa" : "Crear orden de compra"}
         </Button>
       </div>
     </div>
