@@ -173,6 +173,8 @@ export interface Budget {
   termsAndConditions: string;
   proformaPaid: boolean;
   proformaPaidAt: string | null;
+  proformaSent: boolean;
+  proformaSentAt: string | null;
 }
 
 export type ArticleCategory = "Material" | "Mano_de_Obra";

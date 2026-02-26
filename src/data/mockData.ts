@@ -193,6 +193,8 @@ export const mockBudgets: Budget[] = [
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
     proformaPaid: false,
     proformaPaidAt: null,
+    proformaSent: false,
+    proformaSentAt: null,
   },
   {
     id: "PRE-15271350",
@@ -211,6 +213,8 @@ export const mockBudgets: Budget[] = [
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
     proformaPaid: false,
     proformaPaidAt: null,
+    proformaSent: false,
+    proformaSentAt: null,
   },
   {
     id: "PRE-15271351",
@@ -229,6 +233,8 @@ export const mockBudgets: Budget[] = [
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
     proformaPaid: false,
     proformaPaidAt: null,
+    proformaSent: false,
+    proformaSentAt: null,
   },
   {
     id: "PRE-15271352",
@@ -245,6 +251,8 @@ export const mockBudgets: Budget[] = [
     termsAndConditions: "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.",
     proformaPaid: false,
     proformaPaidAt: null,
+    proformaSent: false,
+    proformaSentAt: null,
   },
 ];
 
