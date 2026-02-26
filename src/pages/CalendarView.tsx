@@ -861,14 +861,21 @@ export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date("2026-02-24"));
   const [view, setView] = useState<ViewMode>("week");
   const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
   const { services, refetch } = useServices();
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 
   const filteredServices = useMemo(() => {
-    if (!selectedOperatorId) return undefined;
-    return services.filter((s) => s.operatorId === selectedOperatorId);
-  }, [services, selectedOperatorId]);
+    const hasOperator = !!selectedOperatorId;
+    const hasSpecialty = !!selectedSpecialty;
+    if (!hasOperator && !hasSpecialty) return undefined;
+    return services.filter((s) => {
+      if (hasOperator && s.operatorId !== selectedOperatorId) return false;
+      if (hasSpecialty && s.specialty !== selectedSpecialty) return false;
+      return true;
+    });
+  }, [services, selectedOperatorId, selectedSpecialty]);
 
   const selectedOperatorName = selectedOperatorId
     ? mockOperators.find((o) => o.id === selectedOperatorId)?.name ?? null
@@ -992,6 +999,25 @@ export default function CalendarView() {
             <OperatorSummary date={currentDate} view={view} selectedOperatorId={selectedOperatorId} onSelectOperator={setSelectedOperatorId} />
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Specialty filter */}
+        <div className="flex items-center gap-1.5">
+          {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => {
+            const isActive = selectedSpecialty === key;
+            return (
+              <Button
+                key={key}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={cn("text-xs h-8 gap-1", !isActive && cls)}
+                onClick={() => setSelectedSpecialty(isActive ? null : key)}
+              >
+                {specialtyIcon[key]}
+                {key.split("/")[0]}
+              </Button>
+            );
+          })}
+        </div>
 
         <Collapsible>
           <CollapsibleTrigger asChild>
