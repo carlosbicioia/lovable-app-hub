@@ -18,9 +18,10 @@ const statusConfig: Record<BudgetStatus, { label: string; className: string }> =
   Aprobado: { label: "Aprobado", className: "bg-success/15 text-success" },
   Rechazado: { label: "Rechazado", className: "bg-destructive/15 text-destructive" },
   Pte_Facturación: { label: "Pte. Facturación", className: "bg-warning/15 text-warning" },
+  Finalizado: { label: "Finalizado", className: "bg-primary/15 text-primary" },
 };
 
-const allStatuses: BudgetStatus[] = ["Borrador", "Enviado", "Aprobado", "Rechazado", "Pte_Facturación"];
+const allStatuses: BudgetStatus[] = ["Borrador", "Enviado", "Aprobado", "Rechazado", "Pte_Facturación", "Finalizado"];
 
 function calcBudgetTotals(lines: { costPrice: number; margin: number; units: number; taxRate: number }[]) {
   let subtotal = 0;
