@@ -40,7 +40,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, loading, isCollaborator, roles } = useAuth();
   const isAdmin = roles.includes("admin");
-
+  const isAdminOrGestor = isAdmin || roles.includes("gestor");
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -75,8 +75,8 @@ function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/clientes" element={<Clients />} />
-        <Route path="/colaboradores" element={<Collaborators />} />
-        <Route path="/colaboradores/:id" element={<CollaboratorDetail />} />
+        {isAdminOrGestor ? <Route path="/colaboradores" element={<Collaborators />} /> : <Route path="/colaboradores" element={<AccessDenied />} />}
+        {isAdminOrGestor ? <Route path="/colaboradores/:id" element={<CollaboratorDetail />} /> : <Route path="/colaboradores/:id" element={<AccessDenied />} />}
         <Route path="/servicios" element={<Services />} />
         <Route path="/servicios/nuevo" element={<ServiceCreate />} />
         <Route path="/servicios/:id" element={<ServiceDetail />} />
@@ -90,7 +90,7 @@ function AppRoutes() {
         <Route path="/compras/:id" element={<PurchaseDetail />} />
         <Route path="/proveedores" element={<Suppliers />} />
         <Route path="/calendario" element={<CalendarView />} />
-        <Route path="/operarios" element={<Operators />} />
+        {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>
