@@ -1,0 +1,1 @@
+ALTER TABLE public.company_settings ADD COLUMN purchase_order_prefix text NOT NULL DEFAULT 'OC-';
