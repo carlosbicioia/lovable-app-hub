@@ -1,4 +1,4 @@
-import { Search, Plus, FileText } from "lucide-react";
+import { Search, Plus, FileText, Receipt, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import type { BudgetStatus } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -38,6 +39,8 @@ export default function Budgets() {
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
 
+  const [sendingProforma, setSendingProforma] = useState<string | null>(null);
+
   const filtered = budgets.filter(
     (b) =>
       b.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -48,6 +51,27 @@ export default function Budgets() {
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const handleSendProforma = async (budget: typeof budgets[0]) => {
+    setSendingProforma(budget.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("export-holded", {
+        body: {
+          services: [{ id: budget.serviceId, clientName: budget.clientName, clientId: "", budgetTotal: null, specialty: "", description: budget.serviceName }],
+          budgets: [budget],
+          type: "proforma",
+          percentage: 50,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Proforma del 50% enviada a Holded para ${budget.id}`);
+    } catch (err: any) {
+      console.error("Error sending proforma:", err);
+      toast.error(err.message || "Error al enviar proforma a Holded");
+    } finally {
+      setSendingProforma(null);
+    }
   };
 
   return (
@@ -83,6 +107,7 @@ export default function Budgets() {
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Subtotal</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">IVA</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Total</th>
+                <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -123,6 +148,20 @@ export default function Budgets() {
                     <td className="px-5 py-3 text-right text-card-foreground">{subtotal.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
+                    <td className="px-5 py-3 text-center">
+                      {b.status === "Aprobado" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs gap-1"
+                          disabled={sendingProforma === b.id}
+                          onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
+                        >
+                          {sendingProforma === b.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Receipt className="w-3 h-3" />}
+                          Proforma 50%
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
