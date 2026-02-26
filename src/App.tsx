@@ -11,6 +11,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import Collaborators from "@/pages/Collaborators";
+import CollaboratorDetail from "@/pages/CollaboratorDetail";
 import Services from "@/pages/Services";
 import ServiceDetail from "@/pages/ServiceDetail";
 import Budgets from "@/pages/Budgets";
@@ -68,6 +69,7 @@ function AppRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/clientes" element={<Clients />} />
         <Route path="/colaboradores" element={<Collaborators />} />
+        <Route path="/colaboradores/:id" element={<CollaboratorDetail />} />
         <Route path="/servicios" element={<Services />} />
         <Route path="/servicios/nuevo" element={<ServiceCreate />} />
         <Route path="/servicios/:id" element={<ServiceDetail />} />
