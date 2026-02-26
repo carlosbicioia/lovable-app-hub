@@ -37,7 +37,8 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, loading, isCollaborator } = useAuth();
+  const { user, loading, isCollaborator, roles } = useAuth();
+  const isAdmin = roles.includes("admin");
 
   if (loading) {
     return (
@@ -89,7 +90,7 @@ function AppRoutes() {
         <Route path="/proveedores" element={<Suppliers />} />
         <Route path="/calendario" element={<CalendarView />} />
         <Route path="/operarios" element={<Operators />} />
-        <Route path="/configuracion" element={<Settings />} />
+        {isAdmin && <Route path="/configuracion" element={<Settings />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>
       <Route path="/auth" element={<Navigate to="/" replace />} />
