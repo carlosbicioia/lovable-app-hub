@@ -31,6 +31,7 @@ import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "@/pages/AccessDenied";
 import Profile from "@/pages/Profile";
 import { Loader2 } from "lucide-react";
 
@@ -90,7 +91,7 @@ function AppRoutes() {
         <Route path="/proveedores" element={<Suppliers />} />
         <Route path="/calendario" element={<CalendarView />} />
         <Route path="/operarios" element={<Operators />} />
-        {isAdmin && <Route path="/configuracion" element={<Settings />} />}
+        {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>
       <Route path="/auth" element={<Navigate to="/" replace />} />
