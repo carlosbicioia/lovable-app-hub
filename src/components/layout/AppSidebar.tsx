@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import CompanyLogo from "@/components/shared/CompanyLogo";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +39,8 @@ const configItems = [
 export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
 
   const renderNavItem = (item: typeof navItems[0]) => {
     const isActive = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
@@ -88,15 +91,16 @@ export default function AppSidebar() {
         {navItems.map(renderNavItem)}
       </nav>
 
-      {/* Config section */}
-      <div className="px-2 pb-2 space-y-1">
-        {!collapsed && (
-          <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-widest text-sidebar-muted font-semibold">
-            Ajustes
-          </p>
-        )}
-        {configItems.map(renderNavItem)}
-      </div>
+      {isAdmin && (
+        <div className="px-2 pb-2 space-y-1">
+          {!collapsed && (
+            <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-widest text-sidebar-muted font-semibold">
+              Ajustes
+            </p>
+          )}
+          {configItems.map(renderNavItem)}
+        </div>
+      )}
 
       {/* Collapse toggle */}
       <button
