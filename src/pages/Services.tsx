@@ -327,7 +327,7 @@ export default function Services() {
                               bStatus === "Rechazado" ? "text-destructive" :
                               bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
                             )}>
-                              {bStatus === "Pte_Facturación" ? "Pte. Facturación" : bStatus}
+                              {bStatus === "Pte_Facturación" ? "En proceso" : bStatus}
                             </span>
                           );
                         })()}
