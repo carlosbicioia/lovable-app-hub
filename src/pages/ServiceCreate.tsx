@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -623,23 +624,21 @@ export default function ServiceCreate() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Operario asignado</Label>
-              <Select value={operatorId} onValueChange={setOperatorId}>
-                <SelectTrigger><SelectValue placeholder="Sin asignar (pendiente)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin asignar</SelectItem>
-                  {availableOperators.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: `hsl(${o.color})` }} />
-                        {o.name} · NPS {o.npsMean} · {o.activeServices} activos
-                      </div>
-                    </SelectItem>
-                  ))}
-                  {availableOperators.length === 0 && (
-                    <SelectItem value="_empty" disabled>No hay operarios disponibles para {specialty}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={operatorId}
+                onValueChange={setOperatorId}
+                placeholder="Buscar operario…"
+                searchPlaceholder="Nombre del operario…"
+                emptyText={`No hay operarios disponibles para ${specialty}`}
+                options={[
+                  { value: "none", label: "Sin asignar" },
+                  ...availableOperators.map((o) => ({
+                    value: o.id,
+                    label: o.name,
+                    subtitle: `NPS ${o.npsMean} · ${o.activeServices} activos · ${o.specialty}`,
+                  })),
+                ]}
+              />
               {selectedOperator && (
                 <p className="text-xs text-muted-foreground">
                   {selectedOperator.specialty}{selectedOperator.secondarySpecialty ? ` + ${selectedOperator.secondarySpecialty}` : ""} · Clústeres: {selectedOperator.clusterIds.join(", ")} · Resp. media: {selectedOperator.avgResponseTime} min

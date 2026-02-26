@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, FileText, Upload, Loader2, Sparkles, Plus, Trash2 } from "lucide-react";
 
@@ -255,7 +256,7 @@ export default function InvoiceCreate() {
           </div>
           <div>
             <label className="text-sm font-medium text-card-foreground">Proveedor *</label>
-            <Select
+            <SearchableSelect
               value={supplierId ?? "__manual__"}
               onValueChange={(v) => {
                 if (v === "__manual__") {
@@ -266,17 +267,20 @@ export default function InvoiceCreate() {
                   if (s) setSupplierName(s.name);
                 }
               }}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Seleccionar proveedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__manual__">Escribir manualmente</SelectItem>
-                {suppliers.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Buscar proveedor…"
+              searchPlaceholder="Nombre, CIF…"
+              emptyText="Sin proveedores"
+              options={[
+                { value: "__manual__", label: "Escribir manualmente" },
+                ...suppliers.map((s) => ({
+                  value: s.id,
+                  label: s.name,
+                  subtitle: s.city || undefined,
+                  searchText: `${s.taxId} ${s.contactPerson}`,
+                })),
+              ]}
+              className="mt-1"
+            />
             {!supplierId && (
               <Input
                 value={supplierName}
@@ -325,20 +329,22 @@ export default function InvoiceCreate() {
 
           {lines.map((line, idx) => (
             <div key={idx} className="grid grid-cols-[1fr_2fr_80px_100px_80px_100px_100px_36px] gap-2 items-center">
-              <Select
+              <SearchableSelect
                 value={line.serviceId ?? "__none__"}
                 onValueChange={(v) => updateLine(idx, { serviceId: v === "__none__" ? null : v })}
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="—" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Sin asignar</SelectItem>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.id}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="—"
+                searchPlaceholder="Nº servicio…"
+                emptyText="Sin servicios"
+                className="h-9 text-xs"
+                options={[
+                  { value: "__none__", label: "Sin asignar" },
+                  ...services.map((s) => ({
+                    value: s.id,
+                    label: s.id,
+                    subtitle: s.clientName,
+                  })),
+                ]}
+              />
 
               <Input
                 value={line.description}
