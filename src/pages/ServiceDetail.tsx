@@ -37,7 +37,7 @@ const claimStatusConfig: Record<ClaimStatus, { label: string; className: string;
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { services, loading: servicesLoading } = useServices();
+  const { services, loading: servicesLoading, updateService } = useServices();
   const { budgets, refetch: refetchBudgets } = useBudgets();
   const { data: allPurchaseOrders = [] } = usePurchaseOrders();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -236,7 +236,7 @@ export default function ServiceDetail() {
             <ServiceInfoCards service={service} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <ServiceDescription service={service} />
+                <ServiceDescription service={service} onUpdate={(updates) => updateService(service.id, updates)} />
                 <ServiceProtocolChecklist service={service} />
 
                 <ServiceTimeline service={service} />
