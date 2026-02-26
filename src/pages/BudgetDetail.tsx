@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Printer } from "lucide-react";
+import { ArrowLeft, Send, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { useBudgets } from "@/hooks/useBudgets";
 import CompanyLogo from "@/components/shared/CompanyLogo";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -74,8 +75,41 @@ export default function BudgetDetail() {
             {cfg.label}
           </span>
         </div>
-        <Button variant="outline" onClick={() => window.print()}>
-          <Printer className="w-4 h-4 mr-2" /> Imprimir
+        <Button variant="outline" onClick={() => {
+          generateDocumentPdf({
+            type: "Presupuesto",
+            id: budget.id,
+            date: format(new Date(budget.createdAt), "dd/MM/yyyy", { locale: es }),
+            company: {
+              companyName: companySettings?.company_name || "UrbanGO",
+              logoUrl: companySettings?.logo_url,
+              taxId: companySettings?.tax_id,
+              address: companySettings?.address,
+              documentFooter: companySettings?.document_footer,
+            },
+            recipientName: budget.collaboratorName || budget.clientName,
+            recipientDetail: budget.clientAddress,
+            infoFields: [
+              { label: "Servicio", value: budget.serviceId },
+              { label: "Descripción", value: budget.serviceName },
+            ],
+            lines: lines.map((l) => ({
+              description: l.concept + (l.description ? ` — ${l.description}` : ""),
+              units: l.units,
+              unitPrice: l.salePrice,
+              taxRate: l.taxRate,
+              total: l.lineSubtotal,
+            })),
+            subtotal,
+            taxBreakdown: Object.entries(taxGroups).map(([rate, amount]) => ({
+              rate: Number(rate),
+              amount: amount as number,
+            })),
+            total,
+            termsAndConditions: budget.termsAndConditions || undefined,
+          });
+        }}>
+          <Download className="w-4 h-4 mr-2" /> Generar PDF
         </Button>
         <Button onClick={handleSendEmail}>
           <Send className="w-4 h-4 mr-2" /> Enviar por email
