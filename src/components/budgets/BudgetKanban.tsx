@@ -181,7 +181,7 @@ export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanPr
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar presupuesto?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminarán el presupuesto y todas sus líneas.
+              Esta acción no se puede deshacer. Se eliminarán el presupuesto <span className="font-semibold">{deletingBudgetId}</span> y todas sus líneas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
