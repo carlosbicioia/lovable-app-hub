@@ -273,8 +273,6 @@ export default function ServiceDetail() {
           <TabsContent value="budget" className="space-y-6 mt-4">
             {service.serviceType === "Presupuesto" ? (
               <>
-                <ServiceMaterials service={service} />
-
                 {linkedBudget ? (
                   <Card>
                     <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -403,8 +401,6 @@ export default function ServiceDetail() {
             ) : (
               /* Reparación directa — Hours, materials and economic summary */
               <>
-                <ServiceMaterials service={service} />
-
                 {/* Hours worked by the technician */}
                 <Card>
                   <CardHeader>
