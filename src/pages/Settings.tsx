@@ -458,6 +458,7 @@ export default function Settings() {
         budget_next_number: settings.budget_next_number,
         budget_validity_days: settings.budget_validity_days,
         date_format: settings.date_format,
+        budget_terms: (settings as any).budget_terms ?? "",
         legal_conditions: settings.legal_conditions,
         document_footer: settings.document_footer,
         service_prefix: settings.service_prefix,
@@ -738,7 +739,14 @@ export default function Settings() {
               <Separator />
 
               <div className="space-y-2">
+                <Label>Términos y condiciones del presupuesto</Label>
+                <p className="text-xs text-muted-foreground">Se incluirán por defecto en todos los presupuestos nuevos</p>
+                <Textarea rows={5} className="resize-y" value={docsForm.budget_terms ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, budget_terms: e.target.value }))} placeholder="Ej: La aceptación de este presupuesto implica el pago inicial del 50%..." />
+              </div>
+
+              <div className="space-y-2">
                 <Label>Condiciones legales</Label>
+                <p className="text-xs text-muted-foreground">Texto legal que aparecerá al pie de los presupuestos</p>
                 <Textarea rows={4} value={docsForm.legal_conditions ?? ""} onChange={(e) => setDocsForm(p => ({ ...p, legal_conditions: e.target.value }))} />
               </div>
 
