@@ -41,7 +41,7 @@ export default function AppSidebar() {
   const location = useLocation();
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
-
+  const isAdminOrGestor = isAdmin || roles.includes("gestor");
   const renderNavItem = (item: typeof navItems[0]) => {
     const isActive = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
     return (
@@ -88,7 +88,12 @@ export default function AppSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {navItems.map(renderNavItem)}
+        {navItems
+          .filter((item) => {
+            if (item.to === "/operarios" || item.to === "/colaboradores") return isAdminOrGestor;
+            return true;
+          })
+          .map(renderNavItem)}
       </nav>
 
       {isAdmin && (
