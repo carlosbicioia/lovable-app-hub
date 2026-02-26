@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Building2, Users, Shield, FileText, Bell, Palette, Mail,
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
-  Pencil, Droplets, Zap, Wind, Percent,
+  Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
+  Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
+  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -44,6 +46,18 @@ const iconMap: Record<string, React.ReactNode> = {
   Zap: <Zap className="w-4 h-4" />,
   Wind: <Wind className="w-4 h-4" />,
   Wrench: <Wrench className="w-4 h-4" />,
+  Flame: <Flame className="w-4 h-4" />,
+  ThermometerSun: <ThermometerSun className="w-4 h-4" />,
+  Paintbrush: <Paintbrush className="w-4 h-4" />,
+  Hammer: <Hammer className="w-4 h-4" />,
+  Cable: <Cable className="w-4 h-4" />,
+  Lock: <Lock className="w-4 h-4" />,
+  Pipette: <Pipette className="w-4 h-4" />,
+  Gauge: <Gauge className="w-4 h-4" />,
+  Cog: <Cog className="w-4 h-4" />,
+  Fan: <Fan className="w-4 h-4" />,
+  Plug: <Plug className="w-4 h-4" />,
+  Construction: <Construction className="w-4 h-4" />,
 };
 
 const colorOptions = [
@@ -56,10 +70,22 @@ const colorOptions = [
 ];
 
 const iconOptions = [
-  { value: "Droplets", label: "Agua" },
-  { value: "Zap", label: "Electricidad" },
-  { value: "Wind", label: "Clima" },
-  { value: "Wrench", label: "General" },
+  { value: "Droplets", label: "💧 Agua / Fontanería" },
+  { value: "Zap", label: "⚡ Electricidad" },
+  { value: "Wind", label: "🌀 Clima / Aire" },
+  { value: "Flame", label: "🔥 Gas / Calefacción" },
+  { value: "ThermometerSun", label: "🌡 Calor / Solar" },
+  { value: "Fan", label: "🌬 Ventilación" },
+  { value: "Plug", label: "🔌 Conexiones" },
+  { value: "Cable", label: "🔗 Cableado" },
+  { value: "Paintbrush", label: "🖌 Pintura / Acabados" },
+  { value: "Hammer", label: "🔨 Albañilería" },
+  { value: "Construction", label: "🏗 Obra civil" },
+  { value: "Lock", label: "🔒 Cerrajería" },
+  { value: "Pipette", label: "🧪 Químicos" },
+  { value: "Gauge", label: "📊 Medición" },
+  { value: "Cog", label: "⚙ Mecánica" },
+  { value: "Wrench", label: "🔧 General" },
 ];
 
 function IndustrialConfigTab() {
