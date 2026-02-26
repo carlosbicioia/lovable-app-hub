@@ -7,6 +7,8 @@ import { es } from "date-fns/locale";
 import type { BudgetStatus } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { useBudgets } from "@/hooks/useBudgets";
+import CompanyLogo from "@/components/shared/CompanyLogo";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -20,6 +22,7 @@ export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getBudget } = useBudgets();
+  const { data: companySettings } = useCompanySettings();
   const budget = getBudget(id ?? "");
 
   if (!budget) {
@@ -81,14 +84,15 @@ export default function BudgetDetail() {
       {/* Budget document */}
       <div className="bg-card rounded-xl border border-border shadow-sm p-8 max-w-4xl mx-auto print:shadow-none print:border-0 print:p-0">
         <div className="flex justify-between items-start mb-8">
-          <h2 className="text-3xl font-display font-bold tracking-tight text-foreground">
-            URBAN<span className="text-primary">GO</span>
-          </h2>
+          <CompanyLogo size="lg" className="rounded-lg" fallback={
+            <h2 className="text-3xl font-display font-bold tracking-tight text-foreground">
+              URBAN<span className="text-primary">GO</span>
+            </h2>
+          } />
           <div className="text-right text-sm text-muted-foreground">
-            <p className="font-medium text-card-foreground">Urban Reworks SL</p>
-            <p>B56528722</p>
-            <p>Rambla Aragó 31, bj 2</p>
-            <p>Lleida (25003), Lleida, España</p>
+            <p className="font-medium text-card-foreground">{companySettings?.company_name || "Urban Reworks SL"}</p>
+            <p>{companySettings?.tax_id || "B56528722"}</p>
+            <p>{companySettings?.address || "Rambla Aragó 31, bj 2"}</p>
           </div>
         </div>
 

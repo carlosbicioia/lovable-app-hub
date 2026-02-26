@@ -13,8 +13,10 @@ import {
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
   Pencil, Droplets, Zap, Wind, Percent,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/useCompanySettings";
 import { useAppUsers, useCreateAppUser, useUpdateAppUser, useDeleteAppUser } from "@/hooks/useAppUsers";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -352,6 +354,57 @@ function IndustrialConfigTab() {
   );
 }
 
+function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; onUploaded: (url: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("El archivo supera el límite de 2 MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "png";
+      const path = `logo.${ext}`;
+      // Remove old file if exists
+      await supabase.storage.from("company-assets").remove([path]);
+      const { error } = await supabase.storage.from("company-assets").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("company-assets").getPublicUrl(path);
+      onUploaded(`${urlData.publicUrl}?t=${Date.now()}`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error al subir el logotipo");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>Logotipo</Label>
+      <div className="flex items-center gap-4">
+        <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+          ) : (
+            <Upload className="w-6 h-6 text-muted-foreground" />
+          )}
+        </div>
+        <div>
+          <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />
+          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+            {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
+            {uploading ? "Subiendo..." : "Subir logo"}
+          </Button>
+          <p className="text-xs text-muted-foreground mt-1">PNG, SVG o JPG, máximo 2 MB</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { data: settings, isLoading: settingsLoading } = useCompanySettings();
   const updateSettings = useUpdateCompanySettings();
@@ -500,18 +553,7 @@ export default function Settings() {
 
               <Separator />
 
-              <div className="space-y-2">
-                <Label>Logotipo</Label>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30">
-                    <Upload className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <Button variant="outline" size="sm"><Upload className="w-3.5 h-3.5 mr-1.5" /> Subir logo</Button>
-                    <p className="text-xs text-muted-foreground mt-1">PNG o SVG, máximo 2 MB</p>
-                  </div>
-                </div>
-              </div>
+              <LogoUploadSection logoUrl={settings?.logo_url ?? null} onUploaded={(url) => updateSettings.mutate({ logo_url: url })} />
 
               <div className="flex justify-end">
                 <Button onClick={handleSaveCompany} disabled={updateSettings.isPending}>

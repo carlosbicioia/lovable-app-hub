@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CompanyLogo from "@/components/shared/CompanyLogo";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -66,9 +67,15 @@ export default function AppSidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
-          <span className="text-sidebar-primary-foreground font-display font-bold text-sm">U</span>
-        </div>
+        <CompanyLogo
+          size="sm"
+          className="rounded-lg shrink-0"
+          fallback={
+            <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
+              <span className="text-sidebar-primary-foreground font-display font-bold text-sm">U</span>
+            </div>
+          }
+        />
         {!collapsed && (
           <span className="font-display font-bold text-lg text-sidebar-accent-foreground tracking-tight">
             UrbanGO
