@@ -234,7 +234,15 @@ function CurrentTimeLine({ hour, colStart, colSpan }: { hour: number; colStart: 
 }
 
 // ─── DAY VIEW ──────────────────────────────────────────────
-function DayView({ date, onDropService }: { date: Date; onDropService: (serviceId: string, targetDate: Date) => void }) {
+function DayView({
+  date,
+  onDropService,
+  onHourRangeSelect,
+}: {
+  date: Date;
+  onDropService: (serviceId: string, targetDate: Date) => void;
+  onHourRangeSelect: (day: Date, startHour: number, endHour: number) => void;
+}) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
   const { services } = useServices();
   const scheduledServices = services.filter(
@@ -244,8 +252,41 @@ function DayView({ date, onDropService }: { date: Date; onDropService: (serviceI
   const operators = mockOperators;
   const unassigned = scheduledServices.filter((s) => !s.operatorId);
 
+  // ── Hour range selection state ──
+  const [selecting, setSelecting] = useState(false);
+  const [selStart, setSelStart] = useState<number | null>(null);
+  const [selEnd, setSelEnd] = useState<number | null>(null);
+
+  const handleSelMouseDown = (hour: number) => {
+    setSelecting(true);
+    setSelStart(hour);
+    setSelEnd(hour);
+  };
+
+  const handleSelMouseEnter = (hour: number) => {
+    if (selecting) setSelEnd(hour);
+  };
+
+  const handleSelMouseUp = () => {
+    if (selecting && selStart !== null && selEnd !== null) {
+      const minH = Math.min(selStart, selEnd);
+      const maxH = Math.max(selStart, selEnd) + 1;
+      onHourRangeSelect(date, minH, maxH);
+    }
+    setSelecting(false);
+    setSelStart(null);
+    setSelEnd(null);
+  };
+
+  const isHourSelected = (hour: number) => {
+    if (!selecting || selStart === null || selEnd === null) return false;
+    const minH = Math.min(selStart, selEnd);
+    const maxH = Math.max(selStart, selEnd);
+    return hour >= minH && hour <= maxH;
+  };
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
       <div className="min-w-[700px]">
         <div className="grid gap-0 border-b border-border" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
           <div className="p-2 text-xs font-medium text-muted-foreground border-r border-border">Hora</div>
@@ -272,13 +313,16 @@ function DayView({ date, onDropService }: { date: Date; onDropService: (serviceI
           <div
             key={hour}
             className={cn(
-              "relative grid gap-0 border-b border-border min-h-[56px]",
-              isToday(date) && getHours(new Date()) === hour && "bg-primary/5"
+              "relative grid gap-0 border-b border-border min-h-[56px] select-none",
+              isToday(date) && getHours(new Date()) === hour && "bg-primary/5",
+              isHourSelected(hour) && "bg-primary/10"
             )}
             style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}
+            onMouseDown={() => handleSelMouseDown(hour)}
+            onMouseEnter={() => handleSelMouseEnter(hour)}
           >
             {isToday(date) && <CurrentTimeLine hour={hour} colStart={2} colSpan={operators.length + (unassigned.length ? 1 : 0)} />}
-            <div className="p-2 text-xs text-muted-foreground border-r border-border font-mono">
+            <div className="p-2 text-xs text-muted-foreground border-r border-border font-mono pointer-events-none">
               {String(hour).padStart(2, "0")}:00
             </div>
             {operators.map((op) => {
@@ -952,7 +996,7 @@ export default function CalendarView() {
       {/* Calendar full width & height */}
       <Card className="mt-3 flex-1 min-h-0">
         <CardContent className="p-3 h-full overflow-auto">
-          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} />}
+          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} />}
           {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} />}
           {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} />}
         </CardContent>
