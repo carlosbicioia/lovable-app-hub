@@ -1,4 +1,4 @@
-import { Search, Plus, FileText, Receipt, Loader2 } from "lucide-react";
+import { Search, Plus, FileText, Receipt, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -52,6 +52,19 @@ export default function Budgets() {
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const handleMarkProformaPaid = async (budgetId: string) => {
+    try {
+      const { error } = await supabase
+        .from("budgets")
+        .update({ proforma_paid: true, proforma_paid_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", budgetId);
+      if (error) throw error;
+      toast.success("Proforma marcada como pagada");
+    } catch (err: any) {
+      toast.error(err.message || "Error al marcar proforma como pagada");
+    }
   };
 
   const handleSendProforma = async (budget: typeof budgets[0]) => {
@@ -150,18 +163,34 @@ export default function Budgets() {
                     <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-center">
-                      {b.status === "Aprobado" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs gap-1"
-                          disabled={sendingProforma === b.id}
-                          onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
-                        >
-                          {sendingProforma === b.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Receipt className="w-3 h-3" />}
-                          Proforma 50%
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-center gap-2">
+                        {b.status === "Aprobado" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs gap-1"
+                            disabled={sendingProforma === b.id}
+                            onClick={(e) => { e.stopPropagation(); handleSendProforma(b); }}
+                          >
+                            {sendingProforma === b.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Receipt className="w-3 h-3" />}
+                            Proforma 50%
+                          </Button>
+                        )}
+                        {b.proformaPaid ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+                            <CheckCircle2 className="w-3 h-3" /> Pagada
+                          </span>
+                        ) : (b.status === "Aprobado" || b.status === "Pte_Facturación" || b.status === "Finalizado") ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs gap-1 text-muted-foreground"
+                            onClick={(e) => { e.stopPropagation(); handleMarkProformaPaid(b.id); }}
+                          >
+                            Marcar pagada
+                          </Button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );

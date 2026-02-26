@@ -171,6 +171,8 @@ export interface Budget {
   status: BudgetStatus;
   lines: BudgetLine[];
   termsAndConditions: string;
+  proformaPaid: boolean;
+  proformaPaidAt: string | null;
 }
 
 export type ArticleCategory = "Material" | "Mano_de_Obra";

@@ -25,6 +25,8 @@ function mapDbToBudget(row: any, lines: any[]): Budget {
     createdAt: row.created_at,
     status: row.status as BudgetStatus,
     termsAndConditions: row.terms_and_conditions,
+    proformaPaid: row.proforma_paid ?? false,
+    proformaPaidAt: row.proforma_paid_at ?? null,
     lines: lines
       .filter((l) => l.budget_id === row.id)
       .sort((a, b) => a.sort_order - b.sort_order)
