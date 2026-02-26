@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId, PurchaseOrderType } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { mockOperators } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,8 @@ export default function PurchaseCreate() {
 
   const { services } = useServices();
   const { data: nextId, isLoading: idLoading } = useNextPurchaseOrderId();
+  const { data: suppliers = [] } = useSuppliers();
+  const activeSuppliers = suppliers.filter((s) => s.active);
   const createMutation = useCreatePurchaseOrder();
 
   const [type, setType] = useState<PurchaseOrderType>(preselectedServiceId ? "Servicio" : "Servicio");
@@ -161,7 +164,16 @@ export default function PurchaseCreate() {
 
           <div className="space-y-1.5">
             <Label>Proveedor</Label>
-            <Input placeholder="Ej: Saltoki, Leroy Merlin B2B..." value={supplierName} onChange={(e) => setSupplierName(e.target.value)} />
+            <Select value={supplierName} onValueChange={setSupplierName}>
+              <SelectTrigger><SelectValue placeholder="Seleccionar proveedor..." /></SelectTrigger>
+              <SelectContent>
+                {activeSuppliers.map((s) => (
+                  <SelectItem key={s.id} value={s.name}>
+                    {s.name}{s.taxId ? ` · ${s.taxId}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
