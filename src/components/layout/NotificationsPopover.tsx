@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { Bell, Clock, AlertTriangle, ShoppingCart, UserX, Wrench } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useServices } from "@/hooks/useServices";
@@ -6,6 +6,7 @@ import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, parseISO, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface Notification {
   id: string;
@@ -21,6 +22,9 @@ export default function NotificationsPopover() {
   const navigate = useNavigate();
   const { services } = useServices();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
+  const [ringing, setRinging] = useState(false);
+  const [badgePop, setBadgePop] = useState(false);
+  const prevCountRef = useRef<number | null>(null);
 
   const notifications = useMemo<Notification[]>(() => {
     const items: Notification[] = [];
@@ -113,6 +117,22 @@ export default function NotificationsPopover() {
     return items;
   }, [services, purchaseOrders]);
 
+  // Detect new notifications and trigger bell animation
+  useEffect(() => {
+    const count = notifications.length;
+    if (prevCountRef.current !== null && count > prevCountRef.current) {
+      setRinging(true);
+      setBadgePop(true);
+      const timer = setTimeout(() => setRinging(false), 800);
+      const timer2 = setTimeout(() => setBadgePop(false), 400);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(timer2);
+      };
+    }
+    prevCountRef.current = count;
+  }, [notifications.length]);
+
   const variantStyles: Record<string, string> = {
     destructive: "border-l-2 border-l-destructive bg-destructive/5",
     warning: "border-l-2 border-l-warning bg-warning/5",
@@ -123,9 +143,15 @@ export default function NotificationsPopover() {
     <Popover>
       <PopoverTrigger asChild>
         <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-          <Bell className="w-5 h-5 text-muted-foreground" />
+          <Bell className={cn(
+            "w-5 h-5 text-muted-foreground transition-colors",
+            ringing && "animate-bell-ring text-primary"
+          )} />
           {notifications.length > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+            <span className={cn(
+              "absolute top-1 right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center",
+              badgePop && "animate-badge-pop"
+            )}>
               {notifications.length > 9 ? "9+" : notifications.length}
             </span>
           )}
@@ -145,10 +171,14 @@ export default function NotificationsPopover() {
               No hay alertas pendientes 🎉
             </div>
           ) : (
-            notifications.map((n) => (
+            notifications.map((n, i) => (
               <div
                 key={n.id}
-                className={`px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors ${variantStyles[n.variant]}`}
+                className={cn(
+                  "px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors animate-notification-in",
+                  variantStyles[n.variant]
+                )}
+                style={{ animationDelay: `${i * 50}ms` }}
                 onClick={() => navigate(n.href)}
               >
                 <div className="flex items-start gap-3">
