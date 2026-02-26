@@ -37,6 +37,8 @@ interface BudgetPayload {
 interface RequestBody {
   services: ServicePayload[];
   budgets: BudgetPayload[];
+  type?: "invoice" | "proforma"; // default: invoice
+  percentage?: number; // e.g. 50 for 50% proforma
 }
 
 Deno.serve(async (req) => {
@@ -53,7 +55,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { services, budgets } = (await req.json()) as RequestBody;
+    const { services, budgets, type = "invoice", percentage } = (await req.json()) as RequestBody;
+    const multiplier = percentage ? percentage / 100 : 1;
 
     if (!services || services.length === 0) {
       return new Response(
@@ -76,8 +79,8 @@ Deno.serve(async (req) => {
               return {
                 name: line.concept,
                 desc: line.description || "",
-                units: line.units,
-                subtotal: salePrice * line.units,
+                units: line.units * multiplier,
+                subtotal: salePrice * line.units * multiplier,
                 tax: line.taxRate,
               };
             })
@@ -86,13 +89,18 @@ Deno.serve(async (req) => {
                 name: `Servicio ${service.id} – ${service.specialty}`,
                 desc: service.description || "",
                 units: 1,
-                subtotal: service.budgetTotal || 0,
+                subtotal: (service.budgetTotal || 0) * multiplier,
                 tax: 21,
               },
             ];
 
+        const docType = type === "proforma" ? "proform" : "invoice";
+        const docLabel = type === "proforma" 
+          ? `Proforma ${percentage ? `${percentage}%` : ""} – Servicio ${service.id}`
+          : `Servicio ${service.id}`;
+
         // Create invoice in Holded
-        const invoiceRes = await fetch(`${HOLDED_API}/documents/invoice`, {
+        const invoiceRes = await fetch(`${HOLDED_API}/documents/${docType}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -100,9 +108,9 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             contactName: service.clientName,
-            desc: `Servicio ${service.id}`,
+            desc: docLabel,
             items,
-            notes: `Exportado desde UrbanGO · Servicio: ${service.id}`,
+            notes: `Exportado desde UrbanGO · Servicio: ${service.id}${type === "proforma" ? ` · Proforma ${percentage || 100}%` : ""}`,
           }),
         });
 

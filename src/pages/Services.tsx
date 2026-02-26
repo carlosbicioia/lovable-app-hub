@@ -85,6 +85,8 @@ export default function Services() {
     }
   };
 
+  const closedStatuses = ["Finalizado", "Liquidado"];
+
   const handleExportHolded = async () => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) {
@@ -92,13 +94,24 @@ export default function Services() {
       return;
     }
 
+    const servicesToExport = filtered.filter((s) => ids.includes(s.id));
+    const nonClosed = servicesToExport.filter((s) => !closedStatuses.includes(s.status));
+
+    if (nonClosed.length > 0) {
+      toast({
+        title: "Servicios no cerrados",
+        description: `No se puede facturar: ${nonClosed.map((s) => s.id).join(", ")}. Solo se pueden facturar servicios en estado Finalizado o Liquidado.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setExporting(true);
     try {
-      const servicesToExport = filtered.filter((s) => ids.includes(s.id));
       const budgetsToExport = budgets.filter((b) => ids.includes(b.serviceId));
 
       const { data, error } = await supabase.functions.invoke("export-holded", {
-        body: { services: servicesToExport, budgets: budgetsToExport },
+        body: { services: servicesToExport, budgets: budgetsToExport, type: "invoice" },
       });
 
       if (error) throw error;
@@ -229,7 +242,8 @@ export default function Services() {
                       key={s.id}
                       className={cn(
                         "border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer",
-                        selectedIds.has(s.id) && "bg-primary/5"
+                        selectedIds.has(s.id) && "bg-primary/5",
+                        isBillingTab && !closedStatuses.includes(s.status) && "opacity-60"
                       )}
                       onClick={() => {
                         if (isBillingTab) {
@@ -268,7 +282,12 @@ export default function Services() {
                       <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.operatorName ?? "—"}</td>
-                      <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
+                      <td className="px-5 py-3">
+                        <StatusBadge status={s.status} />
+                        {isBillingTab && !closedStatuses.includes(s.status) && (
+                          <span className="block text-[10px] text-destructive mt-0.5">Servicio no cerrado</span>
+                        )}
+                      </td>
                       <td className="px-5 py-3 text-muted-foreground text-xs">
                         {format(new Date(s.receivedAt), "dd MMM yyyy", { locale: es })}
                       </td>
