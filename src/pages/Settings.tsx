@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/useCompanySettings";
 import { useAppUsers, useCreateAppUser, useUpdateAppUser, useDeleteAppUser } from "@/hooks/useAppUsers";
+import { useSystemUsers, useUpdateUserRole } from "@/hooks/useSystemUsers";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useSpecialties, useCreateSpecialty, useUpdateSpecialty, useDeleteSpecialty,
@@ -438,6 +439,8 @@ export default function Settings() {
   const createUser = useCreateAppUser();
   const updateUser = useUpdateAppUser();
   const deleteUser = useDeleteAppUser();
+  const { data: systemUsers, isLoading: systemUsersLoading } = useSystemUsers();
+  const updateRole = useUpdateUserRole();
 
   // Company form state
   const [companyForm, setCompanyForm] = useState<Record<string, any>>({});
@@ -638,55 +641,83 @@ export default function Settings() {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-base">Usuarios del sistema</CardTitle>
-                <CardDescription>Gestiona quién puede acceder a la plataforma</CardDescription>
+                <CardTitle className="text-base">Usuarios con acceso</CardTitle>
+                <CardDescription>Usuarios autenticados en la plataforma y sus roles asignados</CardDescription>
               </div>
-              <Button size="sm" onClick={() => setShowNewUser(true)}>
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> Añadir usuario
-              </Button>
+              <span className="text-xs text-muted-foreground">{systemUsers?.length ?? 0} usuario(s)</span>
             </CardHeader>
             <CardContent>
-              {usersLoading ? (
+              {systemUsersLoading ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
                 </div>
+              ) : (systemUsers ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No se encontraron usuarios registrados</p>
               ) : (
                 <div className="divide-y divide-border">
-                  {(users ?? []).map((u) => (
-                    <div key={u.id} className="flex items-center justify-between py-3 gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-primary">{u.name.split(" ").map(n => n[0]).join("")}</span>
+                  {(systemUsers ?? []).map((u) => {
+                    const initials = u.full_name
+                      ? u.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                      : u.email?.[0]?.toUpperCase() ?? "?";
+                    const roleCfg = roles.find(r => r.value === u.role);
+                    return (
+                      <div key={u.id} className="flex items-center justify-between py-3 gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                            {u.avatar_url ? (
+                              <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs font-bold text-primary">{initials}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-card-foreground truncate">{u.full_name || "Sin nombre"}</p>
+                            <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                            <p className="text-[10px] text-muted-foreground/60">
+                              Registrado: {new Date(u.created_at).toLocaleDateString("es-ES")}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-card-foreground truncate">{u.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <Select
+                            value={u.role ?? "sin_rol"}
+                            onValueChange={(v) => updateRole.mutate({ userId: u.id, role: v })}
+                          >
+                            <SelectTrigger className={cn(
+                              "h-7 w-[140px] text-xs font-medium",
+                              u.role === "admin" ? "border-primary/30 text-primary" :
+                              u.role === "gestor" ? "border-info/30 text-info" :
+                              u.role === "colaborador" ? "border-warning/30 text-warning" :
+                              "border-border text-muted-foreground"
+                            )}>
+                              <SelectValue>{roleCfg?.label ?? (u.role === "colaborador" ? "Colaborador" : "Sin rol")}</SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {roles.map(r => (
+                                <SelectItem key={r.value} value={r.value}>
+                                  <div>
+                                    <p className="text-sm">{r.label}</p>
+                                    <p className="text-[10px] text-muted-foreground">{r.desc}</p>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="colaborador">
+                                <div>
+                                  <p className="text-sm">Colaborador</p>
+                                  <p className="text-[10px] text-muted-foreground">Acceso al portal de colaborador</p>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {u.collaborator_id && (
+                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                              {u.collaborator_id}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className={cn(
-                          "text-xs font-medium px-2 py-0.5 rounded-full border",
-                          u.role === "admin" ? "bg-primary/10 text-primary border-primary/20" :
-                          u.role === "gestor" ? "bg-info/10 text-info border-info/20" :
-                          "bg-muted text-muted-foreground border-border"
-                        )}>
-                          {roles.find(r => r.value === u.role)?.label ?? u.role}
-                        </span>
-                        <Switch
-                          checked={u.active}
-                          onCheckedChange={(checked) => updateUser.mutate({ id: u.id, active: checked })}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => deleteUser.mutate(u.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
