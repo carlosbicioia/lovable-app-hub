@@ -268,7 +268,7 @@ function WeekView({ date, onDropService }: { date: Date; onDropService: (service
   const navigate = useNavigate();
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   const weekServices = services.filter((s) => {
     if (!s.scheduledAt) return false;
