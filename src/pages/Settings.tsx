@@ -385,17 +385,21 @@ function IndustrialConfigTab() {
 function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; onUploaded: (url: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+
+  const displayUrl = localPreview || logoUrl;
 
   const handleUpload = async (file: File) => {
     if (file.size > 2 * 1024 * 1024) {
       toast.error("El archivo supera el límite de 2 MB");
       return;
     }
+    // Show local preview immediately
+    setLocalPreview(URL.createObjectURL(file));
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() ?? "png";
       const path = `logo.${ext}`;
-      // Remove old file if exists
       await supabase.storage.from("company-assets").remove([path]);
       const { error } = await supabase.storage.from("company-assets").upload(path, file, { upsert: true });
       if (error) throw error;
@@ -404,6 +408,7 @@ function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; on
     } catch (err: any) {
       console.error(err);
       toast.error("Error al subir el logotipo");
+      setLocalPreview(null);
     } finally {
       setUploading(false);
     }
@@ -414,8 +419,8 @@ function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; on
       <Label>Logotipo</Label>
       <div className="flex items-center gap-4">
         <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden">
-          {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+          {displayUrl ? (
+            <img src={displayUrl} alt="Logo" className="w-full h-full object-contain" />
           ) : (
             <Upload className="w-6 h-6 text-muted-foreground" />
           )}
