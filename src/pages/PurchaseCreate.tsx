@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId, PurchaseOrderType } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
-import { useSuppliers } from "@/hooks/useSuppliers";
+import { useSuppliers, useCreateSupplier } from "@/hooks/useSuppliers";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { mockOperators } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ export default function PurchaseCreate() {
   const { data: taxTypes = [] } = useActiveTaxTypes();
   const activeSuppliers = suppliers.filter((s) => s.active);
   const createMutation = useCreatePurchaseOrder();
+  const createSupplier = useCreateSupplier();
 
   const defaultTaxType = taxTypes.find((t) => t.is_default) ?? taxTypes[0];
 
@@ -67,6 +69,10 @@ export default function PurchaseCreate() {
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
   const [taxTypeId, setTaxTypeId] = useState<string>("");
+
+  // Quick-create supplier
+  const [showNewSupplier, setShowNewSupplier] = useState(false);
+  const [newSupplier, setNewSupplier] = useState({ name: "", taxId: "", phone: "", email: "" });
 
   // Set default tax type when loaded
   const effectiveTaxTypeId = taxTypeId || defaultTaxType?.id || "";
@@ -191,16 +197,21 @@ export default function PurchaseCreate() {
 
           <div className="space-y-1.5">
             <Label>Proveedor</Label>
-            <Select value={supplierName} onValueChange={setSupplierName}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar proveedor..." /></SelectTrigger>
-              <SelectContent>
-                {activeSuppliers.map((s) => (
-                  <SelectItem key={s.id} value={s.name}>
-                    {s.name}{s.taxId ? ` · ${s.taxId}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={supplierName} onValueChange={setSupplierName}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Seleccionar proveedor..." /></SelectTrigger>
+                <SelectContent>
+                  {activeSuppliers.map((s) => (
+                    <SelectItem key={s.id} value={s.name}>
+                      {s.name}{s.taxId ? ` · ${s.taxId}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="icon" onClick={() => setShowNewSupplier(true)} title="Crear proveedor rápido">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -359,6 +370,88 @@ export default function PurchaseCreate() {
           {isDirect ? "Registrar compra directa" : "Crear orden de compra"}
         </Button>
       </div>
+
+      {/* Quick-create supplier dialog */}
+      <Dialog open={showNewSupplier} onOpenChange={setShowNewSupplier}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nuevo proveedor rápido</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nombre *</Label>
+              <Input
+                value={newSupplier.name}
+                onChange={(e) => setNewSupplier((p) => ({ ...p, name: e.target.value }))}
+                placeholder="Nombre del proveedor"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CIF / NIF</Label>
+              <Input
+                value={newSupplier.taxId}
+                onChange={(e) => setNewSupplier((p) => ({ ...p, taxId: e.target.value }))}
+                placeholder="B12345678"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Teléfono</Label>
+                <Input
+                  value={newSupplier.phone}
+                  onChange={(e) => setNewSupplier((p) => ({ ...p, phone: e.target.value }))}
+                  placeholder="600 000 000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={newSupplier.email}
+                  onChange={(e) => setNewSupplier((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="info@proveedor.com"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewSupplier(false)}>Cancelar</Button>
+            <Button
+              disabled={!newSupplier.name.trim() || createSupplier.isPending}
+              onClick={() => {
+                createSupplier.mutate(
+                  {
+                    name: newSupplier.name.trim(),
+                    taxId: newSupplier.taxId,
+                    phone: newSupplier.phone,
+                    email: newSupplier.email,
+                    address: "",
+                    city: "",
+                    province: "",
+                    contactPerson: "",
+                    notes: "",
+                    iban: "",
+                    paymentTerms: "Contado",
+                    dueDays: 30,
+                    active: true,
+                  },
+                  {
+                    onSuccess: () => {
+                      setSupplierName(newSupplier.name.trim());
+                      setShowNewSupplier(false);
+                      setNewSupplier({ name: "", taxId: "", phone: "", email: "" });
+                    },
+                  }
+                );
+              }}
+            >
+              {createSupplier.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Crear proveedor
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
