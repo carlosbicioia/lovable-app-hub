@@ -134,6 +134,11 @@ export default function Purchases() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
         <TabsList>
           <TabsTrigger value="oc" className="gap-1.5">
             <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
@@ -148,13 +153,7 @@ export default function Purchases() {
             <Badge variant="secondary" className="text-[10px] h-5 ml-1">{invoices.length}</Badge>
           </TabsTrigger>
         </TabsList>
-
-        <div className="mt-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-          </div>
-        </div>
+      </div>
 
         <TabsContent value="oc" className="mt-4">
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
