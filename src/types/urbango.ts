@@ -102,6 +102,9 @@ export interface Service {
   timelineEvents?: TimelineEvent[];
   materials?: ServiceMaterial[];
   realHours?: number | null;
+  signatureUrl?: string | null;
+  signedAt?: string | null;
+  signedBy?: string | null;
 }
 
 export type OperatorStatus = "Activo" | "Inactivo" | "Vacaciones" | "Baja";

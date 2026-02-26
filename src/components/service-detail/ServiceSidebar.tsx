@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Building2, Clock, AlertTriangle } from "lucide-react";
+import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2 } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface Props {
   service: Service;
@@ -140,6 +142,46 @@ export default function ServiceSidebar({ service }: Props) {
               )}>
                 {service.nps}/10
               </span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Client Signature */}
+      <Card className={service.signatureUrl ? "border-success/30" : "border-dashed border-muted-foreground/30"}>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <PenLine className="w-4 h-4 text-muted-foreground" /> Firma del cliente
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {service.signatureUrl ? (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-border bg-muted/20 p-3 flex items-center justify-center">
+                <img
+                  src={service.signatureUrl}
+                  alt="Firma del cliente"
+                  className="max-h-24 w-auto object-contain"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-success">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-sm font-medium">Conformidad del cliente</span>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                {service.signedBy && <p>Firmado por: {service.signedBy}</p>}
+                {service.signedAt && (
+                  <p>Fecha: {format(new Date(service.signedAt), "dd MMM yyyy · HH:mm", { locale: es })}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4 space-y-2">
+              <PenLine className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+              <p className="text-sm text-muted-foreground">Pendiente de firma</p>
+              <p className="text-xs text-muted-foreground">
+                La firma se captura desde la app del operario al finalizar el servicio
+              </p>
             </div>
           )}
         </CardContent>

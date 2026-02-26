@@ -620,6 +620,9 @@ export type Database = {
           scheduled_end_at: string | null
           service_category: string
           service_type: string
+          signature_url: string | null
+          signed_at: string | null
+          signed_by: string | null
           specialty: string
           status: string
           updated_at: string
@@ -650,6 +653,9 @@ export type Database = {
           scheduled_end_at?: string | null
           service_category?: string
           service_type?: string
+          signature_url?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
           specialty?: string
           status?: string
           updated_at?: string
@@ -680,6 +686,9 @@ export type Database = {
           scheduled_end_at?: string | null
           service_category?: string
           service_type?: string
+          signature_url?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
           specialty?: string
           status?: string
           updated_at?: string
