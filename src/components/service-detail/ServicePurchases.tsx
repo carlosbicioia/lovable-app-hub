@@ -76,6 +76,18 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
           </CardContent>
         </Card>
       </div>
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}`)}>
+          <Plus className="w-4 h-4 mr-1" /> Nueva OC
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => navigate(`/compras/albaran/nuevo?serviceId=${serviceId}`)}>
+          <Plus className="w-4 h-4 mr-1" /> Nuevo albarán
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => navigate(`/compras/factura/nueva?serviceId=${serviceId}`)}>
+          <Plus className="w-4 h-4 mr-1" /> Nueva factura
+        </Button>
+      </div>
 
       <Tabs defaultValue="oc">
         <TabsList>
@@ -96,13 +108,10 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
         {/* OC Tab */}
         <TabsContent value="oc">
           <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
               </CardTitle>
-              <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}`)}>
-                <Plus className="w-4 h-4 mr-1" /> Nueva OC
-              </Button>
             </CardHeader>
             <CardContent>
               {orders.length === 0 ? (
@@ -172,13 +181,10 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
         {/* Albaranes Tab */}
         <TabsContent value="albaranes">
           <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Truck className="w-4 h-4 text-muted-foreground" /> Albaranes / Compras directas
               </CardTitle>
-              <Button size="sm" onClick={() => navigate(`/compras/albaran/nuevo?serviceId=${serviceId}`)}>
-                <Plus className="w-4 h-4 mr-1" /> Nuevo albarán
-              </Button>
             </CardHeader>
             <CardContent>
               {deliveryNotes.length === 0 ? (
@@ -226,13 +232,10 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
         {/* Facturas Tab */}
         <TabsContent value="facturas">
           <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" /> Facturas de compra
               </CardTitle>
-              <Button size="sm" onClick={() => navigate(`/compras/factura/nueva?serviceId=${serviceId}`)}>
-                <Plus className="w-4 h-4 mr-1" /> Nueva factura
-              </Button>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
