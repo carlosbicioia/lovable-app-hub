@@ -36,6 +36,10 @@ import {
   Wind,
   ChevronDown,
   Plus,
+  Clock,
+  PlayCircle,
+  CheckCircle2,
+  Phone,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -50,7 +54,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import type { Service, Operator, Specialty } from "@/types/urbango";
+import type { Service, Operator, Specialty, ServiceStatus } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -866,6 +870,7 @@ export default function CalendarView() {
   const [view, setView] = useState<ViewMode>("week");
   const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | null>(null);
   const { services, refetch } = useServices();
   const { toast } = useToast();
   const routerNavigate = useNavigate();
@@ -873,13 +878,15 @@ export default function CalendarView() {
   const filteredServices = useMemo(() => {
     const hasOperator = !!selectedOperatorId;
     const hasSpecialty = !!selectedSpecialty;
-    if (!hasOperator && !hasSpecialty) return undefined;
+    const hasStatus = !!selectedStatus;
+    if (!hasOperator && !hasSpecialty && !hasStatus) return undefined;
     return services.filter((s) => {
       if (hasOperator && s.operatorId !== selectedOperatorId) return false;
       if (hasSpecialty && s.specialty !== selectedSpecialty) return false;
+      if (hasStatus && s.status !== selectedStatus) return false;
       return true;
     });
-  }, [services, selectedOperatorId, selectedSpecialty]);
+  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus]);
 
   const selectedOperatorName = selectedOperatorId
     ? mockOperators.find((o) => o.id === selectedOperatorId)?.name ?? null
@@ -1018,6 +1025,30 @@ export default function CalendarView() {
               >
                 {specialtyIcon[key]}
                 {key.split("/")[0]}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Status filter */}
+        <div className="flex items-center gap-1.5">
+          {([
+            { key: "Pendiente_Contacto" as ServiceStatus, label: "Pendiente", icon: <Phone className="w-3 h-3" />, cls: "bg-warning/15 text-warning border-warning/30" },
+            { key: "Agendado" as ServiceStatus, label: "Agendado", icon: <Clock className="w-3 h-3" />, cls: "bg-info/15 text-info border-info/30" },
+            { key: "En_Curso" as ServiceStatus, label: "En curso", icon: <PlayCircle className="w-3 h-3" />, cls: "bg-primary/15 text-primary border-primary/30" },
+            { key: "Finalizado" as ServiceStatus, label: "Finalizado", icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-success/15 text-success border-success/30" },
+          ]).map(({ key, label, icon, cls }) => {
+            const isActive = selectedStatus === key;
+            return (
+              <Button
+                key={key}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={cn("text-xs h-8 gap-1", !isActive && cls)}
+                onClick={() => setSelectedStatus(isActive ? null : key)}
+              >
+                {icon}
+                {label}
               </Button>
             );
           })}
