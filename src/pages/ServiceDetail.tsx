@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
-import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2 } from "lucide-react";
+import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -59,6 +60,9 @@ export default function ServiceDetail() {
 
   const { budgets } = useBudgets();
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
+
+  const { data: allPurchaseOrders = [] } = usePurchaseOrders();
+  const linkedOrders = allPurchaseOrders.filter((o) => o.serviceId === service.id);
 
   const getSlaStatus = () => {
     if (service.contactedAt) return null;
@@ -206,6 +210,57 @@ export default function ServiceDetail() {
               <div className="lg:col-span-2 space-y-6">
                 <ServiceDescription service={service} />
                 <ServiceProtocolChecklist service={service} />
+
+                {/* Linked purchase orders */}
+                {linkedOrders.length > 0 && (
+                  <Card>
+                    <CardHeader className="flex-row items-center justify-between space-y-0">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <ShoppingCart className="w-4 h-4 text-muted-foreground" />
+                        Órdenes de compra ({linkedOrders.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                        Nueva OC
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="divide-y divide-border">
+                        {linkedOrders.map((o) => {
+                          const statusCfg: Record<string, { label: string; cls: string }> = {
+                            Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
+                            Pendiente_Aprobación: { label: "Pte. Aprobación", cls: "bg-warning/15 text-warning border-warning/30" },
+                            Aprobada: { label: "Aprobada", cls: "bg-info/15 text-info border-info/30" },
+                            Recogida: { label: "Recogida", cls: "bg-primary/15 text-primary border-primary/30" },
+                            Conciliada: { label: "Conciliada", cls: "bg-success/15 text-success border-success/30" },
+                          };
+                          const sc = statusCfg[o.status] ?? statusCfg.Borrador;
+                          return (
+                            <div
+                              key={o.id}
+                              className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-1 px-1 rounded transition-colors cursor-pointer"
+                              onClick={() => navigate(`/compras/${o.id}`)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono text-xs text-muted-foreground">{o.id}</span>
+                                <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>
+                                  {sc.label}
+                                </span>
+                                {o.isEmergency && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-destructive/15 text-destructive border border-destructive/30">
+                                    <AlertTriangleIcon className="w-3 h-3" /> Emergencia
+                                  </span>
+                                )}
+                                <span className="text-sm text-foreground">{o.supplierName}</span>
+                                <span className="text-xs text-muted-foreground">{o.lines.length} material(es)</span>
+                              </div>
+                              <span className="text-sm font-semibold text-foreground">€{o.totalCost.toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 <ServiceTimeline service={service} />
               </div>
               <ServiceSidebar service={service} />
