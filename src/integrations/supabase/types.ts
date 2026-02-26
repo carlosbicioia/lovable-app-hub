@@ -263,6 +263,7 @@ export type Database = {
           address: string
           budget_next_number: number
           budget_prefix: string
+          budget_terms: string
           budget_validity_days: number
           company_name: string
           created_at: string
@@ -290,6 +291,7 @@ export type Database = {
           address?: string
           budget_next_number?: number
           budget_prefix?: string
+          budget_terms?: string
           budget_validity_days?: number
           company_name?: string
           created_at?: string
@@ -317,6 +319,7 @@ export type Database = {
           address?: string
           budget_next_number?: number
           budget_prefix?: string
+          budget_terms?: string
           budget_validity_days?: number
           company_name?: string
           created_at?: string

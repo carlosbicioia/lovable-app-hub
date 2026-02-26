@@ -15,22 +15,35 @@ import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
-
-const defaultTerms = "La aceptación de este presupuesto implica el pago inicial del 50% del importe total, en concepto de reserva y planificación de la obra, 20% a la entrega de materiales, 30% final a la finalización de los trabajos.";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useEffect } from "react";
+import { Building2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function BudgetCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addBudget, budgets } = useBudgets();
   const { services } = useServices();
+  const { data: companySettings } = useCompanySettings();
 
   const [serviceId, setServiceId] = useState(searchParams.get("serviceId") ?? "");
-  const [terms, setTerms] = useState(defaultTerms);
+  const [terms, setTerms] = useState("");
+  const [termsLoaded, setTermsLoaded] = useState(false);
   const [lines, setLines] = useState<BudgetLine[]>([
     { id: "1", concept: "", description: "", units: 1, costPrice: 0, margin: 30, taxRate: 21 },
   ]);
   const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
   const [serviceSearchOpen, setServiceSearchOpen] = useState(false);
+
+  // Load default terms from company settings
+  useEffect(() => {
+    if (companySettings && !termsLoaded) {
+      const defaultTerms = (companySettings as any).budget_terms;
+      if (defaultTerms) setTerms(defaultTerms);
+      setTermsLoaded(true);
+    }
+  }, [companySettings, termsLoaded]);
 
   const servicesWithBudget = services.filter((s) => s.serviceType === "Presupuesto");
   const selectedService = services.find((s) => s.id === serviceId);
@@ -348,9 +361,55 @@ export default function BudgetCreate() {
           <CardTitle className="text-base">Términos y Condiciones</CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={3} className="text-sm" />
+          <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={4} className="text-sm resize-y" />
         </CardContent>
       </Card>
+
+      {/* Legal conditions & Company info */}
+      {companySettings && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Información del documento</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {companySettings.legal_conditions && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Condiciones legales</Label>
+                <p className="text-sm text-card-foreground whitespace-pre-line bg-muted/50 rounded-lg p-3 border border-border">
+                  {companySettings.legal_conditions}
+                </p>
+              </div>
+            )}
+
+            {companySettings.document_footer && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Pie de documento</Label>
+                <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 rounded-lg p-3 border border-border">
+                  {companySettings.document_footer}
+                </p>
+              </div>
+            )}
+
+            <Separator />
+
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" /> Datos de la empresa emisora
+              </Label>
+              <div className="text-sm text-card-foreground bg-muted/50 rounded-lg p-3 border border-border space-y-0.5">
+                <p className="font-medium">{companySettings.company_name || "—"}</p>
+                {companySettings.tax_id && <p className="text-muted-foreground">CIF: {companySettings.tax_id}</p>}
+                {companySettings.address && <p className="text-muted-foreground">{companySettings.address}</p>}
+                <div className="flex gap-4 text-muted-foreground">
+                  {companySettings.phone && <span>Tel: {companySettings.phone}</span>}
+                  {companySettings.email && <span>{companySettings.email}</span>}
+                </div>
+                {companySettings.website && <p className="text-muted-foreground">{companySettings.website}</p>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
