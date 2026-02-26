@@ -165,7 +165,7 @@ export default function PurchaseCreate() {
                 </div>
                 <div className="col-span-3 space-y-1">
                   {i === 0 && <Label className="text-xs">Descripción</Label>}
-                  <Input value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Desc." />
+                  <Textarea value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Descripción del artículo…" className="min-h-[40px] resize-y" rows={1} />
                 </div>
                 <div className="col-span-1 space-y-1">
                   {i === 0 && <Label className="text-xs">Uds.</Label>}
