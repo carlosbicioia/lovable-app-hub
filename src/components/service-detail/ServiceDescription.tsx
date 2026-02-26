@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ const claimStatusLabels: Record<string, string> = {
 };
 
 export default function ServiceDescription({ service, onUpdate }: Props) {
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState(service.description || "");
   const [editing, setEditing] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(
     service.scheduledAt ? new Date(service.scheduledAt) : undefined
@@ -86,9 +89,26 @@ export default function ServiceDescription({ service, onUpdate }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-card-foreground leading-relaxed">
-          {service.description || "Sin descripción disponible."}
-        </p>
+        {!editingDesc ? (
+          <div className="flex items-start gap-2 group">
+            <p className="text-sm text-card-foreground leading-relaxed flex-1">
+              {service.description || "Sin descripción disponible."}
+            </p>
+            {onUpdate && (
+              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => { setDescDraft(service.description || ""); setEditingDesc(true); }}>
+                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Textarea value={descDraft} onChange={(e) => setDescDraft(e.target.value)} className="text-sm min-h-[80px]" />
+            <div className="flex gap-2">
+              <Button size="sm" className="h-7 text-xs" onClick={async () => { if (onUpdate) { await onUpdate({ description: descDraft }); setEditingDesc(false); } }}>Guardar</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingDesc(false)}>Cancelar</Button>
+            </div>
+          </div>
+        )}
 
         {/* Dates row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-border">
