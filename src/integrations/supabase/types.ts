@@ -436,6 +436,7 @@ export type Database = {
           operator_id: string | null
           operator_name: string | null
           pdf_path: string | null
+          purchase_order_id: string | null
           service_id: string
           status: string
           supplier_id: string | null
@@ -453,6 +454,7 @@ export type Database = {
           operator_id?: string | null
           operator_name?: string | null
           pdf_path?: string | null
+          purchase_order_id?: string | null
           service_id: string
           status?: string
           supplier_id?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           operator_id?: string | null
           operator_name?: string | null
           pdf_path?: string | null
+          purchase_order_id?: string | null
           service_id?: string
           status?: string
           supplier_id?: string | null
@@ -478,6 +481,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "delivery_notes_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "delivery_notes_supplier_id_fkey"
             columns: ["supplier_id"]

@@ -123,6 +123,7 @@ export function useCreateDeliveryNote() {
   return useMutation({
     mutationFn: async (input: {
       serviceId: string;
+      purchaseOrderId?: string | null;
       code?: string;
       supplierId?: string | null;
       supplierName: string;
@@ -135,6 +136,7 @@ export function useCreateDeliveryNote() {
       const totalCost = input.lines.reduce((sum, l) => sum + l.units * l.costPrice, 0);
       const { data: row, error: e1 } = await supabase.from("delivery_notes").insert({
         service_id: input.serviceId,
+        purchase_order_id: input.purchaseOrderId ?? null,
         code: input.code ?? "",
         supplier_id: input.supplierId ?? null,
         supplier_name: input.supplierName,
