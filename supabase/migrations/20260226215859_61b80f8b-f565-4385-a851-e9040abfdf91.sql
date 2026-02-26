@@ -1,0 +1,1 @@
+ALTER TABLE public.delivery_notes ADD COLUMN purchase_order_id text REFERENCES public.purchase_orders(id) ON DELETE SET NULL DEFAULT NULL;

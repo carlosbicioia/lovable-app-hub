@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreateDeliveryNote } from "@/hooks/useDeliveryNotes";
+import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { mockOperators } from "@/data/mockData";
@@ -9,10 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import SearchableSelect from "@/components/shared/SearchableSelect";
-import { ArrowLeft, Plus, Trash2, Loader2, Truck, Upload, FileText, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, Truck, Upload, FileText, X, ShoppingCart, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type LinkMode = null | "oc" | "standalone";
 
 interface LineInput {
   articleName: string;
@@ -28,9 +32,15 @@ export default function DeliveryNoteCreate() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const preServiceId = params.get("serviceId") ?? "";
+  const preOcId = params.get("ocId") ?? "";
   const { services } = useServices();
   const { data: suppliers = [] } = useSuppliers();
+  const { data: orders = [] } = usePurchaseOrders();
   const createNote = useCreateDeliveryNote();
+
+  // Step 0: choose mode
+  const [mode, setMode] = useState<LinkMode>(preOcId ? "oc" : null);
+  const [selectedOcId, setSelectedOcId] = useState(preOcId);
 
   const [code, setCode] = useState("");
   const [supplierName, setSupplierName] = useState("");
@@ -39,14 +49,40 @@ export default function DeliveryNoteCreate() {
   const [lines, setLines] = useState<LineInput[]>([{ ...emptyLine(), serviceId: preServiceId }]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   const selectedOp = mockOperators.find((o) => o.id === operatorId);
   const total = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
-
-  // Use the first line's serviceId as the main serviceId (required by DB)
   const mainServiceId = lines[0]?.serviceId || preServiceId;
+
+  // Pre-fill from selected OC
+  const handleSelectOc = (ocId: string) => {
+    setSelectedOcId(ocId);
+    const oc = orders.find((o) => o.id === ocId);
+    if (!oc) return;
+    setSupplierName(oc.supplierName);
+    setOperatorId(oc.operatorId ?? "");
+    setLines(
+      oc.lines.length > 0
+        ? oc.lines.map((l) => ({
+            articleName: l.articleName,
+            description: l.description,
+            units: l.units,
+            costPrice: l.costPrice,
+            serviceId: oc.serviceId,
+          }))
+        : [{ ...emptyLine(), serviceId: oc.serviceId }]
+    );
+    setPrefilled(true);
+  };
+
+  const handleConfirmMode = () => {
+    if (mode === "oc" && selectedOcId) {
+      handleSelectOc(selectedOcId);
+    }
+  };
 
   const updateLine = (i: number, field: keyof LineInput, val: any) => {
     setLines((prev) => prev.map((l, j) => (j === i ? { ...l, [field]: val } : l)));
@@ -82,6 +118,7 @@ export default function DeliveryNoteCreate() {
       createNote.mutate(
         {
           serviceId: mainServiceId,
+          purchaseOrderId: mode === "oc" ? selectedOcId || null : null,
           code,
           supplierName,
           operatorId: operatorId || null,
@@ -109,19 +146,109 @@ export default function DeliveryNoteCreate() {
     searchText: `${s.description ?? ""} ${s.address ?? ""}`,
   }));
 
+  const ocOptions = orders.map((o) => ({
+    value: o.id,
+    label: `${o.id} — ${o.supplierName}`,
+    subtitle: `Servicio: ${o.serviceId} · €${o.totalCost.toFixed(2)}`,
+    searchText: `${o.serviceId} ${o.supplierName} ${o.operatorName ?? ""}`,
+  }));
+
   const isPending = createNote.isPending || uploading;
 
+  // Step 0: Mode selection
+  if (mode === null || (mode === "oc" && !prefilled)) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+              <Truck className="w-5 h-5 text-primary" /> Nuevo albarán
+            </h1>
+            <p className="text-sm text-muted-foreground">¿Cómo quieres crear el albarán?</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+          <Card
+            className={cn(
+              "cursor-pointer transition-all hover:border-primary/50 hover:shadow-md",
+              mode === "oc" && "ring-2 ring-primary border-primary"
+            )}
+            onClick={() => setMode("oc")}
+          >
+            <CardContent className="pt-6 text-center space-y-3">
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <ShoppingCart className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-base">Vinculado a una OC</CardTitle>
+              <CardDescription>
+                Asociar este albarán a una orden de compra existente. Se pre-rellenarán los datos.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card
+            className={cn(
+              "cursor-pointer transition-all hover:border-primary/50 hover:shadow-md",
+              mode === "standalone" && "ring-2 ring-primary border-primary"
+            )}
+            onClick={() => { setMode("standalone"); setPrefilled(true); }}
+          >
+            <CardContent className="pt-6 text-center space-y-3">
+              <div className="mx-auto w-12 h-12 rounded-full bg-accent/50 flex items-center justify-center">
+                <PackageOpen className="w-6 h-6 text-accent-foreground" />
+              </div>
+              <CardTitle className="text-base">Compra sin OC</CardTitle>
+              <CardDescription>
+                Crear un albarán independiente, sin vincularlo a ninguna orden de compra.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+
+        {mode === "oc" && (
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <CardTitle className="text-base">Selecciona la orden de compra</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <SearchableSelect
+                value={selectedOcId}
+                onValueChange={setSelectedOcId}
+                placeholder="Buscar OC…"
+                searchPlaceholder="ID, proveedor, servicio…"
+                emptyText="No hay órdenes de compra"
+                options={ocOptions}
+              />
+              <div className="flex justify-end">
+                <Button onClick={handleConfirmMode} disabled={!selectedOcId}>
+                  Continuar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // Step 1: Form
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => { setPrefilled(false); setMode(null); }}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
             <Truck className="w-5 h-5 text-primary" /> Nuevo albarán
           </h1>
-          <p className="text-sm text-muted-foreground">Registra un albarán de proveedor</p>
+          <p className="text-sm text-muted-foreground">
+            {mode === "oc" ? `Vinculado a OC: ${selectedOcId}` : "Compra sin OC"}
+          </p>
         </div>
       </div>
 
