@@ -1,5 +1,5 @@
 import { useServices } from "@/hooks/useServices";
-import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare } from "lucide-react";
+import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -150,9 +150,17 @@ export default function Services() {
           <h1 className="text-2xl font-display font-bold text-foreground">Servicios</h1>
           <p className="text-muted-foreground text-sm mt-1">{services.length} servicios en sistema</p>
         </div>
-        <Button onClick={() => navigate("/servicios/nuevo")}>
-          <Plus className="w-4 h-4 mr-2" /> Nuevo Servicio
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => {
+            const event = new CustomEvent("open-voice-assistant");
+            window.dispatchEvent(event);
+          }} className="gap-2">
+            <Mic className="w-4 h-4" /> Crear con Alex
+          </Button>
+          <Button onClick={() => navigate("/servicios/nuevo")}>
+            <Plus className="w-4 h-4 mr-2" /> Nuevo Servicio
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
