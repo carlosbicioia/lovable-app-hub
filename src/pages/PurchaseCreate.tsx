@@ -38,7 +38,9 @@ export default function PurchaseCreate() {
   const [supplierName, setSupplierName] = useState("");
   const [operatorId, setOperatorId] = useState("");
   const [notes, setNotes] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
+  const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   const selectedOp = mockOperators.find((o) => o.id === operatorId);
   const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
@@ -84,7 +86,7 @@ export default function PurchaseCreate() {
       <Card>
         <CardHeader><CardTitle className="text-base">Datos de la orden</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label>Servicio *</Label>
               <SearchableSelect
@@ -131,6 +133,14 @@ export default function PurchaseCreate() {
                   subtitle: `${o.specialty} · NPS ${o.npsMean}`,
                 }))}
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Fecha de creación</Label>
+              <Input value={todayStr} disabled className="bg-muted/50" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Fecha de recogida</Label>
+              <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1.5">
