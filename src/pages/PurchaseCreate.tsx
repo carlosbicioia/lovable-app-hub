@@ -1,469 +1,165 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useCreatePurchaseOrder, useNextPurchaseOrderId, PurchaseOrderType } from "@/hooks/usePurchaseOrders";
+import { useCreatePurchaseOrder, useNextPurchaseOrderId } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
-import { useSuppliers, useCreateSupplier } from "@/hooks/useSuppliers";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { mockOperators } from "@/data/mockData";
-import ArticleAutocomplete from "@/components/purchase/ArticleAutocomplete";
-import type { Article } from "@/types/urbango";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  Loader2,
-  AlertTriangle,
-  ShoppingCart,
-  CreditCard,
-} from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
 
 interface LineInput {
-  supplierCode: string;
+  articleName: string;
   description: string;
   units: number;
   costPrice: number;
-  discountPercent: number;
 }
 
-const emptyLine = (): LineInput => ({
-  supplierCode: "",
-  description: "",
-  units: 1,
-  costPrice: 0,
-  discountPercent: 0,
-});
-
-function lineTotal(l: LineInput): number {
-  return l.units * l.costPrice * (1 - l.discountPercent / 100);
-}
+const emptyLine = (): LineInput => ({ articleName: "", description: "", units: 1, costPrice: 0 });
 
 export default function PurchaseCreate() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const preselectedServiceId = searchParams.get("serviceId") ?? "";
-  const isDirect = searchParams.get("direct") === "true";
-
+  const [params] = useSearchParams();
+  const preServiceId = params.get("serviceId") ?? "";
   const { services } = useServices();
-  const { data: nextId, isLoading: idLoading } = useNextPurchaseOrderId();
   const { data: suppliers = [] } = useSuppliers();
-  const { data: taxTypes = [] } = useActiveTaxTypes();
-  const activeSuppliers = suppliers.filter((s) => s.active);
-  const createMutation = useCreatePurchaseOrder();
-  const createSupplier = useCreateSupplier();
+  const { data: nextId, isLoading: loadingId } = useNextPurchaseOrderId();
+  const createOrder = useCreatePurchaseOrder();
 
-  const defaultTaxType = taxTypes.find((t) => t.is_default) ?? taxTypes[0];
-
-  const [type, setType] = useState<PurchaseOrderType>(isDirect ? "Servicio" : (preselectedServiceId ? "Servicio" : "Servicio"));
-  const [serviceId, setServiceId] = useState<string>(preselectedServiceId);
-  const [operatorId, setOperatorId] = useState<string>("");
+  const [serviceId, setServiceId] = useState(preServiceId);
   const [supplierName, setSupplierName] = useState("");
-  const [isEmergency, setIsEmergency] = useState(false);
+  const [operatorId, setOperatorId] = useState("");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
-  const [taxTypeId, setTaxTypeId] = useState<string>("");
 
-  // Quick-create supplier
-  const [showNewSupplier, setShowNewSupplier] = useState(false);
-  const [newSupplier, setNewSupplier] = useState({ name: "", taxId: "", phone: "", email: "" });
+  const selectedOp = mockOperators.find((o) => o.id === operatorId);
+  const total = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
 
-  // Set default tax type when loaded
-  const effectiveTaxTypeId = taxTypeId || defaultTaxType?.id || "";
-  const selectedTaxType = taxTypes.find((t) => t.id === effectiveTaxTypeId);
-  const taxRate = selectedTaxType?.rate ?? 21;
-
-  const selectedOperator = mockOperators.find((o) => o.id === operatorId);
-
-  const addLine = () => setLines((prev) => [...prev, emptyLine()]);
-  const removeLine = (idx: number) => setLines((prev) => prev.filter((_, i) => i !== idx));
-  const updateLine = (idx: number, field: keyof LineInput, value: any) => {
-    setLines((prev) =>
-      prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l))
-    );
+  const updateLine = (i: number, field: keyof LineInput, val: any) => {
+    setLines((prev) => prev.map((l, j) => (j === i ? { ...l, [field]: val } : l)));
   };
-  const handleArticleSelect = (idx: number, article: Article) => {
-    setLines((prev) =>
-      prev.map((l, i) =>
-        i === idx
-          ? { ...l, supplierCode: article.id, description: article.title, costPrice: article.costPrice, units: 1, discountPercent: 0 }
-          : l
-      )
+
+  const handleSubmit = () => {
+    if (!nextId || !serviceId || !supplierName) return;
+    createOrder.mutate(
+      {
+        id: nextId,
+        serviceId,
+        supplierName,
+        operatorId: operatorId || null,
+        operatorName: selectedOp?.name ?? null,
+        notes,
+        lines,
+      },
+      { onSuccess: () => navigate("/compras") }
     );
   };
 
-  const subtotal = lines.reduce((sum, l) => sum + lineTotal(l), 0);
-  const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount;
-
-  const canSubmit = !!(
-    nextId &&
-    supplierName.trim() &&
-    lines.some((l) => l.supplierCode.trim() && l.costPrice > 0) &&
-    serviceId
-  ) || !!(
-    nextId &&
-    supplierName.trim() &&
-    lines.some((l) => l.supplierCode.trim() && l.costPrice > 0) &&
-    !isDirect &&
-    type !== "Servicio"
-  );
-
-  const handleSubmit = async () => {
-    if (!canSubmit || !nextId) return;
-    await createMutation.mutateAsync({
-      id: nextId,
-      type: isDirect ? "Servicio" : type,
-      serviceId: (isDirect || type === "Servicio") ? serviceId : null,
-      operatorId: operatorId || null,
-      operatorName: selectedOperator?.name ?? null,
-      supplierName,
-      isEmergency: isDirect ? false : isEmergency,
-      notes: isDirect ? `[Compra directa] ${notes}`.trim() : notes,
-      taxTypeId: effectiveTaxTypeId || null,
-      lines: lines
-        .filter((l) => l.supplierCode.trim())
-        .map((l) => ({
-          supplierCode: l.supplierCode,
-          description: l.description,
-          units: l.units,
-          costPrice: l.costPrice,
-          discountPercent: l.discountPercent,
-        })),
-      status: isDirect ? "Conciliada" : undefined,
-    });
-    navigate("/compras");
-  };
+  if (loadingId) {
+    return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/compras")}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-            {isDirect ? (
-              <CreditCard className="w-6 h-6 text-primary" />
-            ) : (
-              <ShoppingCart className="w-6 h-6 text-primary" />
-            )}
-            {isDirect ? "Compra Directa" : "Nueva Orden de Compra"}
-            {!idLoading && nextId && (
-              <Badge variant="outline" className="text-sm font-mono">{nextId}</Badge>
-            )}
+            <ShoppingCart className="w-5 h-5 text-primary" /> Nueva orden de compra
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {isDirect
-              ? "Registra una compra ya realizada vinculada a un servicio"
-              : "Registra materiales para recogida en proveedor"}
-          </p>
+          <p className="text-sm text-muted-foreground">ID: {nextId}</p>
         </div>
       </div>
 
-      {/* General info */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Datos generales</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {!isDirect && (
+        <CardHeader><CardTitle className="text-base">Datos de la orden</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Tipo de compra</Label>
-              <Select value={type} onValueChange={(v) => setType(v as PurchaseOrderType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Servicio">Servicio (vinculada a un servicio)</SelectItem>
-                  <SelectItem value="Fungible">Fungible (stock de furgoneta)</SelectItem>
-                  <SelectItem value="Gasto_General">Gasto general</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {(isDirect || type === "Servicio") && (
-            <div className="space-y-1.5">
-              <Label>Servicio vinculado *</Label>
+              <Label>Servicio *</Label>
               <Select value={serviceId} onValueChange={setServiceId}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar servicio..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccionar servicio" /></SelectTrigger>
                 <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.id} · {s.clientName}
-                    </SelectItem>
-                  ))}
+                  {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.id} - {s.clientName}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-          )}
-
-          <div className="space-y-1.5">
-            <Label>Proveedor</Label>
-            <div className="flex gap-2">
+            <div className="space-y-1.5">
+              <Label>Proveedor *</Label>
               <Select value={supplierName} onValueChange={setSupplierName}>
-                <SelectTrigger className="flex-1"><SelectValue placeholder="Seleccionar proveedor..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccionar proveedor" /></SelectTrigger>
                 <SelectContent>
-                  {activeSuppliers.map((s) => (
-                    <SelectItem key={s.id} value={s.name}>
-                      {s.name}{s.taxId ? ` · ${s.taxId}` : ""}
-                    </SelectItem>
-                  ))}
+                  {suppliers.filter((s) => s.active).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" size="icon" onClick={() => setShowNewSupplier(true)} title="Crear proveedor rápido">
-                <Plus className="w-4 h-4" />
-              </Button>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Operario</Label>
+              <Select value={operatorId} onValueChange={setOperatorId}>
+                <SelectTrigger><SelectValue placeholder="Asignar operario" /></SelectTrigger>
+                <SelectContent>
+                  {mockOperators.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-
           <div className="space-y-1.5">
-            <Label>Operario asignado</Label>
-            <Select value={operatorId} onValueChange={setOperatorId}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar operario..." /></SelectTrigger>
-              <SelectContent>
-                {mockOperators.map((op) => (
-                  <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Tipo impositivo</Label>
-            <Select value={effectiveTaxTypeId} onValueChange={setTaxTypeId}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar impuesto..." /></SelectTrigger>
-              <SelectContent>
-                {taxTypes.map((tt) => (
-                  <SelectItem key={tt.id} value={tt.id}>
-                    {tt.name} ({tt.rate}%)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {!isDirect && (
-            <div className="flex items-center gap-3 col-span-full">
-              <Switch checked={isEmergency} onCheckedChange={setIsEmergency} />
-              <div className="flex items-center gap-1.5">
-                {isEmergency && <AlertTriangle className="w-4 h-4 text-destructive" />}
-                <Label className={cn(isEmergency && "text-destructive font-semibold")}>
-                  Compra de emergencia (pieza faltante en obra)
-                </Label>
-              </div>
-            </div>
-          )}
-
-          <div className="col-span-full space-y-1.5">
             <Label>Notas</Label>
-            <Textarea
-              placeholder="Observaciones, justificación de emergencia..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
         </CardContent>
       </Card>
 
-      {/* Lines */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Materiales</CardTitle>
-          <Button variant="outline" size="sm" onClick={addLine}>
-            <Plus className="w-4 h-4 mr-1" /> Añadir línea
-          </Button>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base">Líneas</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => setLines((p) => [...p, emptyLine()])}><Plus className="w-4 h-4 mr-1" /> Añadir</Button>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Header */}
-          <div className="hidden md:grid grid-cols-[120px_1fr_80px_100px_90px_100px_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
-            <span>Cód. proveedor</span>
-            <span>Descripción</span>
-            <span>Uds.</span>
-            <span>Coste ud.</span>
-            <span>Dto. %</span>
-            <span className="text-right">Total</span>
-            <span />
-          </div>
-
-          {lines.map((line, idx) => (
-            <div key={idx} className="grid grid-cols-1 md:grid-cols-[120px_1fr_80px_100px_90px_100px_40px] gap-2 items-center bg-muted/30 rounded-lg p-2">
-              <ArticleAutocomplete
-                value={line.supplierCode}
-                onChange={(v) => updateLine(idx, "supplierCode", v)}
-                onSelect={(a) => handleArticleSelect(idx, a)}
-                placeholder="Código"
-              />
-              <Input
-                placeholder="Descripción del material"
-                value={line.description}
-                onChange={(e) => updateLine(idx, "description", e.target.value)}
-              />
-              <Input
-                type="number"
-                min={1}
-                value={line.units}
-                onChange={(e) => updateLine(idx, "units", Number(e.target.value))}
-              />
-              <Input
-                type="number"
-                min={0}
-                step={0.01}
-                value={line.costPrice || ""}
-                onChange={(e) => updateLine(idx, "costPrice", Number(e.target.value))}
-                placeholder="€"
-              />
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={line.discountPercent || ""}
-                onChange={(e) => updateLine(idx, "discountPercent", Number(e.target.value))}
-                placeholder="%"
-              />
-              <div className="text-right font-medium text-sm text-foreground pr-1">
-                €{lineTotal(line).toFixed(2)}
+        <CardContent>
+          <div className="space-y-3">
+            {lines.map((l, i) => (
+              <div key={i} className="grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-4 space-y-1">
+                  {i === 0 && <Label className="text-xs">Artículo</Label>}
+                  <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre" />
+                </div>
+                <div className="col-span-3 space-y-1">
+                  {i === 0 && <Label className="text-xs">Descripción</Label>}
+                  <Input value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Desc." />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  {i === 0 && <Label className="text-xs">Uds.</Label>}
+                  <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  {i === 0 && <Label className="text-xs">Coste</Label>}
+                  <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                </div>
+                <div className="col-span-1">
+                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive"
-                onClick={() => removeLine(idx)}
-                disabled={lines.length <= 1}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-
-          {/* Totals */}
-          <div className="flex flex-col items-end gap-1 pt-3 border-t border-border text-sm">
-            <div className="flex gap-2">
-              <span className="text-muted-foreground w-32 text-right">Base imponible:</span>
-              <span className="font-bold text-foreground w-28 text-right">€{subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="text-muted-foreground w-32 text-right">
-                {selectedTaxType ? selectedTaxType.name : `IVA ${taxRate}%`}:
-              </span>
-              <span className="font-bold text-foreground w-28 text-right">€{taxAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex gap-2 pt-1 border-t border-border">
-              <span className="text-muted-foreground w-32 text-right font-semibold">Total:</span>
-              <span className="font-bold text-foreground text-base w-28 text-right">€{total.toFixed(2)}</span>
-            </div>
+            ))}
+          </div>
+          <div className="flex justify-end mt-4 text-sm font-semibold text-foreground">
+            Total: €{total.toFixed(2)}
           </div>
         </CardContent>
       </Card>
 
-      {/* Actions */}
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate("/compras")}>
-          Cancelar
-        </Button>
-        <Button disabled={!canSubmit || createMutation.isPending} onClick={handleSubmit}>
-          {createMutation.isPending ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : isDirect ? (
-            <CreditCard className="w-4 h-4 mr-2" />
-          ) : (
-            <ShoppingCart className="w-4 h-4 mr-2" />
-          )}
-          {isDirect ? "Registrar compra directa" : "Crear orden de compra"}
+        <Button variant="outline" onClick={() => navigate(-1)}>Cancelar</Button>
+        <Button onClick={handleSubmit} disabled={!serviceId || !supplierName || createOrder.isPending}>
+          {createOrder.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          Crear orden
         </Button>
       </div>
-
-      {/* Quick-create supplier dialog */}
-      <Dialog open={showNewSupplier} onOpenChange={setShowNewSupplier}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nuevo proveedor rápido</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nombre *</Label>
-              <Input
-                value={newSupplier.name}
-                onChange={(e) => setNewSupplier((p) => ({ ...p, name: e.target.value }))}
-                placeholder="Nombre del proveedor"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>CIF / NIF</Label>
-              <Input
-                value={newSupplier.taxId}
-                onChange={(e) => setNewSupplier((p) => ({ ...p, taxId: e.target.value }))}
-                placeholder="B12345678"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Teléfono</Label>
-                <Input
-                  value={newSupplier.phone}
-                  onChange={(e) => setNewSupplier((p) => ({ ...p, phone: e.target.value }))}
-                  placeholder="600 000 000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={newSupplier.email}
-                  onChange={(e) => setNewSupplier((p) => ({ ...p, email: e.target.value }))}
-                  placeholder="info@proveedor.com"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewSupplier(false)}>Cancelar</Button>
-            <Button
-              disabled={!newSupplier.name.trim() || createSupplier.isPending}
-              onClick={() => {
-                createSupplier.mutate(
-                  {
-                    name: newSupplier.name.trim(),
-                    taxId: newSupplier.taxId,
-                    phone: newSupplier.phone,
-                    email: newSupplier.email,
-                    address: "",
-                    city: "",
-                    province: "",
-                    contactPerson: "",
-                    notes: "",
-                    iban: "",
-                    paymentTerms: "Contado",
-                    dueDays: 30,
-                    active: true,
-                  },
-                  {
-                    onSuccess: () => {
-                      setSupplierName(newSupplier.name.trim());
-                      setShowNewSupplier(false);
-                      setNewSupplier({ name: "", taxId: "", phone: "", email: "" });
-                    },
-                  }
-                );
-              }}
-            >
-              {createSupplier.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Crear proveedor
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

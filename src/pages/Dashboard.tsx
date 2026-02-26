@@ -20,9 +20,7 @@ export default function Dashboard() {
   const { services, loading } = useServices();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
 
-  const pendingApprovalOrders = purchaseOrders.filter((o) => o.status === "Pendiente_Aprobación");
-  const emergencyOrders = purchaseOrders.filter((o) => o.isEmergency && o.status !== "Conciliada");
-  const alertOrders = [...new Map([...pendingApprovalOrders, ...emergencyOrders].map((o) => [o.id, o])).values()];
+  const alertOrders = purchaseOrders.filter((o) => o.status === "Borrador");
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
@@ -242,16 +240,9 @@ export default function Dashboard() {
               >
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs text-muted-foreground">{o.id}</span>
-                  {o.isEmergency && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-destructive/15 text-destructive border border-destructive/30">
-                      <AlertTriangle className="w-3 h-3" /> Emergencia
-                    </span>
-                  )}
-                  {o.status === "Pendiente_Aprobación" && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-warning/15 text-warning border border-warning/30">
-                      Pte. Aprobación
-                    </span>
-                  )}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground">
+                    {o.status}
+                  </span>
                   <span className="text-sm text-foreground font-medium">{o.supplierName}</span>
                 </div>
                 <span className="text-sm font-semibold text-foreground">€{o.totalCost.toFixed(2)}</span>
