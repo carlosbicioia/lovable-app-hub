@@ -451,7 +451,7 @@ export default function Settings() {
 
   // New user dialog
   const [showNewUser, setShowNewUser] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario" });
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "" });
 
   // Protocol state
   const [protocolItems, setProtocolItems] = useState([
@@ -509,11 +509,11 @@ export default function Settings() {
   const handleSaveAppearance = () => updateSettings.mutate(appearanceForm);
 
   const handleCreateUser = () => {
-    if (!newUser.name || !newUser.email) return;
+    if (!newUser.name || !newUser.email || !newUser.password) return;
     createUser.mutate(newUser, {
       onSuccess: () => {
         setShowNewUser(false);
-        setNewUser({ name: "", email: "", role: "operario" });
+        setNewUser({ name: "", email: "", role: "operario", password: "" });
       },
     });
   };
@@ -1088,10 +1088,15 @@ export default function Settings() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Contraseña</Label>
+              <Input type="password" value={newUser.password} onChange={(e) => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número" />
+              <p className="text-xs text-muted-foreground">Mínimo 8 caracteres, una mayúscula y un número</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewUser(false)}>Cancelar</Button>
-            <Button onClick={handleCreateUser} disabled={createUser.isPending || !newUser.name || !newUser.email}>
+            <Button onClick={handleCreateUser} disabled={createUser.isPending || !newUser.name || !newUser.email || newUser.password.length < 8}>
               {createUser.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Crear usuario
             </Button>
