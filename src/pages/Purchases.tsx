@@ -15,7 +15,10 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download } from "lucide-react";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
+import { format as formatDate } from "date-fns";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -41,6 +44,7 @@ export default function Purchases() {
   const { data: deliveryNotes = [], isLoading: loadingDN } = useDeliveryNotes();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: companySettings } = useCompanySettings();
   const [tab, setTab] = useState("oc");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ type: "oc" | "invoice" | "dn"; id: string } | null>(null);
@@ -245,6 +249,41 @@ export default function Purchases() {
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
+                            <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                                const co = companySettings;
+                                generateDocumentPdf({
+                                  type: "Albarán",
+                                  id: dn.code || dn.id.slice(0, 8),
+                                  date: formatDate(new Date(dn.createdAt), "dd/MM/yyyy"),
+                                  company: {
+                                    companyName: co?.company_name || "UrbanGO",
+                                    logoUrl: co?.logo_url,
+                                    taxId: co?.tax_id,
+                                    address: co?.address,
+                                    documentFooter: co?.document_footer,
+                                  },
+                                  recipientName: dn.supplierName,
+                                  infoFields: [
+                                    { label: "Servicio", value: dn.serviceId },
+                                    { label: "Operario", value: dn.operatorName || "—" },
+                                    { label: "Estado", value: dn.status },
+                                  ],
+                                  lines: dn.lines.map((l) => ({
+                                    description: l.articleName + (l.description ? ` — ${l.description}` : ""),
+                                    units: l.units,
+                                    unitPrice: l.costPrice,
+                                    total: l.units * l.costPrice,
+                                  })),
+                                  subtotal: dn.totalCost,
+                                  taxBreakdown: [],
+                                  total: dn.totalCost,
+                                  notes: dn.notes || undefined,
+                                });
+                              }}>
+                                <Download className="w-3.5 h-3.5 text-primary" />
+                              </Button>
+                            </TooltipTrigger><TooltipContent>Generar PDF</TooltipContent></Tooltip></TooltipProvider>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTarget({ type: "dn", id: dn.id })}>
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </Button>
@@ -297,6 +336,50 @@ export default function Purchases() {
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
+                            <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                                const co = companySettings;
+                                const invLines = inv.lines;
+                                const taxByRate: Record<number, number> = {};
+                                invLines.forEach((l) => {
+                                  const base = l.units * l.unitPrice;
+                                  taxByRate[l.taxRate] = (taxByRate[l.taxRate] || 0) + base * (l.taxRate / 100);
+                                });
+                                generateDocumentPdf({
+                                  type: "Factura de Compra",
+                                  id: inv.invoiceNumber || inv.id.slice(0, 8),
+                                  date: inv.invoiceDate ? formatDate(new Date(inv.invoiceDate), "dd/MM/yyyy") : formatDate(new Date(inv.createdAt), "dd/MM/yyyy"),
+                                  company: {
+                                    companyName: co?.company_name || "UrbanGO",
+                                    logoUrl: co?.logo_url,
+                                    taxId: co?.tax_id,
+                                    address: co?.address,
+                                    documentFooter: co?.document_footer,
+                                  },
+                                  recipientName: inv.supplierName,
+                                  infoFields: [
+                                    ...(inv.dueDate ? [{ label: "Vencimiento", value: formatDate(new Date(inv.dueDate), "dd/MM/yyyy") }] : []),
+                                    { label: "Estado", value: inv.status },
+                                  ],
+                                  lines: invLines.map((l) => ({
+                                    description: l.description,
+                                    units: l.units,
+                                    unitPrice: l.unitPrice,
+                                    taxRate: l.taxRate,
+                                    total: l.total,
+                                  })),
+                                  subtotal: inv.subtotal,
+                                  taxBreakdown: Object.entries(taxByRate).map(([rate, amount]) => ({
+                                    rate: Number(rate),
+                                    amount,
+                                  })),
+                                  total: inv.total,
+                                  notes: inv.notes || undefined,
+                                });
+                              }}>
+                                <Download className="w-3.5 h-3.5 text-primary" />
+                              </Button>
+                            </TooltipTrigger><TooltipContent>Generar PDF</TooltipContent></Tooltip></TooltipProvider>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTarget({ type: "invoice", id: inv.id })}>
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </Button>
