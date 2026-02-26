@@ -23,6 +23,7 @@ import Operators from "@/pages/Operators";
 import Purchases from "@/pages/Purchases";
 import PurchaseCreate from "@/pages/PurchaseCreate";
 import PurchaseDetail from "@/pages/PurchaseDetail";
+import Suppliers from "@/pages/Suppliers";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
 import Settings from "@/pages/Settings";
@@ -84,6 +85,7 @@ function AppRoutes() {
         <Route path="/compras" element={<Purchases />} />
         <Route path="/compras/nueva" element={<PurchaseCreate />} />
         <Route path="/compras/:id" element={<PurchaseDetail />} />
+        <Route path="/proveedores" element={<Suppliers />} />
         <Route path="/calendario" element={<CalendarView />} />
         <Route path="/operarios" element={<Operators />} />
         <Route path="/configuracion" element={<Settings />} />

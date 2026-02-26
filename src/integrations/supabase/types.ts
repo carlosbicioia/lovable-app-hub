@@ -700,6 +700,63 @@ export type Database = {
         }
         Relationships: []
       }
+      suppliers: {
+        Row: {
+          active: boolean
+          address: string
+          city: string
+          contact_person: string
+          created_at: string
+          due_days: number
+          email: string
+          iban: string
+          id: string
+          name: string
+          notes: string
+          payment_terms: string
+          phone: string
+          province: string
+          tax_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string
+          city?: string
+          contact_person?: string
+          created_at?: string
+          due_days?: number
+          email?: string
+          iban?: string
+          id?: string
+          name?: string
+          notes?: string
+          payment_terms?: string
+          phone?: string
+          province?: string
+          tax_id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string
+          city?: string
+          contact_person?: string
+          created_at?: string
+          due_days?: number
+          email?: string
+          iban?: string
+          id?: string
+          name?: string
+          notes?: string
+          payment_terms?: string
+          phone?: string
+          province?: string
+          tax_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           collaborator_id: string | null
