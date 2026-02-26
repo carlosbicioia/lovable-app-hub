@@ -910,7 +910,7 @@ export default function CalendarView() {
     return format(currentDate, "MMMM yyyy", { locale: es });
   }, [currentDate, view]);
 
-  const goToday = () => setCurrentDate(new Date("2026-02-25"));
+  const goToday = () => setCurrentDate(new Date());
 
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)]">
