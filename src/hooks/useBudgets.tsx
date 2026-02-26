@@ -67,6 +67,9 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "budgets" }, () => {
         fetchBudgets();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "budget_lines" }, () => {
+        fetchBudgets();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
