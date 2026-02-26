@@ -239,11 +239,13 @@ function DayView({
   onDropService,
   onHourRangeSelect,
   filteredServices,
+  selectedOperatorId,
 }: {
   date: Date;
   onDropService: (serviceId: string, targetDate: Date) => void;
   onHourRangeSelect: (day: Date, startHour: number, endHour: number) => void;
   filteredServices?: Service[];
+  selectedOperatorId?: string | null;
 }) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 7);
   const { services: allServices } = useServices();
@@ -252,7 +254,9 @@ function DayView({
     (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
   );
 
-  const operators = mockOperators;
+  const operators = selectedOperatorId
+    ? mockOperators.filter((op) => op.id === selectedOperatorId)
+    : mockOperators;
   const unassigned = scheduledServices.filter((s) => !s.operatorId);
 
   // ── Hour range selection state ──
@@ -1057,7 +1061,7 @@ export default function CalendarView() {
       {/* Calendar full width & height */}
       <Card className="mt-3 flex-1 min-h-0">
         <CardContent className="p-3 h-full overflow-auto">
-          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} filteredServices={filteredServices} />}
+          {view === "day" && <DayView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} filteredServices={filteredServices} selectedOperatorId={selectedOperatorId} />}
           {view === "week" && <WeekView date={currentDate} onDropService={handleDropService} onHourRangeSelect={handleHourRangeSelect} filteredServices={filteredServices} />}
           {view === "month" && <MonthView date={currentDate} onDropService={handleDropService} filteredServices={filteredServices} />}
         </CardContent>
