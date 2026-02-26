@@ -1,4 +1,5 @@
 import { useServices } from "@/hooks/useServices";
+import { useAppUsers } from "@/hooks/useAppUsers";
 import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,12 @@ export default function Services() {
   const { budgets } = useBudgets();
   const { services, loading, updateService } = useServices();
   const { toast } = useToast();
+  const { data: appUsers = [] } = useAppUsers();
 
+  const operators = useMemo(
+    () => appUsers.filter((u) => u.role === "operario" && u.active),
+    [appUsers]
+  );
   const handleStatusChange = async (serviceId: string, newStatus: string) => {
     const updates: Record<string, any> = { status: newStatus };
     if (newStatus === "Agendado" || newStatus === "En_Curso" || newStatus === "Finalizado") {
@@ -55,6 +61,18 @@ export default function Services() {
   const handleUrgencyChange = async (serviceId: string, newUrgency: string) => {
     const { error } = await updateService(serviceId, { urgency: newUrgency });
     if (error) toast({ title: "Error", description: "No se pudo cambiar la urgencia", variant: "destructive" });
+  };
+
+  const handleOperatorChange = async (serviceId: string, operatorId: string) => {
+    if (operatorId === "__none__") {
+      const { error } = await updateService(serviceId, { operator_id: null, operator_name: null });
+      if (error) toast({ title: "Error", description: "No se pudo cambiar el técnico", variant: "destructive" });
+      return;
+    }
+    const op = operators.find((o) => o.id === operatorId);
+    if (!op) return;
+    const { error } = await updateService(serviceId, { operator_id: op.id, operator_name: op.name });
+    if (error) toast({ title: "Error", description: "No se pudo cambiar el técnico", variant: "destructive" });
   };
 
   const getBudgetStatusForService = (serviceId: string): BudgetStatus | null => {
@@ -319,7 +337,21 @@ export default function Services() {
                       </td>
                       <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
-                      <td className="px-5 py-3 text-muted-foreground">{s.operatorName ?? "—"}</td>
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <Select value={s.operatorId ?? "__none__"} onValueChange={(v) => handleOperatorChange(s.id, v)}>
+                          <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
+                            <span className="text-sm text-muted-foreground">{s.operatorName ?? "Sin asignar"}</span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">
+                              <span className="text-muted-foreground">Sin asignar</span>
+                            </SelectItem>
+                            {operators.map((op) => (
+                              <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
                       <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                         <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
                           <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
