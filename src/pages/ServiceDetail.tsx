@@ -390,7 +390,7 @@ export default function ServiceDetail() {
                         linkedBudget?.status === "Rechazado" ? "text-destructive" :
                         linkedBudget?.status === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
                       )}>
-                        {linkedBudget ? (linkedBudget.status === "Pte_Facturación" ? "Pte. Facturación" : linkedBudget.status) : "—"}
+                        {linkedBudget ? (linkedBudget.status === "Pte_Facturación" ? "En proceso" : linkedBudget.status) : "—"}
                       </p>
                     </CardContent>
                   </Card>

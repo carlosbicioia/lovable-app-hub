@@ -11,7 +11,7 @@ const columns: { status: BudgetStatus; label: string; color: string }[] = [
   { status: "Enviado", label: "Enviado", color: "border-t-info" },
   { status: "Aprobado", label: "Aprobado", color: "border-t-success" },
   { status: "Rechazado", label: "Rechazado", color: "border-t-destructive" },
-  { status: "Pte_Facturación", label: "Pte. Facturación", color: "border-t-warning" },
+  { status: "Pte_Facturación", label: "En proceso", color: "border-t-warning" },
   { status: "Finalizado", label: "Finalizado", color: "border-t-primary" },
 ];
 
