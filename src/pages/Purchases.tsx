@@ -125,6 +125,11 @@ export default function Purchases() {
               <Plus className="w-4 h-4 mr-2" /> Nueva OC
             </Button>
           )}
+          {tab === "albaranes" && (
+            <Button onClick={() => navigate("/compras/albaran/nuevo")}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo albarán
+            </Button>
+          )}
           {tab === "facturas" && (
             <Button onClick={() => navigate("/compras/factura/nueva")}>
               <Plus className="w-4 h-4 mr-2" /> Nueva factura

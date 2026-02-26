@@ -24,6 +24,7 @@ import Operators from "@/pages/Operators";
 import Purchases from "@/pages/Purchases";
 import PurchaseCreate from "@/pages/PurchaseCreate";
 import PurchaseDetail from "@/pages/PurchaseDetail";
+import DeliveryNoteCreate from "@/pages/DeliveryNoteCreate";
 import Suppliers from "@/pages/Suppliers";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
@@ -88,6 +89,7 @@ function AppRoutes() {
         <Route path="/articulos" element={<Articles />} />
         <Route path="/compras" element={<Purchases />} />
         <Route path="/compras/nueva" element={<PurchaseCreate />} />
+        <Route path="/compras/albaran/nuevo" element={<DeliveryNoteCreate />} />
         <Route path="/compras/factura/nueva" element={<InvoiceCreate />} />
         <Route path="/compras/:id" element={<PurchaseDetail />} />
         <Route path="/proveedores" element={<Suppliers />} />
