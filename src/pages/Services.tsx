@@ -36,6 +36,8 @@ type TabValue = "all" | "billing";
 export default function Services() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabValue>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
@@ -91,6 +93,16 @@ export default function Services() {
       });
     }
 
+    // Status filter
+    if (statusFilter !== "all") {
+      list = list.filter((s) => s.status === statusFilter);
+    }
+
+    // Urgency filter
+    if (urgencyFilter !== "all") {
+      list = list.filter((s) => s.urgency === urgencyFilter);
+    }
+
     // Search filter
     if (search) {
       list = list.filter(
@@ -101,7 +113,7 @@ export default function Services() {
     }
 
     return list;
-  }, [services, budgets, tab, search]);
+  }, [services, budgets, tab, search, statusFilter, urgencyFilter]);
 
   const billingCount = useMemo(
     () => services.filter((s) => getBudgetStatusForService(s.id) === "Pte_Facturación").length,
@@ -244,14 +256,39 @@ export default function Services() {
         </div>
       </Tabs>
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por ID o cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Button variant="outline" size="icon">
-          <Filter className="w-4 h-4" />
-        </Button>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[170px]">
+            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            {statusOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                <StatusBadge status={opt.value} />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+          <SelectTrigger className="w-[160px]">
+            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Urgencia" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las urgencias</SelectItem>
+            {urgencyOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                <StatusBadge urgency={opt.value} />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
