@@ -1,13 +1,14 @@
-import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2 } from "lucide-react";
+import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import type { BudgetStatus } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useServices } from "@/hooks/useServices";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,17 +41,46 @@ function calcBudgetTotals(lines: { costPrice: number; margin: number; units: num
 
 export default function Budgets() {
   const [search, setSearch] = useState("");
+  const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
+  const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
+  const { services } = useServices();
 
   const [sendingProforma, setSendingProforma] = useState<string | null>(null);
 
-  const filtered = budgets.filter(
-    (b) =>
+  // Build specialty map from services
+  const serviceSpecialtyMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const s of services) map[s.id] = s.specialty;
+    return map;
+  }, [services]);
+
+  // Unique collaborators and specialties for filters
+  const collaboratorOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of budgets) if (b.collaboratorName) set.add(b.collaboratorName);
+    return Array.from(set).sort();
+  }, [budgets]);
+
+  const specialtyOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of budgets) {
+      const sp = serviceSpecialtyMap[b.serviceId];
+      if (sp) set.add(sp);
+    }
+    return Array.from(set).sort();
+  }, [budgets, serviceSpecialtyMap]);
+
+  const filtered = budgets.filter((b) => {
+    const matchSearch =
       b.id.toLowerCase().includes(search.toLowerCase()) ||
       b.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      b.serviceId.toLowerCase().includes(search.toLowerCase())
-  );
+      b.serviceId.toLowerCase().includes(search.toLowerCase());
+    const matchCollaborator = filterCollaborator === "all" || b.collaboratorName === filterCollaborator;
+    const matchSpecialty = filterSpecialty === "all" || serviceSpecialtyMap[b.serviceId] === filterSpecialty;
+    return matchSearch && matchCollaborator && matchSpecialty;
+  });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
     updateBudgetStatus(budgetId, newStatus);
@@ -116,11 +146,33 @@ export default function Budgets() {
       </div>
 
       <Tabs defaultValue="list" className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 max-w-sm min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="Buscar por ID, cliente o servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
+          <Select value={filterCollaborator} onValueChange={setFilterCollaborator}>
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <SelectValue placeholder="Colaborador" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los colaboradores</SelectItem>
+              {collaboratorOptions.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <SelectValue placeholder="Especialidad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las especialidades</SelectItem>
+              {specialtyOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <TabsList className="ml-auto">
             <TabsTrigger value="list" className="gap-1.5"><List className="w-4 h-4" /> Lista</TabsTrigger>
             <TabsTrigger value="kanban" className="gap-1.5"><Columns3 className="w-4 h-4" /> Kanban</TabsTrigger>
