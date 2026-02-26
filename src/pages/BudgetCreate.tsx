@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch, ChevronsUpDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -118,9 +119,10 @@ export default function BudgetCreate() {
       return;
     }
 
-    const nextNumber = 15271349 + budgets.length;
+    const prefix = (companySettings as any)?.budget_prefix || "PRE-";
+    const nextNumber = (companySettings as any)?.budget_next_number || (15271349 + budgets.length);
     const newBudget = {
-      id: `PRE-${nextNumber}`,
+      id: `${prefix}${nextNumber}`,
       serviceId,
       serviceName: selectedService?.description ?? "",
       clientName: selectedService?.clientName ?? "",
@@ -137,6 +139,10 @@ export default function BudgetCreate() {
     };
 
     await addBudget(newBudget);
+    // Increment next budget number in company settings
+    if (companySettings) {
+      await supabase.from("company_settings").update({ budget_next_number: nextNumber + 1 }).eq("id", (companySettings as any).id);
+    }
     toast.success(send ? "Presupuesto creado y enviado" : "Presupuesto guardado como borrador");
     // If coming from service creation flow, go back to continue editing
     const pendingData = sessionStorage.getItem("pendingServiceCreate");
