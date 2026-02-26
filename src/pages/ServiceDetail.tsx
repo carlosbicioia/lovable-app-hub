@@ -39,13 +39,13 @@ export default function ServiceDetail() {
   const navigate = useNavigate();
   const { services, loading: servicesLoading, updateService } = useServices();
   const { budgets, refetch: refetchBudgets } = useBudgets();
-  const { data: allPurchaseOrders = [] } = usePurchaseOrders();
+  const { data: allPurchaseOrders = [] } = usePurchaseOrders(id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
-  const linkedOrders = allPurchaseOrders.filter((o) => o.serviceId === id);
+  const linkedOrders = allPurchaseOrders;
 
   if (servicesLoading) {
     return (
@@ -266,7 +266,7 @@ export default function ServiceDetail() {
 
           {/* Tab: Compras */}
           <TabsContent value="purchases" className="space-y-6 mt-4">
-            <ServicePurchases serviceId={service.id} linkedOrders={linkedOrders} />
+            <ServicePurchases serviceId={service.id} />
           </TabsContent>
 
           {/* Tab: Presupuesto */}

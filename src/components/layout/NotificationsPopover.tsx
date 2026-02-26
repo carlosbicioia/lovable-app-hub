@@ -53,27 +53,15 @@ export default function NotificationsPopover() {
   const allNotifications = useMemo<Notification[]>(() => {
     const items: Notification[] = [];
 
-    purchaseOrders
-      .filter((o) => o.isEmergency && o.status !== "Conciliada")
-      .forEach((o) => {
-        items.push({
-          id: `po-emerg-${o.id}`,
-          icon: <AlertTriangle className="w-4 h-4 text-destructive" />,
-          title: `Compra urgente ${o.id}`,
-          description: `${o.supplierName} · €${o.totalCost.toFixed(2)}`,
-          variant: "destructive",
-          href: `/compras/${o.id}`,
-          time: o.createdAt,
-        });
-      });
+    // No emergency field in new model
 
     purchaseOrders
-      .filter((o) => o.status === "Pendiente_Aprobación")
+      .filter((o) => o.status === "Borrador")
       .forEach((o) => {
         items.push({
-          id: `po-approve-${o.id}`,
+          id: `po-draft-${o.id}`,
           icon: <ShoppingCart className="w-4 h-4 text-warning" />,
-          title: `Aprobación pendiente`,
+          title: `OC en borrador`,
           description: `${o.id} · ${o.supplierName}`,
           variant: "warning",
           href: `/compras/${o.id}`,

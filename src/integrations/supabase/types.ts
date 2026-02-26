@@ -384,6 +384,109 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_note_lines: {
+        Row: {
+          article_name: string
+          cost_price: number
+          created_at: string
+          delivery_note_id: string
+          description: string | null
+          id: string
+          sort_order: number
+          units: number
+        }
+        Insert: {
+          article_name?: string
+          cost_price?: number
+          created_at?: string
+          delivery_note_id: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          units?: number
+        }
+        Update: {
+          article_name?: string
+          cost_price?: number
+          created_at?: string
+          delivery_note_id?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_note_lines_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_notes: {
+        Row: {
+          code: string
+          collected_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          operator_id: string | null
+          operator_name: string | null
+          pdf_path: string | null
+          service_id: string
+          status: string
+          supplier_id: string | null
+          supplier_name: string
+          total_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          code?: string
+          collected_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          operator_id?: string | null
+          operator_name?: string | null
+          pdf_path?: string | null
+          service_id: string
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          collected_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          operator_id?: string | null
+          operator_name?: string | null
+          pdf_path?: string | null
+          service_id?: string
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_notes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_dismissals: {
         Row: {
           dismissed_at: string
@@ -465,19 +568,147 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_invoice_lines: {
+        Row: {
+          created_at: string
+          delivery_note_id: string | null
+          description: string
+          id: string
+          invoice_id: string
+          purchase_order_id: string | null
+          service_id: string | null
+          sort_order: number
+          tax_rate: number
+          total: number
+          unit_price: number
+          units: number
+        }
+        Insert: {
+          created_at?: string
+          delivery_note_id?: string | null
+          description?: string
+          id?: string
+          invoice_id: string
+          purchase_order_id?: string | null
+          service_id?: string | null
+          sort_order?: number
+          tax_rate?: number
+          total?: number
+          unit_price?: number
+          units?: number
+        }
+        Update: {
+          created_at?: string
+          delivery_note_id?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          purchase_order_id?: string | null
+          service_id?: string | null
+          sort_order?: number
+          tax_rate?: number
+          total?: number
+          unit_price?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoice_lines_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_lines_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string
+          notes: string | null
+          pdf_path: string | null
+          status: string
+          subtotal: number
+          supplier_id: string | null
+          supplier_name: string
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string
+          notes?: string | null
+          pdf_path?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          supplier_name?: string
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string
+          notes?: string | null
+          pdf_path?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          supplier_name?: string
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_order_lines: {
         Row: {
           article_name: string
           cost_price: number
           created_at: string
           description: string | null
-          discount_percent: number
-          has_known_pvp: boolean
           id: string
           purchase_order_id: string
-          pvp: number | null
           sort_order: number
-          supplier_code: string
           units: number
         }
         Insert: {
@@ -485,13 +716,9 @@ export type Database = {
           cost_price?: number
           created_at?: string
           description?: string | null
-          discount_percent?: number
-          has_known_pvp?: boolean
           id?: string
           purchase_order_id: string
-          pvp?: number | null
           sort_order?: number
-          supplier_code?: string
           units?: number
         }
         Update: {
@@ -499,13 +726,9 @@ export type Database = {
           cost_price?: number
           created_at?: string
           description?: string | null
-          discount_percent?: number
-          has_known_pvp?: boolean
           id?: string
           purchase_order_id?: string
-          pvp?: number | null
           sort_order?: number
-          supplier_code?: string
           units?: number
         }
         Relationships: [
@@ -520,74 +743,56 @@ export type Database = {
       }
       purchase_orders: {
         Row: {
-          approved_at: string | null
-          approved_by: string | null
-          authorization_code: string | null
-          collected_at: string | null
           created_at: string
-          delivery_note_url: string | null
+          created_by: string | null
           id: string
-          is_emergency: boolean
           notes: string | null
           operator_id: string | null
           operator_name: string | null
-          reconciled_at: string | null
-          service_id: string | null
+          pdf_path: string | null
+          service_id: string
           status: string
+          supplier_id: string | null
           supplier_name: string
-          tax_type_id: string | null
           total_cost: number | null
-          type: string
           updated_at: string
         }
         Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
-          authorization_code?: string | null
-          collected_at?: string | null
           created_at?: string
-          delivery_note_url?: string | null
+          created_by?: string | null
           id: string
-          is_emergency?: boolean
           notes?: string | null
           operator_id?: string | null
           operator_name?: string | null
-          reconciled_at?: string | null
-          service_id?: string | null
+          pdf_path?: string | null
+          service_id: string
           status?: string
+          supplier_id?: string | null
           supplier_name?: string
-          tax_type_id?: string | null
           total_cost?: number | null
-          type?: string
           updated_at?: string
         }
         Update: {
-          approved_at?: string | null
-          approved_by?: string | null
-          authorization_code?: string | null
-          collected_at?: string | null
           created_at?: string
-          delivery_note_url?: string | null
+          created_by?: string | null
           id?: string
-          is_emergency?: boolean
           notes?: string | null
           operator_id?: string | null
           operator_name?: string | null
-          reconciled_at?: string | null
-          service_id?: string | null
+          pdf_path?: string | null
+          service_id?: string
           status?: string
+          supplier_id?: string | null
           supplier_name?: string
-          tax_type_id?: string | null
           total_cost?: number | null
-          type?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "purchase_orders_tax_type_id_fkey"
-            columns: ["tax_type_id"]
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
             isOneToOne: false
-            referencedRelation: "tax_types"
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
