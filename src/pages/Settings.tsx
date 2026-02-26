@@ -681,7 +681,10 @@ export default function Settings() {
                         <div className="flex items-center gap-3 shrink-0">
                           <Select
                             value={u.role ?? "sin_rol"}
-                            onValueChange={(v) => updateRole.mutate({ userId: u.id, role: v })}
+                            onValueChange={(v) => {
+                              if (v === "sin_rol") return;
+                              updateRole.mutate({ userId: u.id, role: v });
+                            }}
                           >
                             <SelectTrigger className={cn(
                               "h-7 w-[140px] text-xs font-medium",
@@ -693,6 +696,9 @@ export default function Settings() {
                               <SelectValue>{roleCfg?.label ?? (u.role === "colaborador" ? "Colaborador" : "Sin rol")}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="sin_rol" disabled>
+                                <p className="text-sm text-muted-foreground">Sin rol asignado</p>
+                              </SelectItem>
                               {roles.map(r => (
                                 <SelectItem key={r.value} value={r.value}>
                                   <div>
