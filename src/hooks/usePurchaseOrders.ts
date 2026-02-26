@@ -169,6 +169,22 @@ export function useUpdatePurchaseOrderStatus() {
   });
 }
 
+export function useUpdatePurchaseOrderPdf() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, pdfPath }: { id: string; pdfPath: string | null }) => {
+      const { error } = await supabase.from("purchase_orders").update({ pdf_path: pdfPath }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["purchase_orders"] });
+      toast({ title: "PDF actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}
+
 export function useNextPurchaseOrderId() {
   return useQuery({
     queryKey: ["purchase_orders", "next_id"],

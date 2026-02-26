@@ -85,6 +85,38 @@ export function useDeliveryNotes(serviceId?: string) {
   });
 }
 
+export function useUpdateDeliveryNotePdf() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, pdfPath }: { id: string; pdfPath: string | null }) => {
+      const { error } = await supabase.from("delivery_notes").update({ pdf_path: pdfPath }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["delivery_notes"] });
+      toast({ title: "PDF actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}
+
+export function useUpdateInvoicePdf() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, pdfPath }: { id: string; pdfPath: string | null }) => {
+      const { error } = await supabase.from("purchase_invoices").update({ pdf_path: pdfPath }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["purchase_invoices"] });
+      toast({ title: "PDF actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}
+
 export function useCreateDeliveryNote() {
   const qc = useQueryClient();
   const { toast } = useToast();

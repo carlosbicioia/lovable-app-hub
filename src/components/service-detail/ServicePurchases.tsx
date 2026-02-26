@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { usePurchaseOrders, type PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
-import { useDeliveryNotes, type DeliveryNoteStatus } from "@/hooks/useDeliveryNotes";
+import { usePurchaseOrders, useUpdatePurchaseOrderPdf, type PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { useDeliveryNotes, useUpdateDeliveryNotePdf, type DeliveryNoteStatus } from "@/hooks/useDeliveryNotes";
 import { usePurchaseInvoices, type InvoiceStatus } from "@/hooks/usePurchaseInvoices";
+import { useUpdateInvoicePdf } from "@/hooks/useDeliveryNotes";
+import PdfUpload from "@/components/shared/PdfUpload";
 
 const ocStatusCfg: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground border-border" },
@@ -37,6 +39,9 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
   const { data: orders = [] } = usePurchaseOrders(serviceId);
   const { data: deliveryNotes = [] } = useDeliveryNotes(serviceId);
   const { data: invoices = [] } = usePurchaseInvoices(serviceId);
+  const updateOcPdf = useUpdatePurchaseOrderPdf();
+  const updateDnPdf = useUpdateDeliveryNotePdf();
+  const updateInvPdf = useUpdateInvoicePdf();
 
   const totalOC = orders.reduce((s, o) => s + o.totalCost, 0);
   const totalDN = deliveryNotes.reduce((s, d) => s + d.totalCost, 0);
@@ -124,6 +129,15 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
                           {o.operatorName && <span>Operario: {o.operatorName}</span>}
                           <span>{format(new Date(o.createdAt), "d MMM yyyy", { locale: es })}</span>
                         </div>
+                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                          <PdfUpload
+                            currentPdfUrl={o.pdfPath}
+                            folder="orders"
+                            onUploaded={(url) => updateOcPdf.mutate({ id: o.id, pdfPath: url })}
+                            onRemoved={() => updateOcPdf.mutate({ id: o.id, pdfPath: null })}
+                            compact
+                          />
+                        </div>
                         {o.lines.length > 0 && (
                           <div className="bg-muted/30 rounded-md overflow-hidden mt-3">
                             <table className="w-full text-xs">
@@ -190,9 +204,15 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
                           <span>{dn.supplierName}</span>
                           {dn.operatorName && <span>Operario: {dn.operatorName}</span>}
                           <span>{format(new Date(dn.createdAt), "d MMM yyyy", { locale: es })}</span>
-                          {dn.pdfPath && (
-                            <a href={dn.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">Ver PDF</a>
-                          )}
+                        </div>
+                        <div className="mt-2">
+                          <PdfUpload
+                            currentPdfUrl={dn.pdfPath}
+                            folder="delivery-notes"
+                            onUploaded={(url) => updateDnPdf.mutate({ id: dn.id, pdfPath: url })}
+                            onRemoved={() => updateDnPdf.mutate({ id: dn.id, pdfPath: null })}
+                            compact
+                          />
                         </div>
                       </div>
                     );
@@ -234,9 +254,15 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
                           <span>{inv.supplierName}</span>
                           {inv.invoiceDate && <span>{format(new Date(inv.invoiceDate), "d MMM yyyy", { locale: es })}</span>}
-                          {inv.pdfPath && (
-                            <a href={inv.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">Ver PDF</a>
-                          )}
+                        </div>
+                        <div className="mt-2">
+                          <PdfUpload
+                            currentPdfUrl={inv.pdfPath}
+                            folder="invoices"
+                            onUploaded={(url) => updateInvPdf.mutate({ id: inv.id, pdfPath: url })}
+                            onRemoved={() => updateInvPdf.mutate({ id: inv.id, pdfPath: null })}
+                            compact
+                          />
                         </div>
                       </div>
                     );

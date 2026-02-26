@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { usePurchaseOrder, useUpdatePurchaseOrderStatus, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
+import { usePurchaseOrder, useUpdatePurchaseOrderStatus, useUpdatePurchaseOrderPdf, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, Loader2, ShoppingCart, Send, CheckCircle2, Package } from "lucide-react";
+import PdfUpload from "@/components/shared/PdfUpload";
 
 const statusFlow: { status: PurchaseOrderStatus; label: string; icon: React.ReactNode }[] = [
   { status: "Borrador", label: "Borrador", icon: <ShoppingCart className="w-4 h-4" /> },
@@ -29,6 +30,7 @@ export default function PurchaseDetail() {
   const navigate = useNavigate();
   const { data: order, isLoading } = usePurchaseOrder(id);
   const updateStatus = useUpdatePurchaseOrderStatus();
+  const updatePdf = useUpdatePurchaseOrderPdf();
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -90,9 +92,15 @@ export default function PurchaseDetail() {
             </div>
           </div>
           {order.notes && <p className="mt-3 text-sm text-muted-foreground italic">📝 {order.notes}</p>}
-          {order.pdfPath && (
-            <a href={order.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm mt-2 inline-block">Ver PDF</a>
-          )}
+          <div className="mt-4">
+            <p className="text-xs text-muted-foreground mb-2">Documento adjunto</p>
+            <PdfUpload
+              currentPdfUrl={order.pdfPath}
+              folder="orders"
+              onUploaded={(url) => updatePdf.mutate({ id: order.id, pdfPath: url })}
+              onRemoved={() => updatePdf.mutate({ id: order.id, pdfPath: null })}
+            />
+          </div>
         </CardContent>
       </Card>
 
