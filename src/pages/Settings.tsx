@@ -13,7 +13,7 @@ import {
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
   Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
-  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction,
+  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ import {
 } from "@/hooks/useIndustrialConfig";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import TaxTypesConfigTab from "@/components/settings/TaxTypesConfigTab";
+import BulkImportTab from "@/components/settings/BulkImportTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -545,6 +546,7 @@ export default function Settings() {
           <TabsTrigger value="protocol" className="text-sm gap-1.5"><Wrench className="w-3.5 h-3.5" /> Protocolo</TabsTrigger>
           <TabsTrigger value="industrial" className="text-sm gap-1.5"><HardHat className="w-3.5 h-3.5" /> Industriales</TabsTrigger>
           <TabsTrigger value="fiscal" className="text-sm gap-1.5"><Percent className="w-3.5 h-3.5" /> Fiscal</TabsTrigger>
+          <TabsTrigger value="import" className="text-sm gap-1.5"><Database className="w-3.5 h-3.5" /> Importar datos</TabsTrigger>
         </TabsList>
 
         {/* ===== EMPRESA ===== */}
@@ -1052,6 +1054,11 @@ export default function Settings() {
         {/* ===== FISCAL ===== */}
         <TabsContent value="fiscal" className="space-y-6 mt-4">
           <TaxTypesConfigTab />
+        </TabsContent>
+
+        {/* ===== IMPORTAR DATOS ===== */}
+        <TabsContent value="import" className="space-y-6 mt-4">
+          <BulkImportTab />
         </TabsContent>
       </Tabs>
 
