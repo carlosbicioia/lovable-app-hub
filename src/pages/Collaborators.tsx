@@ -57,18 +57,21 @@ export default function Collaborators() {
   const navigate = useNavigate();
   const { collaborators, loading, create, update, remove } = useCollaborators();
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CollaboratorInput>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Collaborator | null>(null);
 
-  const filtered = collaborators.filter(
-    (c) =>
+  const filtered = collaborators.filter((c) => {
+    const matchesSearch =
       c.companyName.toLowerCase().includes(search.toLowerCase()) ||
       c.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
-  );
+      c.email.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || c.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const openCreate = () => {
     setEditingId(null);
@@ -135,6 +138,22 @@ export default function Collaborators() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar empresa, contacto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <div className="flex items-center gap-1.5">
+          {["all", ...categories].map((cat) => (
+            <Button
+              key={cat}
+              variant={categoryFilter === cat ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "text-xs h-8",
+                categoryFilter !== cat && cat !== "all" && categoryColors[cat]
+              )}
+              onClick={() => setCategoryFilter(cat)}
+            >
+              {cat === "all" ? "Todos" : cat}
+            </Button>
+          ))}
         </div>
       </div>
 
