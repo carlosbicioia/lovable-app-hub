@@ -6,6 +6,8 @@ import { useSuppliers, useCreateSupplier } from "@/hooks/useSuppliers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { mockOperators } from "@/data/mockData";
+import ArticleAutocomplete from "@/components/purchase/ArticleAutocomplete";
+import type { Article } from "@/types/urbango";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +88,15 @@ export default function PurchaseCreate() {
   const updateLine = (idx: number, field: keyof LineInput, value: any) => {
     setLines((prev) =>
       prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l))
+    );
+  };
+  const handleArticleSelect = (idx: number, article: Article) => {
+    setLines((prev) =>
+      prev.map((l, i) =>
+        i === idx
+          ? { ...l, supplierCode: article.id, description: article.title, costPrice: article.costPrice, units: 1, discountPercent: 0 }
+          : l
+      )
     );
   };
 
@@ -286,10 +297,11 @@ export default function PurchaseCreate() {
 
           {lines.map((line, idx) => (
             <div key={idx} className="grid grid-cols-1 md:grid-cols-[120px_1fr_80px_100px_90px_100px_40px] gap-2 items-center bg-muted/30 rounded-lg p-2">
-              <Input
-                placeholder="Código"
+              <ArticleAutocomplete
                 value={line.supplierCode}
-                onChange={(e) => updateLine(idx, "supplierCode", e.target.value)}
+                onChange={(v) => updateLine(idx, "supplierCode", v)}
+                onSelect={(a) => handleArticleSelect(idx, a)}
+                placeholder="Código"
               />
               <Input
                 placeholder="Descripción del material"
