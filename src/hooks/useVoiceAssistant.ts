@@ -215,7 +215,6 @@ export function useVoiceAssistant() {
       console.log("[Alex] Recognition ended, shouldListen:", shouldListenRef.current);
       setIsListening(false);
       isListeningRef.current = false;
-      // Auto-restart if we should still be listening (no final result was captured)
       if (shouldListenRef.current) {
         setTimeout(() => {
           if (shouldListenRef.current) {
@@ -233,7 +232,6 @@ export function useVoiceAssistant() {
       let finalText = "";
       let interimText = "";
 
-      // Only process from the latest resultIndex to avoid duplicates
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
@@ -247,7 +245,6 @@ export function useVoiceAssistant() {
 
       if (finalText) {
         console.log("[Alex] Final transcript:", finalText);
-        // Stop listening while processing
         shouldListenRef.current = false;
         try { recognition.stop(); } catch {}
         recognitionRef.current = null;
@@ -266,33 +263,18 @@ export function useVoiceAssistant() {
           variant: "destructive",
         });
       }
-      // For "no-speech" or "aborted", onend will auto-restart if shouldListenRef is true
     };
 
     recognitionRef.current = recognition;
     shouldListenRef.current = true;
 
-    // Request mic permission explicitly first
-    navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then((stream) => {
-        // Release the stream immediately - we just needed the permission
-        stream.getTracks().forEach((t) => t.stop());
-        try {
-          recognition.start();
-        } catch (e) {
-          console.error("[Alex] Failed to start recognition:", e);
-        }
-      })
-      .catch((err) => {
-        console.error("[Alex] Mic permission denied:", err);
-        shouldListenRef.current = false;
-        toast({
-          title: "Permiso de micrófono necesario",
-          description: "Haz clic en el icono del candado en la barra de direcciones y permite el micrófono.",
-          variant: "destructive",
-        });
-      });
+    // Start recognition directly — do NOT wrap in async getUserMedia
+    // The browser gesture requirement demands synchronous invocation
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error("[Alex] Failed to start recognition:", e);
+    }
   }, []);
 
   // Handle user input - uses refs for messages
