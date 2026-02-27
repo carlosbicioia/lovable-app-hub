@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BudgetKanban from "@/components/budgets/BudgetKanban";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -173,49 +174,53 @@ export default function Budgets() {
             <Input placeholder="Buscar por ID, cliente o servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
           <Select value={filterCollaborator} onValueChange={setFilterCollaborator}>
-            <SelectTrigger className="w-[180px] h-9 text-sm">
-              <SelectValue placeholder="Colaborador" />
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Colaborador:</span>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los colaboradores</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {collaboratorOptions.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
-            <SelectTrigger className="w-[180px] h-9 text-sm">
-              <SelectValue placeholder="Especialidad" />
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Especialidad:</span>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las especialidades</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {specialtyOptions.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[160px] h-9 text-sm">
-              <SelectValue placeholder="Estado" />
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Estado:</span>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {allStatuses.map((s) => (
                 <SelectItem key={s} value={s}>{statusConfig[s].label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={filterService} onValueChange={setFilterService}>
-            <SelectTrigger className="w-[160px] h-9 text-sm">
-              <SelectValue placeholder="Servicio" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los servicios</SelectItem>
-              {serviceOptions.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            options={[
+              { value: "all", label: "Todos los servicios" },
+              ...serviceOptions.map((s) => ({ value: s, label: s })),
+            ]}
+            value={filterService}
+            onValueChange={setFilterService}
+            placeholder="Servicio"
+            searchPlaceholder="Buscar servicio..."
+            emptyText="Sin resultados"
+            className="w-[200px] h-9 text-sm"
+          />
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
