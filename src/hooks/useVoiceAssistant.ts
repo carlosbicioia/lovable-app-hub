@@ -33,6 +33,8 @@ export function useVoiceAssistant() {
   const isListeningRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
   const shouldListenRef = useRef(false);
+  const resultIndexRef = useRef(0);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { refetch } = useServices();
   const navigate = useNavigate();
 
@@ -168,12 +170,16 @@ export function useVoiceAssistant() {
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
     shouldListenRef.current = false;
-    recognitionRef.current?.stop();
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
     setIsListening(false);
   }, []);
 
-  // Start recognition - uses refs to avoid stale closures
+  // Start recognition - fixed to properly handle results
   const startListening = useCallback(() => {
     // Stop any existing recognition first
     if (recognitionRef.current) {
@@ -195,7 +201,7 @@ export function useVoiceAssistant() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
@@ -209,7 +215,7 @@ export function useVoiceAssistant() {
       console.log("[Alex] Recognition ended, shouldListen:", shouldListenRef.current);
       setIsListening(false);
       isListeningRef.current = false;
-      // Auto-restart if we should still be listening
+      // Auto-restart if we should still be listening (no final result was captured)
       if (shouldListenRef.current) {
         setTimeout(() => {
           if (shouldListenRef.current) {
@@ -219,28 +225,33 @@ export function useVoiceAssistant() {
               console.log("[Alex] Could not restart recognition:", e);
             }
           }
-        }, 300);
+        }, 500);
       }
     };
 
     recognition.onresult = (event: any) => {
       let finalText = "";
       let interimText = "";
-      for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalText += event.results[i][0].transcript;
+
+      // Only process from the latest resultIndex to avoid duplicates
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalText += result[0].transcript;
         } else {
-          interimText += event.results[i][0].transcript;
+          interimText += result[0].transcript;
         }
       }
+
       setTranscript(finalText || interimText);
+
       if (finalText) {
         console.log("[Alex] Final transcript:", finalText);
         // Stop listening while processing
         shouldListenRef.current = false;
-        recognition.stop();
+        try { recognition.stop(); } catch {}
         recognitionRef.current = null;
-        handleUserInput(finalText);
+        handleUserInput(finalText.trim());
       }
     };
 
@@ -264,7 +275,9 @@ export function useVoiceAssistant() {
     // Request mic permission explicitly first
     navigator.mediaDevices
       .getUserMedia({ audio: true })
-      .then(() => {
+      .then((stream) => {
+        // Release the stream immediately - we just needed the permission
+        stream.getTracks().forEach((t) => t.stop());
         try {
           recognition.start();
         } catch (e) {
@@ -353,7 +366,7 @@ export function useVoiceAssistant() {
         body: { messages: [] },
       });
       if (error) throw error;
-      const content = data?.content || "¡Hola! Soy Alex. ¿Para qué cliente necesitas crear el servicio?";
+      const content = data?.content || "Hola, soy Álex, el asistente de UrbanGO. Dime en qué trabajamos.";
       const displayText = cleanDisplayText(content);
       setMessages([{ role: "assistant", content: displayText }]);
       setAlexText(displayText);
@@ -363,7 +376,7 @@ export function useVoiceAssistant() {
     } catch (err) {
       console.error("[Alex] Error starting conversation:", err);
       setIsProcessing(false);
-      const fallback = "¡Hola! Soy Alex, tu asistente de UrbanGO. ¿Para qué cliente necesitas crear el servicio?";
+      const fallback = "Hola, soy Álex, el asistente de UrbanGO. Dime en qué trabajamos.";
       setAlexText(fallback);
       setMessages([{ role: "assistant", content: fallback }]);
       await speak(fallback);
