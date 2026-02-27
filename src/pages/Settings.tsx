@@ -16,6 +16,7 @@ import {
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -447,6 +448,7 @@ export default function Settings() {
   const deleteUser = useDeleteAppUser();
   const { data: systemUsers, isLoading: systemUsersLoading } = useSystemUsers();
   const updateRole = useUpdateUserRole();
+  const queryClient = useQueryClient();
 
   // Company form state
   const [companyForm, setCompanyForm] = useState<Record<string, any>>({});
@@ -457,6 +459,12 @@ export default function Settings() {
   // New user dialog
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "" });
+
+  // Edit user dialog
+  const [editingUser, setEditingUser] = useState<{ id: string; full_name: string; email: string; role: string | null } | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", role: "" });
+  const updateAppUser = useUpdateAppUser();
+  const deleteAppUser = useDeleteAppUser();
 
   // Protocol state
   const [protocolItems, setProtocolItems] = useState([
@@ -732,6 +740,17 @@ export default function Settings() {
                               {u.collaborator_id}
                             </span>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role });
+                              setEditForm({ full_name: u.full_name, role: u.role ?? "operario" });
+                            }}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     );
@@ -1121,6 +1140,97 @@ export default function Settings() {
               {createUser.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Crear usuario
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nombre completo</Label>
+                <Input
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm(p => ({ ...p, full_name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input value={editingUser.email} disabled className="opacity-60" />
+                <p className="text-xs text-muted-foreground">El email no se puede modificar</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Rol</Label>
+                <Select value={editForm.role} onValueChange={(v) => setEditForm(p => ({ ...p, role: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {roles.map(r => (
+                      <SelectItem key={r.value} value={r.value}>
+                        <div>
+                          <p className="text-sm font-medium">{r.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{r.desc}</p>
+                        </div>
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="colaborador">
+                      <div>
+                        <p className="text-sm font-medium">Colaborador</p>
+                        <p className="text-[10px] text-muted-foreground">Acceso al portal de colaborador</p>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                if (!editingUser) return;
+                if (!confirm("¿Eliminar este usuario? Esta acción no se puede deshacer.")) return;
+                deleteAppUser.mutate(editingUser.id, {
+                  onSuccess: () => setEditingUser(null),
+                });
+              }}
+              disabled={deleteAppUser.isPending}
+            >
+              {deleteAppUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
+              Eliminar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEditingUser(null)}>Cancelar</Button>
+              <Button
+                disabled={!editForm.full_name}
+                onClick={async () => {
+                  if (!editingUser) return;
+                  // Update profile name
+                  const { error: profileErr } = await supabase
+                    .from("profiles")
+                    .update({ full_name: editForm.full_name })
+                    .eq("id", editingUser.id);
+                  if (profileErr) {
+                    toast.error("Error al actualizar perfil");
+                    return;
+                  }
+                  // Update role
+                  if (editForm.role !== (editingUser.role ?? "")) {
+                    updateRole.mutate({ userId: editingUser.id, role: editForm.role });
+                  }
+                  toast.success("Usuario actualizado");
+                  setEditingUser(null);
+                  queryClient.invalidateQueries({ queryKey: ["system_users"] });
+                }}
+              >
+                Guardar
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
