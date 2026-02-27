@@ -27,13 +27,14 @@ export function useAppUsers() {
 export function useCreateAppUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (user: { name: string; email: string; role: string; password: string }) => {
+    mutationFn: async (user: { name: string; email: string; role: string; password: string; collaborator_id?: string }) => {
       const { data, error } = await supabase.functions.invoke("register-user", {
         body: {
           email: user.email,
           full_name: user.name,
           password: user.password,
           role: user.role,
+          collaborator_id: user.collaborator_id || null,
         },
       });
       if (error) throw error;

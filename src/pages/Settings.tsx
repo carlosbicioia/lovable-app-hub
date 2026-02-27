@@ -16,7 +16,7 @@ import {
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -450,6 +450,13 @@ export default function Settings() {
   const updateRole = useUpdateUserRole();
   const manageUser = useManageUser();
   const queryClient = useQueryClient();
+  const { data: collaboratorsList } = useQuery({
+    queryKey: ["collaborators_list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("collaborators").select("id, company_name").order("company_name");
+      return data ?? [];
+    },
+  });
 
   // Company form state
   const [companyForm, setCompanyForm] = useState<Record<string, any>>({});
@@ -459,11 +466,11 @@ export default function Settings() {
 
   // New user dialog
   const [showNewUser, setShowNewUser] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "" });
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "", collaborator_id: "" });
 
   // Edit user dialog
-  const [editingUser, setEditingUser] = useState<{ id: string; full_name: string; email: string; role: string | null } | null>(null);
-  const [editForm, setEditForm] = useState({ full_name: "", role: "" });
+  const [editingUser, setEditingUser] = useState<{ id: string; full_name: string; email: string; role: string | null; collaborator_id: string | null } | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", role: "", collaborator_id: "" });
   const updateAppUser = useUpdateAppUser();
   const deleteAppUser = useDeleteAppUser();
 
@@ -527,7 +534,7 @@ export default function Settings() {
     createUser.mutate(newUser, {
       onSuccess: () => {
         setShowNewUser(false);
-        setNewUser({ name: "", email: "", role: "operario", password: "" });
+        setNewUser({ name: "", email: "", role: "operario", password: "", collaborator_id: "" });
       },
     });
   };
@@ -762,8 +769,8 @@ export default function Settings() {
                             size="icon"
                             className="h-7 w-7"
                             onClick={() => {
-                              setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role });
-                              setEditForm({ full_name: u.full_name, role: u.role ?? "operario" });
+                              setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
+                              setEditForm({ full_name: u.full_name, role: u.role ?? "operario", collaborator_id: u.collaborator_id ?? "" });
                             }}
                           >
                             <Pencil className="w-3.5 h-3.5" />
@@ -1157,6 +1164,20 @@ export default function Settings() {
                 </SelectContent>
               </Select>
             </div>
+            {newUser.role === "colaborador" && (
+              <div className="space-y-2">
+                <Label>Colaborador vinculado</Label>
+                <Select value={newUser.collaborator_id} onValueChange={(v) => setNewUser(p => ({ ...p, collaborator_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar colaborador..." /></SelectTrigger>
+                  <SelectContent>
+                    {(collaboratorsList ?? []).map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">El usuario tendrá acceso al portal de este colaborador</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Contraseña</Label>
               <Input type="password" value={newUser.password} onChange={(e) => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número" />
@@ -1165,7 +1186,7 @@ export default function Settings() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewUser(false)}>Cancelar</Button>
-            <Button onClick={handleCreateUser} disabled={createUser.isPending || !newUser.name || !newUser.email || newUser.password.length < 8}>
+            <Button onClick={handleCreateUser} disabled={createUser.isPending || !newUser.name || !newUser.email || newUser.password.length < 8 || (newUser.role === "colaborador" && !newUser.collaborator_id)}>
               {createUser.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Crear usuario
             </Button>
@@ -1215,6 +1236,19 @@ export default function Settings() {
                   </SelectContent>
                 </Select>
               </div>
+              {editForm.role === "colaborador" && (
+                <div className="space-y-2">
+                  <Label>Colaborador vinculado</Label>
+                  <Select value={editForm.collaborator_id} onValueChange={(v) => setEditForm(p => ({ ...p, collaborator_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar colaborador..." /></SelectTrigger>
+                    <SelectContent>
+                      {(collaboratorsList ?? []).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter className="flex justify-between sm:justify-between">
@@ -1248,9 +1282,27 @@ export default function Settings() {
                     toast.error("Error al actualizar perfil");
                     return;
                   }
-                  // Update role
-                  if (editForm.role !== (editingUser.role ?? "")) {
-                    updateRole.mutate({ userId: editingUser.id, role: editForm.role });
+                  // Update role and collaborator_id
+                  const roleChanged = editForm.role !== (editingUser.role ?? "");
+                  const collabChanged = editForm.collaborator_id !== (editingUser.collaborator_id ?? "");
+                  if (roleChanged || collabChanged) {
+                    // Check if user already has a role entry
+                    const { data: existing } = await supabase
+                      .from("user_roles")
+                      .select("id")
+                      .eq("user_id", editingUser.id)
+                      .limit(1);
+                    const updateData: Record<string, unknown> = { role: editForm.role };
+                    if (editForm.role === "colaborador") {
+                      updateData.collaborator_id = editForm.collaborator_id || null;
+                    } else {
+                      updateData.collaborator_id = null;
+                    }
+                    if (existing && existing.length > 0) {
+                      await supabase.from("user_roles").update(updateData as any).eq("user_id", editingUser.id);
+                    } else {
+                      await supabase.from("user_roles").insert({ user_id: editingUser.id, ...updateData } as any);
+                    }
                   }
                   toast.success("Usuario actualizado");
                   setEditingUser(null);
