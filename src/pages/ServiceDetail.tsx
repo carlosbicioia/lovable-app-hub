@@ -99,8 +99,9 @@ export default function ServiceDetail() {
       await supabase.from("budget_lines").delete().eq("budget_id", linkedBudget.id);
       const { error } = await supabase.from("budgets").delete().eq("id", linkedBudget.id);
       if (error) throw error;
+      await updateService(service.id, { service_type: "Reparación_Directa" });
       await refetchBudgets();
-      toast.success("Presupuesto eliminado correctamente");
+      toast.success("Presupuesto eliminado. El servicio ha pasado a Reparación Directa.");
     } catch (err: any) {
       toast.error(err.message || "Error al eliminar el presupuesto");
     }
@@ -308,8 +309,9 @@ export default function ServiceDetail() {
                         </thead>
                         <tbody>
                           {linkedBudget.lines.map((line) => {
-                            const subtotal = line.units * line.costPrice * (1 + line.margin / 100);
-                            const total = subtotal * (1 + line.taxRate / 100);
+                            const salePrice = Math.round(line.costPrice * (1 + line.margin / 100) * 100) / 100;
+                            const subtotal = Math.round(salePrice * line.units * 100) / 100;
+                            const total = subtotal + Math.round(subtotal * (line.taxRate / 100) * 100) / 100;
                             return (
                               <tr key={line.id} className="border-b border-border last:border-0">
                                 <td className="py-2 text-card-foreground">

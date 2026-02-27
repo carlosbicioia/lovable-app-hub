@@ -197,7 +197,7 @@ export default function ServiceInfoCards({ service }: Props) {
             value={service.serviceType}
             onValueChange={(v) => {
               if (v === "Reparación_Directa" && hasBudget) {
-                toast.error("No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina el servicio y créalo de nuevo.");
+                toast.error("No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina primero el presupuesto desde la pestaña Presupuesto.");
                 return;
               }
               handleUpdate("service_type", v);
