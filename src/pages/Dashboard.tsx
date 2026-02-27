@@ -8,6 +8,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { useServices } from "@/hooks/useServices";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useOperators } from "@/hooks/useOperators";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const { services, loading } = useServices();
   const { collaborators } = useCollaborators();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
+  const { data: operators = [] } = useOperators();
 
   const alertOrders = purchaseOrders.filter((o) => o.status === "Borrador");
 
@@ -55,8 +57,8 @@ export default function Dashboard() {
   const finalized = filtered.filter((s) => s.status === "Finalizado" || s.status === "Liquidado").length;
 
   const totalBudget = filtered.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
-  const npsValues = filtered.filter((s) => s.nps !== null).map((s) => s.nps!);
-  const avgNps = npsValues.length > 0 ? (npsValues.reduce((a, b) => a + b, 0) / npsValues.length).toFixed(1) : "—";
+  const operatorNpsValues = operators.filter((op) => op.npsMean > 0).map((op) => op.npsMean);
+  const avgNps = operatorNpsValues.length > 0 ? (operatorNpsValues.reduce((a, b) => a + b, 0) / operatorNpsValues.length).toFixed(1) : "—";
 
   const uniqueClients = new Set(filtered.map((s) => s.clientId)).size;
   const uniqueCollabs = collaborators.length;
