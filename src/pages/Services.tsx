@@ -1,5 +1,9 @@
 import { useServices } from "@/hooks/useServices";
 import { useAppUsers } from "@/hooks/useAppUsers";
+import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
+import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
+import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -49,6 +53,15 @@ export default function Services() {
   const operators = useMemo(
     () => appUsers.filter((u) => u.role === "operario" && u.active),
     [appUsers]
+  );
+
+  // Protocol
+  const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
+  const protocolChecksMap = useBatchProtocolChecks(serviceIds);
+  const { data: enabledSteps = [] } = useEnabledProtocolSteps();
+  const protocolSteps: ProtocolStep[] = useMemo(
+    () => enabledSteps.map((s) => ({ id: s.stepId, label: s.label })),
+    [enabledSteps]
   );
   const handleStatusChange = async (serviceId: string, newStatus: string) => {
     const updates: Record<string, any> = { status: newStatus };
@@ -316,12 +329,13 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Urgencia</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Protocolo</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={isBillingTab ? 13 : 12} className="text-center py-12 text-muted-foreground">
+                  <td colSpan={isBillingTab ? 14 : 13} className="text-center py-12 text-muted-foreground">
                     {isBillingTab
                       ? "No hay servicios pendientes de facturación"
                       : "No se encontraron servicios"}
@@ -465,6 +479,14 @@ export default function Services() {
                       </td>
                       <td className="px-5 py-3 text-right font-medium text-card-foreground">
                         {s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}
+                      </td>
+                      <td className="px-5 py-3">
+                        <TooltipProvider delayDuration={200}>
+                          <ProtocolDots
+                            steps={protocolSteps}
+                            checkedIds={protocolChecksMap[s.id] ?? new Set()}
+                          />
+                        </TooltipProvider>
                       </td>
                     </tr>
                   );
