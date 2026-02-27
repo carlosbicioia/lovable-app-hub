@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   Plus,
@@ -20,6 +21,11 @@ import {
   Edit,
   Loader2,
 } from "lucide-react";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const emptyForm = () => ({
   name: "",
@@ -46,6 +52,7 @@ export default function Suppliers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
+  const qc = useQueryClient();
 
   const filtered = suppliers.filter(
     (s) =>
@@ -53,6 +60,8 @@ export default function Suppliers() {
       s.taxId.toLowerCase().includes(search.toLowerCase()) ||
       s.contactPerson.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
 
   const openCreate = () => {
     setEditingId(null);
@@ -123,6 +132,27 @@ export default function Suppliers() {
         />
       </div>
 
+      {/* Bulk actions */}
+      <BulkActionBar
+        count={count}
+        onClear={clear}
+        entityName="proveedores"
+        onDelete={async () => {
+          const ids = Array.from(selectedIds);
+          for (const id of ids) {
+            await supabase.from("suppliers").delete().eq("id", id);
+          }
+          qc.invalidateQueries({ queryKey: ["suppliers"] });
+          clear();
+        }}
+        onExport={() => {
+          const sel = filtered.filter((s) => selectedIds.has(s.id));
+          const headers = ["Nombre", "CIF/NIF", "Contacto", "Email", "Teléfono", "Ciudad", "Cond. Pago", "Estado"];
+          const csvRows = sel.map((s) => [s.name, s.taxId, s.contactPerson, s.email, s.phone, s.city, `${s.paymentTerms} ${s.dueDays}d`, s.active ? "Activo" : "Inactivo"]);
+          exportCsv("proveedores.csv", headers, csvRows);
+        }}
+      />
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
@@ -140,6 +170,13 @@ export default function Suppliers() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleAll}
+                      aria-label="Seleccionar todos"
+                    />
+                  </TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>CIF/NIF</TableHead>
                   <TableHead>Contacto</TableHead>
@@ -152,6 +189,9 @@ export default function Suppliers() {
               <TableBody>
                 {filtered.map((s) => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(s)}>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(s.id)} onCheckedChange={() => toggle(s.id)} />
+                    </TableCell>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="font-mono text-xs">{s.taxId || "—"}</TableCell>
                     <TableCell>{s.contactPerson || "—"}</TableCell>

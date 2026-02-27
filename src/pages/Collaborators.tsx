@@ -4,6 +4,7 @@ import { Search, Plus, Filter, Star, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,11 @@ import { useCollaborators, type CollaboratorInput } from "@/hooks/useCollaborato
 import type { Collaborator, CollaboratorCategory } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const categoryColors: Record<string, string> = {
   Administrador: "bg-info/15 text-info border-info/30",
@@ -56,6 +62,7 @@ const emptyForm: CollaboratorInput = {
 export default function Collaborators() {
   const navigate = useNavigate();
   const { collaborators, loading, create, update, remove } = useCollaborators();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -72,6 +79,8 @@ export default function Collaborators() {
     const matchesCategory = categoryFilter === "all" || c.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
+
+  const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
 
   const openCreate = () => {
     setEditingId(null);
@@ -157,6 +166,27 @@ export default function Collaborators() {
         </div>
       </div>
 
+      {/* Bulk actions */}
+      <BulkActionBar
+        count={count}
+        onClear={clear}
+        entityName="colaboradores"
+        onDelete={async () => {
+          const ids = Array.from(selectedIds);
+          for (const id of ids) {
+            await supabase.from("collaborators").delete().eq("id", id);
+          }
+          qc.invalidateQueries({ queryKey: ["collaborators"] });
+          clear();
+        }}
+        onExport={() => {
+          const sel = filtered.filter((c) => selectedIds.has(c.id));
+          const headers = ["ID", "Empresa", "Categoría", "Contacto", "Email", "Teléfono", "Clientes", "Servicios activos", "NPS"];
+          const csvRows = sel.map((c) => [c.id, c.companyName, c.category, c.contactPerson, c.email, c.phone, c.totalClients.toString(), c.activeServices.toString(), c.npsMean.toString()]);
+          exportCsv("colaboradores.csv", headers, csvRows);
+        }}
+      />
+
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -171,17 +201,27 @@ export default function Collaborators() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((c) => (
+          {filtered.map((c) => {
+            const isSelected = selectedIds.has(c.id);
+            return (
             <div
               key={c.id}
-              className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+              className={cn("bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer", isSelected && "ring-2 ring-primary")}
               onClick={() => navigate(`/colaboradores/${c.id}`)}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-card-foreground truncate">{c.companyName}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.contactPerson} · {c.email}</p>
-                  <p className="text-xs text-muted-foreground truncate">{c.phone}</p>
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggle(c.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-card-foreground truncate">{c.companyName}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.contactPerson} · {c.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{c.phone}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 ml-2 shrink-0">
                   <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", categoryColors[c.category])}>
@@ -215,7 +255,7 @@ export default function Collaborators() {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
 
