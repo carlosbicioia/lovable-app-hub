@@ -194,6 +194,21 @@ export default function Purchases() {
       </div>
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="oc" className="gap-1.5">
+            <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredOC.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="albaranes" className="gap-1.5">
+            <Truck className="w-3.5 h-3.5" /> Albaranes
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredDN.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="facturas" className="gap-1.5">
+            <FileText className="w-3.5 h-3.5" /> Facturas
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredInv.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -264,20 +279,6 @@ export default function Purchases() {
             Limpiar fechas
           </Button>
         )}
-        <TabsList>
-          <TabsTrigger value="oc" className="gap-1.5">
-            <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredOC.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="albaranes" className="gap-1.5">
-            <Truck className="w-3.5 h-3.5" /> Albaranes
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredDN.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="facturas" className="gap-1.5">
-            <FileText className="w-3.5 h-3.5" /> Facturas
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredInv.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
       </div>
 
         <TabsContent value="oc" className="mt-4">
