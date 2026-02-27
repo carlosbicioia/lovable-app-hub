@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,17 +16,17 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon, TrendingUp, Receipt, Clock } from "lucide-react";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
-import KpiCard from "@/components/shared/KpiCard";
 import { format as formatDate } from "date-fns";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -172,6 +173,59 @@ export default function Purchases() {
     );
   }, [deliveryNotes, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService]);
 
+  // Bulk select per tab - use filtered items with id mapping
+  const ocWithId = useMemo(() => filteredOC.map((o) => ({ ...o, id: o.id })), [filteredOC]);
+  const dnWithId = useMemo(() => filteredDN.map((d) => ({ ...d, id: d.id })), [filteredDN]);
+  const invWithId = useMemo(() => filteredInv.map((i) => ({ ...i, id: i.id })), [filteredInv]);
+  const bulkOC = useBulkSelect(ocWithId);
+  const bulkDN = useBulkSelect(dnWithId);
+  const bulkInv = useBulkSelect(invWithId);
+  const activeBulk = tab === "oc" ? bulkOC : tab === "albaranes" ? bulkDN : bulkInv;
+
+  const handleBulkDelete = async () => {
+    if (tab === "oc") {
+      for (const o of bulkOC.selectedItems) {
+        await supabase.from("purchase_order_lines").delete().eq("purchase_order_id", o.id);
+        await supabase.from("purchase_orders").delete().eq("id", o.id);
+      }
+      bulkOC.clear();
+      queryClient.invalidateQueries({ queryKey: ["purchase_orders"] });
+      toast({ title: `${bulkOC.count} orden(es) eliminada(s)` });
+    } else if (tab === "albaranes") {
+      for (const d of bulkDN.selectedItems) {
+        await supabase.from("delivery_note_lines").delete().eq("delivery_note_id", d.id);
+        await supabase.from("delivery_notes").delete().eq("id", d.id);
+      }
+      bulkDN.clear();
+      queryClient.invalidateQueries({ queryKey: ["delivery_notes"] });
+      toast({ title: `${bulkDN.count} albarán(es) eliminado(s)` });
+    } else {
+      for (const i of bulkInv.selectedItems) {
+        await supabase.from("purchase_invoice_lines").delete().eq("invoice_id", i.id);
+        await supabase.from("purchase_invoices").delete().eq("id", i.id);
+      }
+      bulkInv.clear();
+      queryClient.invalidateQueries({ queryKey: ["purchase_invoices"] });
+      toast({ title: `${bulkInv.count} factura(s) eliminada(s)` });
+    }
+  };
+
+  const handleBulkExport = () => {
+    if (tab === "oc") {
+      const headers = ["ID", "Servicio", "Proveedor", "Operario", "Estado", "Fecha", "Coste"];
+      const rows = bulkOC.selectedItems.map((o) => [o.id, o.serviceId, o.supplierName, o.operatorName ?? "", o.status, format(new Date(o.createdAt), "dd/MM/yyyy"), o.totalCost.toString()]);
+      exportCsv("ordenes_compra.csv", headers, rows);
+    } else if (tab === "albaranes") {
+      const headers = ["Código", "Servicio", "Proveedor", "Operario", "Estado", "Fecha", "Coste"];
+      const rows = bulkDN.selectedItems.map((d) => [d.code || d.id.slice(0, 8), d.serviceId, d.supplierName, d.operatorName ?? "", d.status, format(new Date(d.createdAt), "dd/MM/yyyy"), d.totalCost.toString()]);
+      exportCsv("albaranes.csv", headers, rows);
+    } else {
+      const headers = ["Nº Factura", "Proveedor", "Fecha", "Estado", "Total"];
+      const rows = bulkInv.selectedItems.map((i) => [i.invoiceNumber, i.supplierName, i.invoiceDate ? format(new Date(i.invoiceDate), "dd/MM/yyyy") : "", i.status, i.total.toString()]);
+      exportCsv("facturas_compra.csv", headers, rows);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     if (deleteTarget.type === "oc") {
@@ -229,7 +283,7 @@ export default function Purchases() {
       </div>
 
 
-      <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); bulkOC.clear(); bulkDN.clear(); bulkInv.clear(); }}>
         <TabsList className="mb-4">
           <TabsTrigger value="oc" className="gap-1.5">
             <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
@@ -317,12 +371,14 @@ export default function Purchases() {
         )}
       </div>
 
-        <TabsContent value="oc" className="mt-4">
+        <TabsContent value="oc" className="mt-4 space-y-4">
+          <BulkActionBar count={bulkOC.count} onClear={bulkOC.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="órdenes" />
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
+                    <th className="px-3 py-3 w-10"><Checkbox checked={bulkOC.allSelected} onCheckedChange={bulkOC.toggleAll} className={bulkOC.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} /></th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Servicio</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
@@ -335,11 +391,12 @@ export default function Purchases() {
                 </thead>
                 <tbody>
                   {filteredOC.length === 0 ? (
-                    <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">No hay órdenes de compra</td></tr>
+                    <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No hay órdenes de compra</td></tr>
                   ) : filteredOC.map((o) => {
                     const sc = ocStatusConfig[o.status];
                     return (
-                      <tr key={o.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/compras/${o.id}`)}>
+                      <tr key={o.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulkOC.selectedIds.has(o.id) && "bg-primary/5")} onClick={() => navigate(`/compras/${o.id}`)}>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}><Checkbox checked={bulkOC.selectedIds.has(o.id)} onCheckedChange={() => bulkOC.toggle(o.id)} /></td>
                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{o.id}</td>
                         <td className="px-5 py-3 text-xs">{o.serviceId}</td>
                         <td className="px-5 py-3 font-medium text-card-foreground">{o.supplierName || "—"}</td>
@@ -365,12 +422,14 @@ export default function Purchases() {
           </div>
         </TabsContent>
 
-        <TabsContent value="albaranes" className="mt-4">
+        <TabsContent value="albaranes" className="mt-4 space-y-4">
+          <BulkActionBar count={bulkDN.count} onClear={bulkDN.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="albaranes" />
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
+                    <th className="px-3 py-3 w-10"><Checkbox checked={bulkDN.allSelected} onCheckedChange={bulkDN.toggleAll} className={bulkDN.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} /></th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Código</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Servicio</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
@@ -384,11 +443,12 @@ export default function Purchases() {
                 </thead>
                 <tbody>
                   {filteredDN.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No hay albaranes</td></tr>
+                    <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">No hay albaranes</td></tr>
                   ) : filteredDN.map((dn) => {
                     const sc = dnStatusConfig[dn.status] ?? dnStatusConfig.Pendiente;
                     return (
-                      <tr key={dn.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                      <tr key={dn.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors", bulkDN.selectedIds.has(dn.id) && "bg-primary/5")}>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}><Checkbox checked={bulkDN.selectedIds.has(dn.id)} onCheckedChange={() => bulkDN.toggle(dn.id)} /></td>
                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{dn.code || dn.id.slice(0, 8)}</td>
                         <td className="px-5 py-3 text-xs">{dn.serviceId}</td>
                         <td className="px-5 py-3 font-medium text-card-foreground">{dn.supplierName || "—"}</td>
@@ -412,29 +472,11 @@ export default function Purchases() {
                                   type: "Albarán",
                                   id: dn.code || dn.id.slice(0, 8),
                                   date: formatDate(new Date(dn.createdAt), "dd/MM/yyyy"),
-                                  company: {
-                                    companyName: co?.company_name || "UrbanGO",
-                                    logoUrl: co?.logo_url,
-                                    taxId: co?.tax_id,
-                                    address: co?.address,
-                                    documentFooter: co?.document_footer,
-                                  },
+                                  company: { companyName: co?.company_name || "UrbanGO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
                                   recipientName: dn.supplierName,
-                                  infoFields: [
-                                    { label: "Servicio", value: dn.serviceId },
-                                    { label: "Operario", value: dn.operatorName || "—" },
-                                    { label: "Estado", value: dn.status },
-                                  ],
-                                  lines: dn.lines.map((l) => ({
-                                    description: l.articleName + (l.description ? ` — ${l.description}` : ""),
-                                    units: l.units,
-                                    unitPrice: l.costPrice,
-                                    total: l.units * l.costPrice,
-                                  })),
-                                  subtotal: dn.totalCost,
-                                  taxBreakdown: [],
-                                  total: dn.totalCost,
-                                  notes: dn.notes || undefined,
+                                  infoFields: [{ label: "Servicio", value: dn.serviceId }, { label: "Operario", value: dn.operatorName || "—" }, { label: "Estado", value: dn.status }],
+                                  lines: dn.lines.map((l) => ({ description: l.articleName + (l.description ? ` — ${l.description}` : ""), units: l.units, unitPrice: l.costPrice, total: l.units * l.costPrice })),
+                                  subtotal: dn.totalCost, taxBreakdown: [], total: dn.totalCost, notes: dn.notes || undefined,
                                 });
                               }}>
                                 <Download className="w-3.5 h-3.5 text-primary" />
@@ -454,12 +496,14 @@ export default function Purchases() {
           </div>
         </TabsContent>
 
-        <TabsContent value="facturas" className="mt-4">
+        <TabsContent value="facturas" className="mt-4 space-y-4">
+          <BulkActionBar count={bulkInv.count} onClear={bulkInv.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="facturas" />
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
+                    <th className="px-3 py-3 w-10"><Checkbox checked={bulkInv.allSelected} onCheckedChange={bulkInv.toggleAll} className={bulkInv.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} /></th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nº Factura</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
@@ -471,11 +515,12 @@ export default function Purchases() {
                 </thead>
                 <tbody>
                   {filteredInv.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
+                    <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
                   ) : filteredInv.map((inv) => {
                     const sc = invStatusConfig[inv.status];
                     return (
-                      <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
+                      <tr key={inv.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulkInv.selectedIds.has(inv.id) && "bg-primary/5")}>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}><Checkbox checked={bulkInv.selectedIds.has(inv.id)} onCheckedChange={() => bulkInv.toggle(inv.id)} /></td>
                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{inv.invoiceNumber || "—"}</td>
                         <td className="px-5 py-3 font-medium text-card-foreground">{inv.supplierName || "—"}</td>
                         <td className="px-5 py-3 text-muted-foreground text-xs">
@@ -497,40 +542,17 @@ export default function Purchases() {
                                 const co = companySettings;
                                 const invLines = inv.lines;
                                 const taxByRate: Record<number, number> = {};
-                                invLines.forEach((l) => {
-                                  const base = l.units * l.unitPrice;
-                                  taxByRate[l.taxRate] = (taxByRate[l.taxRate] || 0) + base * (l.taxRate / 100);
-                                });
+                                invLines.forEach((l) => { const base = l.units * l.unitPrice; taxByRate[l.taxRate] = (taxByRate[l.taxRate] || 0) + base * (l.taxRate / 100); });
                                 generateDocumentPdf({
-                                  type: "Factura de Compra",
-                                  id: inv.invoiceNumber || inv.id.slice(0, 8),
+                                  type: "Factura de Compra", id: inv.invoiceNumber || inv.id.slice(0, 8),
                                   date: inv.invoiceDate ? formatDate(new Date(inv.invoiceDate), "dd/MM/yyyy") : formatDate(new Date(inv.createdAt), "dd/MM/yyyy"),
-                                  company: {
-                                    companyName: co?.company_name || "UrbanGO",
-                                    logoUrl: co?.logo_url,
-                                    taxId: co?.tax_id,
-                                    address: co?.address,
-                                    documentFooter: co?.document_footer,
-                                  },
+                                  company: { companyName: co?.company_name || "UrbanGO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
                                   recipientName: inv.supplierName,
-                                  infoFields: [
-                                    ...(inv.dueDate ? [{ label: "Vencimiento", value: formatDate(new Date(inv.dueDate), "dd/MM/yyyy") }] : []),
-                                    { label: "Estado", value: inv.status },
-                                  ],
-                                  lines: invLines.map((l) => ({
-                                    description: l.description,
-                                    units: l.units,
-                                    unitPrice: l.unitPrice,
-                                    taxRate: l.taxRate,
-                                    total: l.total,
-                                  })),
+                                  infoFields: [...(inv.dueDate ? [{ label: "Vencimiento", value: formatDate(new Date(inv.dueDate), "dd/MM/yyyy") }] : []), { label: "Estado", value: inv.status }],
+                                  lines: invLines.map((l) => ({ description: l.description, units: l.units, unitPrice: l.unitPrice, taxRate: l.taxRate, total: l.total })),
                                   subtotal: inv.subtotal,
-                                  taxBreakdown: Object.entries(taxByRate).map(([rate, amount]) => ({
-                                    rate: Number(rate),
-                                    amount,
-                                  })),
-                                  total: inv.total,
-                                  notes: inv.notes || undefined,
+                                  taxBreakdown: Object.entries(taxByRate).map(([rate, amount]) => ({ rate: Number(rate), amount })),
+                                  total: inv.total, notes: inv.notes || undefined,
                                 });
                               }}>
                                 <Download className="w-3.5 h-3.5 text-primary" />

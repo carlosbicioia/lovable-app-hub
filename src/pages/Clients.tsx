@@ -1,13 +1,19 @@
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
-import { Search, Plus, Filter, Loader2, Trash2, Pencil } from "lucide-react";
+import { Search, Plus, Filter, Loader2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { DbClient } from "@/hooks/useClients";
 import ClientFormDialog, { type ClientFormData } from "@/components/clients/ClientFormDialog";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const planColors: Record<string, string> = {
   Agua: "bg-info/15 text-info border-info/30",
@@ -38,9 +44,9 @@ export default function Clients() {
   const [form, setForm] = useState<ClientFormData>(emptyClient());
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
-  const deleteClient = useDeleteClient();
   const { collaborators } = useCollaborators();
-  const [deleteTarget, setDeleteTarget] = useState<DbClient | null>(null);
+  const qc = useQueryClient();
+  const { toast } = useToast();
 
   const filtered = clients.filter(
     (c) => {
@@ -57,6 +63,8 @@ export default function Clients() {
       );
     }
   );
+
+  const bulk = useBulkSelect(filtered);
 
   const validateForm = () => {
     if (form.clientType === "Empresa") {
@@ -76,6 +84,24 @@ export default function Clients() {
     if (!editTarget || !validateForm()) return;
     await updateClient.mutateAsync({ ...form, id: editTarget.id } as DbClient);
     setEditTarget(null);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = bulk.selectedItems.map((c) => c.id);
+    for (const id of ids) {
+      await supabase.from("clients").delete().eq("id", id);
+    }
+    bulk.clear();
+    qc.invalidateQueries({ queryKey: ["clients"] });
+    toast({ title: `${ids.length} cliente(s) eliminado(s)` });
+  };
+
+  const handleBulkExport = () => {
+    const headers = ["ID", "Tipo", "Nombre", "Razón Social", "DNI", "CIF", "Email", "Teléfono", "Dirección", "Ciudad", "Provincia", "CP", "Plan", "Colaborador", "Últ. Servicio"];
+    const rows = bulk.selectedItems.map((c) => [
+      c.id, c.clientType, c.name, c.companyName, c.dni, c.taxId, c.email, c.phone, c.address, c.city, c.province, c.postalCode, c.planType, c.collaboratorName ?? "Directo", c.lastServiceDate ?? "",
+    ]);
+    exportCsv("clientes.csv", headers, rows);
   };
 
   const openCreate = () => { setForm(emptyClient()); setCreateOpen(true); };
@@ -105,11 +131,16 @@ export default function Clients() {
         </Button>
       </div>
 
+      <BulkActionBar count={bulk.count} onClear={bulk.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="clientes" />
+
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
+                <th className="px-3 py-3 w-10">
+                  <Checkbox checked={bulk.allSelected} onCheckedChange={bulk.toggleAll} className={bulk.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} />
+                </th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Tipo</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI/CIF</th>
@@ -119,12 +150,15 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Últ. Servicio</th>
-                <th className="w-20"></th>
+                <th className="w-12"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => openEdit(c)}>
+                <tr key={c.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulk.selectedIds.has(c.id) && "bg-primary/5")} onClick={() => openEdit(c)}>
+                  <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox checked={bulk.selectedIds.has(c.id)} onCheckedChange={() => bulk.toggle(c.id)} />
+                  </td>
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.id}</td>
                   <td className="px-5 py-3">
                     <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", c.clientType === "Empresa" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground")}>
@@ -147,12 +181,9 @@ export default function Clients() {
                   <td className="px-5 py-3 text-muted-foreground text-xs">
                     {c.lastServiceDate ? new Date(c.lastServiceDate).toLocaleDateString("es-ES") : "—"}
                   </td>
-                  <td className="px-2 py-3 flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={(e) => { e.stopPropagation(); openEdit(c); }}>
+                  <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => openEdit(c)}>
                       <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
-                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -162,47 +193,8 @@ export default function Clients() {
         </div>
       </div>
 
-      {/* Dialog nuevo cliente */}
-      <ClientFormDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        form={form}
-        setForm={setForm}
-        onSave={handleCreate}
-        collaborators={collaborators}
-        title="Nuevo Cliente"
-        saveLabel="Crear cliente"
-      />
-
-      {/* Dialog editar cliente */}
-      <ClientFormDialog
-        open={!!editTarget}
-        onOpenChange={(open) => !open && setEditTarget(null)}
-        form={form}
-        setForm={setForm}
-        onSave={handleEdit}
-        collaborators={collaborators}
-        title={`Editar ${editTarget?.id ?? ""}`}
-        saveLabel="Guardar cambios"
-      />
-
-      {/* Dialog confirmar eliminación */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminará permanentemente el cliente <strong>{deleteTarget?.clientType === "Empresa" ? deleteTarget?.companyName : deleteTarget?.name}</strong> ({deleteTarget?.id}). Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { deleteClient.mutate(deleteTarget.id); setDeleteTarget(null); } }}>
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ClientFormDialog open={createOpen} onOpenChange={setCreateOpen} form={form} setForm={setForm} onSave={handleCreate} collaborators={collaborators} title="Nuevo Cliente" saveLabel="Crear cliente" />
+      <ClientFormDialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)} form={form} setForm={setForm} onSave={handleEdit} collaborators={collaborators} title={`Editar ${editTarget?.id ?? ""}`} saveLabel="Guardar cambios" />
     </div>
   );
 }
