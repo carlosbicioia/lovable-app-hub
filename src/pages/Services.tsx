@@ -321,7 +321,7 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Origen</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Cliente</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Especialidad</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Técnico</th>
+                
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Alta</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Prevista</th>
@@ -335,7 +335,7 @@ export default function Services() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={isBillingTab ? 14 : 13} className="text-center py-12 text-muted-foreground">
+                  <td colSpan={isBillingTab ? 13 : 12} className="text-center py-12 text-muted-foreground">
                     {isBillingTab
                       ? "No hay servicios pendientes de facturación"
                       : "No se encontraron servicios"}
@@ -388,21 +388,6 @@ export default function Services() {
                       </td>
                       <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                       <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
-                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                        <Select value={s.operatorId ?? "__none__"} onValueChange={(v) => handleOperatorChange(s.id, v)}>
-                          <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
-                            <span className="text-sm text-muted-foreground">{s.operatorName ?? "Sin asignar"}</span>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">
-                              <span className="text-muted-foreground">Sin asignar</span>
-                            </SelectItem>
-                            {operators.map((op) => (
-                              <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
                       <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                         <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
                           <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
