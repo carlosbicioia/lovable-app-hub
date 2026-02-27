@@ -448,19 +448,23 @@ export default function InvoiceCreate() {
                     {idx === 0 && <Label className="text-xs">Uds.</Label>}
                     <Input
                       type="number"
+                      min="0"
+                      max="99999"
                       className="text-center px-1"
                       value={line.units}
-                      onChange={(e) => updateLine(idx, { units: Number(e.target.value) || 0 })}
+                      onChange={(e) => updateLine(idx, { units: Math.max(0, Number(e.target.value) || 0) })}
                     />
                   </div>
                   <div className="space-y-1">
                     {idx === 0 && <Label className="text-xs">Precio ud.</Label>}
                     <Input
                       type="number"
+                      min="0"
+                      max="99999"
                       step="0.01"
                       className="px-1"
                       value={line.unitPrice}
-                      onChange={(e) => updateLine(idx, { unitPrice: Number(e.target.value) || 0 })}
+                      onChange={(e) => updateLine(idx, { unitPrice: Math.max(0, Number(e.target.value) || 0) })}
                     />
                   </div>
                   <div className="space-y-1">
