@@ -111,6 +111,7 @@ export default function ServiceEdit() {
   }
 
   const selectedClient = clients.find((c) => c.id === clientId);
+  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (cid: string) => {
@@ -165,7 +166,7 @@ export default function ServiceEdit() {
 
     const { error } = await updateService(service.id, {
       client_id: clientId,
-      client_name: selectedClient?.name ?? "",
+      client_name: clientDisplayName,
       operator_id: operatorId && operatorId !== "none" ? operatorId : null,
       operator_name: selOp?.name ?? null,
       collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
@@ -223,7 +224,7 @@ export default function ServiceEdit() {
               <Popover open={clientOpen} onOpenChange={setClientOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" className={cn("w-full justify-between font-normal", !clientId && "text-muted-foreground")}>
-                    {selectedClient ? selectedClient.name : "Buscar cliente..."}
+                    {selectedClient ? clientDisplayName : "Buscar cliente..."}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[320px] p-0 bg-popover z-50" align="start">
@@ -232,10 +233,10 @@ export default function ServiceEdit() {
                     <CommandList>
                       <CommandEmpty>No se encontraron clientes</CommandEmpty>
                       <CommandGroup>
-                        {clients.map((c) => (
-                          <CommandItem key={c.id} value={`${c.name} ${c.dni} ${c.phone} ${c.email}`} onSelect={() => handleClientChange(c.id)}>
+                         {clients.map((c) => (
+                          <CommandItem key={c.id} value={`${c.name} ${c.companyName} ${c.dni} ${c.taxId} ${c.phone} ${c.email}`} onSelect={() => handleClientChange(c.id)}>
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">{c.name}</span>
+                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.name}</span>
                               <span className="text-xs text-muted-foreground">{c.phone} · {c.address}, {c.city}</span>
                             </div>
                           </CommandItem>

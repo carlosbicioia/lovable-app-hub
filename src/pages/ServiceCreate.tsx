@@ -118,6 +118,7 @@ export default function ServiceCreate() {
 
   // ── Derived data ──
   const selectedClient = clients.find((c) => c.id === clientId);
+  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (id: string) => {
@@ -178,7 +179,7 @@ export default function ServiceCreate() {
     return {
       id: serviceId,
       client_id: clientId,
-      client_name: selectedClient?.name ?? "",
+      client_name: clientDisplayName,
       operator_id: operatorId && operatorId !== "none" ? operatorId : null,
       operator_name: selectedOperator?.name ?? null,
       collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
@@ -359,7 +360,7 @@ export default function ServiceCreate() {
                     role="combobox"
                     className={cn("w-full justify-between font-normal", !clientId && "text-muted-foreground")}
                   >
-                    {selectedClient ? selectedClient.name : "Buscar cliente..."}
+                    {selectedClient ? clientDisplayName : "Buscar cliente..."}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[320px] p-0 bg-popover z-50" align="start">
@@ -369,13 +370,13 @@ export default function ServiceCreate() {
                       <CommandEmpty>No se encontraron clientes</CommandEmpty>
                       <CommandGroup>
                         {clients.map((c) => (
-                          <CommandItem
+                           <CommandItem
                             key={c.id}
-                            value={`${c.name} ${c.dni} ${c.phone} ${c.email}`}
+                            value={`${c.name} ${c.companyName} ${c.dni} ${c.taxId} ${c.phone} ${c.email}`}
                             onSelect={() => handleClientChange(c.id)}
                           >
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">{c.name}</span>
+                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.name}</span>
                               <span className="text-xs text-muted-foreground">{c.phone} · {c.address}, {c.city}</span>
                             </div>
                           </CommandItem>
