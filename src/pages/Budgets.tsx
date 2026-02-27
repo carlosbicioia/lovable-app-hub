@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import type { BudgetStatus } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useServices } from "@/hooks/useServices";
+import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
+import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +56,20 @@ export default function Budgets() {
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
+
+  // Default protocol steps — matches Settings page config
+  const protocolSteps: ProtocolStep[] = useMemo(() => [
+    { id: "contact", label: "Contacto con cliente (SLA 12h)" },
+    { id: "diagnosis", label: "Diagnóstico multimedia" },
+    { id: "operator", label: "Técnico asignado" },
+    { id: "materials", label: "Material preparado" },
+    { id: "budget", label: "Presupuesto gestionado" },
+    { id: "nps", label: "NPS recogido" },
+  ], []);
+
+  // Batch fetch protocol checks for all budget service IDs
+  const budgetServiceIds = useMemo(() => [...new Set(budgets.map((b) => b.serviceId))], [budgets]);
+  const { data: protocolChecksMap } = useBatchProtocolChecks(budgetServiceIds);
 
   const [sendingProforma, setSendingProforma] = useState<string | null>(null);
   const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
@@ -263,12 +279,12 @@ export default function Budgets() {
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nº Presupuesto</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Servicio</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Cliente</th>
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
                     <th className="text-right px-5 py-3 text-muted-foreground font-medium">Subtotal</th>
                     <th className="text-right px-5 py-3 text-muted-foreground font-medium">IVA</th>
                     <th className="text-right px-5 py-3 text-muted-foreground font-medium">Total</th>
+                    <th className="text-center px-5 py-3 text-muted-foreground font-medium">Protocolo</th>
                     <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
                   </tr>
                 </thead>
@@ -289,7 +305,6 @@ export default function Budgets() {
                         </td>
                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground cursor-pointer" onClick={() => navigate(`/presupuestos/${b.id}`)}>{b.serviceId}</td>
                         <td className="px-5 py-3 font-medium text-card-foreground cursor-pointer" onClick={() => navigate(`/presupuestos/${b.id}`)}>{b.clientName}</td>
-                        <td className="px-5 py-3 text-muted-foreground">{b.collaboratorName ?? "—"}</td>
                         <td className="px-5 py-3 text-muted-foreground text-xs">
                           {format(new Date(b.createdAt), "dd MMM yyyy", { locale: es })}
                         </td>
@@ -310,6 +325,14 @@ export default function Budgets() {
                         <td className="px-5 py-3 text-right text-card-foreground">{subtotal.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
+                        <td className="px-5 py-3">
+                          <TooltipProvider delayDuration={200}>
+                            <ProtocolDots
+                              steps={protocolSteps}
+                              checkedIds={protocolChecksMap[b.serviceId] ?? new Set()}
+                            />
+                          </TooltipProvider>
+                        </td>
                         <td className="px-5 py-3 text-center">
                           <TooltipProvider delayDuration={200}>
                             <div className="flex items-center justify-center gap-1">
