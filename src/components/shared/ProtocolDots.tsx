@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle2, Circle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface ProtocolStep {
   id: string;
@@ -10,25 +10,42 @@ export interface ProtocolStep {
 interface Props {
   steps: ProtocolStep[];
   checkedIds: Set<string>;
+  onToggle?: (stepId: string) => void;
 }
 
-/** Compact protocol check dots with tooltips for table rows */
-export default function ProtocolDots({ steps, checkedIds }: Props) {
+/** Compact protocol checkboxes with tooltips for table rows */
+export default function ProtocolDots({ steps, checkedIds, onToggle }: Props) {
   const completed = steps.filter((s) => checkedIds.has(s.id)).length;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {steps.map((step) => {
         const done = checkedIds.has(step.id);
         return (
           <Tooltip key={step.id}>
             <TooltipTrigger asChild>
-              <span className="inline-flex">
-                {done ? (
-                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                ) : (
-                  <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+              <span
+                className={cn(
+                  "inline-flex",
+                  onToggle && "cursor-pointer"
                 )}
+                onClick={(e) => {
+                  if (onToggle) {
+                    e.stopPropagation();
+                    onToggle(step.id);
+                  }
+                }}
+              >
+                <Checkbox
+                  checked={done}
+                  className={cn(
+                    "h-4 w-4 transition-colors pointer-events-none",
+                    done
+                      ? "data-[state=checked]:bg-success data-[state=checked]:border-success"
+                      : ""
+                  )}
+                  tabIndex={-1}
+                />
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
@@ -39,7 +56,7 @@ export default function ProtocolDots({ steps, checkedIds }: Props) {
           </Tooltip>
         );
       })}
-      <span className="text-[10px] text-muted-foreground ml-1">
+      <span className="text-[10px] text-muted-foreground ml-0.5">
         {completed}/{steps.length}
       </span>
     </div>
