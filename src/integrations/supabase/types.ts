@@ -578,6 +578,36 @@ export type Database = {
         }
         Relationships: []
       }
+      protocol_steps: {
+        Row: {
+          created_at: string
+          description: string
+          enabled: boolean
+          id: string
+          label: string
+          sort_order: number
+          step_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          sort_order?: number
+          step_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          sort_order?: number
+          step_id?: string
+        }
+        Relationships: []
+      }
       purchase_invoice_lines: {
         Row: {
           created_at: string
