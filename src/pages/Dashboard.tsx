@@ -45,9 +45,11 @@ export default function Dashboard() {
     });
   }, [services, dateRange]);
 
-  const pendingContact = filtered.filter((s) => s.status === "Pendiente_Contacto").length;
-  const inProgress = filtered.filter((s) => s.status === "En_Curso").length;
-  const urgent = filtered.filter((s) => s.urgency !== "Estándar").length;
+  // Global KPIs (not filtered by date range)
+  const totalServices = services.length;
+  const pendingContact = services.filter((s) => s.status === "Pendiente_Contacto").length;
+  const inProgress = services.filter((s) => s.status === "En_Curso").length;
+  const urgent = services.filter((s) => s.urgency !== "Estándar" && !["Finalizado", "Liquidado", "Cancelado"].includes(s.status)).length;
   const finalized = filtered.filter((s) => s.status === "Finalizado" || s.status === "Liquidado").length;
 
   const totalBudget = filtered.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
@@ -147,10 +149,10 @@ export default function Dashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Servicios" value={filtered.length} subtitle="En el periodo" icon={Wrench} variant="primary" />
-        <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="SLA 12h activo" icon={Clock} variant="warning" />
+        <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" />
+        <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" />
         <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" />
-        <KpiCard title="Urgencias" value={urgent} subtitle="24h o inmediato" icon={AlertTriangle} variant="warning" />
+        <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
