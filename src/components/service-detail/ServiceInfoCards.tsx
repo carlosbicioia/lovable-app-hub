@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Wrench, Zap, User, Activity, CalendarClock, ClipboardList } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
@@ -14,9 +16,11 @@ interface Props {
 }
 
 export default function ServiceInfoCards({ service }: Props) {
+  const navigate = useNavigate();
   const { updateService } = useServices();
   const { data: operators = [] } = useOperators();
   const [saving, setSaving] = useState<string | null>(null);
+  const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
 
   const handleUpdate = async (field: string, value: string | null) => {
     setSaving(field);
@@ -183,7 +187,12 @@ export default function ServiceInfoCards({ service }: Props) {
           </div>
           <Select
             value={service.serviceType}
-            onValueChange={(v) => handleUpdate("service_type", v)}
+            onValueChange={(v) => {
+              handleUpdate("service_type", v);
+              if (v === "Presupuesto" && service.serviceType !== "Presupuesto") {
+                setShowBudgetPrompt(true);
+              }
+            }}
             disabled={saving === "service_type"}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
@@ -222,6 +231,22 @@ export default function ServiceInfoCards({ service }: Props) {
           </Select>
         </CardContent>
       </Card>
+      <AlertDialog open={showBudgetPrompt} onOpenChange={setShowBudgetPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Crear presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Has cambiado el tipo a "Requiere presupuesto". ¿Quieres crear el presupuesto ahora?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Más tarde</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+              Crear presupuesto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
