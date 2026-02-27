@@ -833,6 +833,7 @@ function MonthView({ date, onDropService, filteredServices }: { date: Date; onDr
 // ─── OPERATOR SUMMARY PANEL ────────────────────────────────
 function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: { date: Date; view: ViewMode; selectedOperatorId: string | null; onSelectOperator: (id: string | null) => void }) {
   const { services } = useServices();
+  const { data: allOps = [] } = useOperators();
   const range = useMemo(() => {
     if (view === "day") return { start: date, end: date };
     if (view === "week") {
@@ -899,6 +900,7 @@ export default function CalendarView() {
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | null>(null);
   const { services, refetch } = useServices();
+  const { data: allOps = [] } = useOperators();
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 

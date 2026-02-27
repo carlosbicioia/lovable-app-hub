@@ -30,7 +30,7 @@ export default function ServiceEdit() {
   const navigate = useNavigate();
   const { services, loading: servicesLoading, updateService } = useServices();
   const { data: clients = [] } = useClients();
-  const { data: collaborators = [] } = useCollaborators();
+  const { collaborators } = useCollaborators();
   const { data: allOperators = [] } = useOperators();
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
@@ -110,25 +110,25 @@ export default function ServiceEdit() {
     );
   }
 
-  const selectedClient = mockClients.find((c) => c.id === clientId);
-  const selectedOperator = mockOperators.find((o) => o.id === operatorId);
+  const selectedClient = clients.find((c) => c.id === clientId);
+  const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (cid: string) => {
     setClientId(cid);
     setClientOpen(false);
-    const client = mockClients.find((c) => c.id === cid);
+    const client = clients.find((c) => c.id === cid);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
       if (client.collaboratorId) setCollaboratorId(client.collaboratorId);
     }
   };
 
-  const availableOperators = mockOperators.filter(
+  const availableOperators = allOperators.filter(
     (o) => o.status === "Activo" && o.available && (o.specialty === specialty || o.secondarySpecialty === specialty)
   );
 
   // Include current operator even if not in available list
-  const currentOperator = service.operatorId ? mockOperators.find((o) => o.id === service.operatorId) : null;
+  const currentOperator = service.operatorId ? allOperators.find((o) => o.id === service.operatorId) : null;
   const operatorOptions = currentOperator && !availableOperators.find((o) => o.id === currentOperator.id)
     ? [currentOperator, ...availableOperators]
     : availableOperators;
@@ -144,8 +144,8 @@ export default function ServiceEdit() {
     }
 
     setSaving(true);
-    const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
-    const selOp = mockOperators.find((o) => o.id === operatorId);
+    const selectedCollab = collaborators.find((c) => c.id === collaboratorId);
+    const selOp = allOperators.find((o) => o.id === operatorId);
 
     // Build scheduled timestamps
     let scheduledAtIso: string | null = null;
@@ -232,7 +232,7 @@ export default function ServiceEdit() {
                     <CommandList>
                       <CommandEmpty>No se encontraron clientes</CommandEmpty>
                       <CommandGroup>
-                        {mockClients.map((c) => (
+                        {clients.map((c) => (
                           <CommandItem key={c.id} value={`${c.name} ${c.dni} ${c.phone} ${c.email}`} onSelect={() => handleClientChange(c.id)}>
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">{c.name}</span>
@@ -266,7 +266,7 @@ export default function ServiceEdit() {
                 <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin colaborador</SelectItem>
-                  {mockCollaborators.map((c) => (
+                  {collaborators.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
                   ))}
                 </SelectContent>
