@@ -43,10 +43,19 @@ export default function Clients() {
   const [deleteTarget, setDeleteTarget] = useState<DbClient | null>(null);
 
   const filtered = clients.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toLowerCase().includes(search.toLowerCase()) ||
-      c.city.toLowerCase().includes(search.toLowerCase())
+    (c) => {
+      const q = search.toLowerCase();
+      return (
+        c.name.toLowerCase().includes(q) ||
+        c.companyName.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        c.city.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.phone.toLowerCase().includes(q) ||
+        c.dni.toLowerCase().includes(q) ||
+        c.taxId.toLowerCase().includes(q)
+      );
+    }
   );
 
   const validateForm = () => {
@@ -89,7 +98,7 @@ export default function Clients() {
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nombre, ID o ciudad..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por nombre, email, teléfono, DNI..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Button variant="outline" size="icon">
           <Filter className="w-4 h-4" />
