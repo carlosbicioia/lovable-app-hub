@@ -4,6 +4,8 @@ import { useCreateDeliveryNote } from "@/hooks/useDeliveryNotes";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockOperators } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,7 @@ export default function DeliveryNoteCreate() {
   const { data: suppliers = [] } = useSuppliers();
   const { data: orders = [] } = usePurchaseOrders();
   const createNote = useCreateDeliveryNote();
+  const { data: taxTypes = [] } = useActiveTaxTypes();
 
   // Step 0: choose mode
   const [mode, setMode] = useState<LinkMode>(preOcId ? "oc" : null);
@@ -375,7 +378,16 @@ export default function DeliveryNoteCreate() {
                   </div>
                   <div className="col-span-1 space-y-1">
                     {i === 0 && <Label className="text-xs">IVA %</Label>}
-                    <Input type="number" value={l.taxRate} onChange={(e) => updateLine(i, "taxRate", Number(e.target.value))} />
+                    <Select value={String(l.taxRate)} onValueChange={(v) => updateLine(i, "taxRate", Number(v))}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {taxTypes.map((t) => (
+                          <SelectItem key={t.id} value={String(t.rate)}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="col-span-2 space-y-1">
                     {i === 0 && <Label className="text-xs">Total</Label>}
