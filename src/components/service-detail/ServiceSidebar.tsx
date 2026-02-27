@@ -132,14 +132,16 @@ export default function ServiceSidebar({ service }: Props) {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Estado presupuesto</span>
                 <span className={cn(
-                  "text-sm font-medium",
-                  linkedBudget.status === "Aprobado" ? "text-success" :
-                  linkedBudget.status === "Enviado" ? "text-info" :
-                  linkedBudget.status === "Borrador" ? "text-warning" :
-                  linkedBudget.status === "Rechazado" ? "text-destructive" :
-                  linkedBudget.status === "Finalizado" ? "text-success" : "text-muted-foreground"
+                  "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border",
+                  linkedBudget.status === "Aprobado" ? "bg-success/15 text-success border-success/30" :
+                  linkedBudget.status === "Enviado" ? "bg-info/15 text-info border-info/30" :
+                  linkedBudget.status === "Borrador" ? "bg-warning/15 text-warning border-warning/30" :
+                  linkedBudget.status === "Rechazado" ? "bg-destructive/15 text-destructive border-destructive/30" :
+                  linkedBudget.status === "Finalizado" ? "bg-success/15 text-success border-success/30" :
+                  linkedBudget.status === "Pte_Facturación" ? "bg-info/15 text-info border-info/30" :
+                  "bg-muted text-muted-foreground border-border"
                 )}>
-                  {linkedBudget.status}
+                  {linkedBudget.status === "Pte_Facturación" ? "Pte. Facturación" : linkedBudget.status}
                 </span>
               </div>
               <div className="flex items-center justify-between">
