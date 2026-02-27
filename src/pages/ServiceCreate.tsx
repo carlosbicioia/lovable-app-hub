@@ -31,7 +31,7 @@ export default function ServiceCreate() {
   const { refetch } = useServices();
   const { budgets } = useBudgets();
   const { data: clients = [] } = useClients();
-  const { data: collaborators = [] } = useCollaborators();
+  const { collaborators } = useCollaborators();
   const { data: allOperators = [] } = useOperators();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -117,13 +117,13 @@ export default function ServiceCreate() {
     : null;
 
   // ── Derived data ──
-  const selectedClient = mockClients.find((c) => c.id === clientId);
-  const selectedOperator = mockOperators.find((o) => o.id === operatorId);
+  const selectedClient = clients.find((c) => c.id === clientId);
+  const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (id: string) => {
     setClientId(id);
     setClientOpen(false);
-    const client = mockClients.find((c) => c.id === id);
+    const client = clients.find((c) => c.id === id);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
       if (client.collaboratorId) {
@@ -132,7 +132,7 @@ export default function ServiceCreate() {
     }
   };
 
-  const availableOperators = mockOperators.filter(
+  const availableOperators = allOperators.filter(
     (o) => o.status === "Activo" && o.available && (o.specialty === specialty || o.secondarySpecialty === specialty)
   );
 
@@ -160,7 +160,7 @@ export default function ServiceCreate() {
 
   // Helper: build the service insert payload
   const buildServicePayload = (serviceId: string, statusOverride?: string) => {
-    const selectedCollab = mockCollaborators.find((c) => c.id === collaboratorId);
+    const selectedCollab = collaborators.find((c) => c.id === collaboratorId);
     let scheduledAtIso: string | null = null;
     let scheduledEndAtIso: string | null = null;
     if (scheduledDate) {
@@ -368,7 +368,7 @@ export default function ServiceCreate() {
                     <CommandList>
                       <CommandEmpty>No se encontraron clientes</CommandEmpty>
                       <CommandGroup>
-                        {mockClients.map((c) => (
+                        {clients.map((c) => (
                           <CommandItem
                             key={c.id}
                             value={`${c.name} ${c.dni} ${c.phone} ${c.email}`}
@@ -406,7 +406,7 @@ export default function ServiceCreate() {
                 <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin colaborador</SelectItem>
-                  {mockCollaborators.map((c) => (
+                  {collaborators.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
                   ))}
                 </SelectContent>
