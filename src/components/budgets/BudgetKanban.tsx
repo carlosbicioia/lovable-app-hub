@@ -23,8 +23,10 @@ const columns: { status: BudgetStatus; label: string; color: string }[] = [
 function calcTotal(lines: { costPrice: number; margin: number; units: number; taxRate: number }[]) {
   let total = 0;
   for (const l of lines) {
-    const sale = l.costPrice * (1 + l.margin / 100);
-    total += sale * l.units * (1 + l.taxRate / 100);
+    const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+    const lineSubtotal = Math.round(salePrice * l.units * 100) / 100;
+    const lineTax = Math.round(lineSubtotal * (l.taxRate / 100) * 100) / 100;
+    total += lineSubtotal + lineTax;
   }
   return total;
 }

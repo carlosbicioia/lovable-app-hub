@@ -39,15 +39,15 @@ export default function BudgetDetail() {
   }
 
   const lines = budget.lines.map((l) => {
-    const salePrice = l.costPrice * (1 + l.margin / 100);
-    const lineSubtotal = salePrice * l.units;
+    const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+    const lineSubtotal = Math.round(salePrice * l.units * 100) / 100;
     return { ...l, salePrice, lineSubtotal };
   });
 
   const subtotal = lines.reduce((s, l) => s + l.lineSubtotal, 0);
   const taxGroups: Record<number, number> = {};
   for (const l of lines) {
-    const tax = l.lineSubtotal * (l.taxRate / 100);
+    const tax = Math.round(l.lineSubtotal * (l.taxRate / 100) * 100) / 100;
     taxGroups[l.taxRate] = (taxGroups[l.taxRate] || 0) + tax;
   }
   const totalTax = Object.values(taxGroups).reduce((s, v) => s + v, 0);
