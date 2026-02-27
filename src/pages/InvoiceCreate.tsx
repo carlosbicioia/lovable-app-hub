@@ -101,7 +101,7 @@ export default function InvoiceCreate() {
 
   const recalcLine = (line: InvoiceLine) => ({
     ...line,
-    total: line.units * line.unitPrice,
+    total: line.units * line.unitPrice * (1 + line.taxRate / 100),
   });
 
   const updateLine = (idx: number, patch: Partial<InvoiceLine>) => {
@@ -175,8 +175,8 @@ export default function InvoiceCreate() {
     [suppliers, toast]
   );
 
-  const computedSubtotal = lines.reduce((s, l) => s + l.total, 0);
-  const computedTax = computedSubtotal * (taxRate / 100);
+  const computedSubtotal = lines.reduce((s, l) => s + l.units * l.unitPrice, 0);
+  const computedTax = lines.reduce((s, l) => s + l.units * l.unitPrice * (l.taxRate / 100), 0);
   const computedTotal = computedSubtotal + computedTax;
 
   const handleSubmit = async () => {
@@ -399,19 +399,6 @@ export default function InvoiceCreate() {
               <Label>Fecha vencimiento</Label>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>IVA general</Label>
-              <Select value={String(taxRate)} onValueChange={(v) => setTaxRate(Number(v))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {taxTypes.map((t) => (
-                    <SelectItem key={t.id} value={String(t.rate)}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <div className="space-y-1.5">
             <Label>Notas</Label>
@@ -511,7 +498,7 @@ export default function InvoiceCreate() {
               Base imponible: <span className="font-medium text-card-foreground">€{computedSubtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
             </p>
             <p className="text-muted-foreground">
-              IVA ({taxRate}%): <span className="font-medium text-card-foreground">€{computedTax.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+              IVA: <span className="font-medium text-card-foreground">€{computedTax.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
             </p>
             <p className="text-base font-semibold text-card-foreground">
               Total: €{computedTotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
