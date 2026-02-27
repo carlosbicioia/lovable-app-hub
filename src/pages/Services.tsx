@@ -4,7 +4,7 @@ import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Search, Plus, Filter, FileText, Upload, Loader2, Mic } from "lucide-react";
+import { Search, Plus, Filter, FileText, Upload, Loader2, Mic, CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -22,6 +22,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
+import SearchableSelect from "@/components/shared/SearchableSelect";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types/urbango";
 
 const statusOptions: { value: ServiceStatus; label: string }[] = [
@@ -45,6 +48,11 @@ export default function Services() {
   const [tab, setTab] = useState<TabValue>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
+  const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
+  const [filterService, setFilterService] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
@@ -85,6 +93,21 @@ export default function Services() {
     return budget?.status ?? null;
   };
 
+  // Filter options
+  const collaboratorOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of services) if (s.collaboratorName) set.add(s.collaboratorName);
+    return Array.from(set).sort();
+  }, [services]);
+
+  const specialtyOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of services) if (s.specialty) set.add(s.specialty);
+    return Array.from(set).sort();
+  }, [services]);
+
+  const serviceIdOptions = useMemo(() => services.map((s) => s.id).sort(), [services]);
+
   const filtered = useMemo(() => {
     let list = services;
     if (tab === "billing") {
@@ -92,11 +115,16 @@ export default function Services() {
     }
     if (statusFilter !== "all") list = list.filter((s) => s.status === statusFilter);
     if (urgencyFilter !== "all") list = list.filter((s) => s.urgency === urgencyFilter);
+    if (filterCollaborator !== "all") list = list.filter((s) => s.collaboratorName === filterCollaborator);
+    if (filterSpecialty !== "all") list = list.filter((s) => s.specialty === filterSpecialty);
+    if (filterService !== "all") list = list.filter((s) => s.id === filterService);
+    if (dateFrom) list = list.filter((s) => new Date(s.receivedAt) >= dateFrom);
+    if (dateTo) list = list.filter((s) => new Date(s.receivedAt) <= new Date(dateTo.getTime() + 86400000 - 1));
     if (search) {
       list = list.filter((s) => s.clientName.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
     }
     return list;
-  }, [services, budgets, tab, search, statusFilter, urgencyFilter]);
+  }, [services, budgets, tab, search, statusFilter, urgencyFilter, filterCollaborator, filterSpecialty, filterService, dateFrom, dateTo]);
 
   const bulk = useBulkSelect(filtered);
 
@@ -209,20 +237,89 @@ export default function Services() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por ID o cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[170px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Estado" /></SelectTrigger>
+        <Select value={filterCollaborator} onValueChange={setFilterCollaborator}>
+          <SelectTrigger className="w-[200px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Colaborador:</span>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            {statusOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge status={opt.value} /></SelectItem>)}
+            <SelectItem value="all">Todos</SelectItem>
+            {collaboratorOptions.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
+          <SelectTrigger className="w-[200px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Especialidad:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {specialtyOptions.map((s) => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[170px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Estado:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            {statusOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-          <SelectTrigger className="w-[160px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Urgencia" /></SelectTrigger>
+          <SelectTrigger className="w-[160px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Urgencia:</span>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas las urgencias</SelectItem>
-            {urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge urgency={opt.value} /></SelectItem>)}
+            <SelectItem value="all">Todas</SelectItem>
+            {urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <SearchableSelect
+          options={[
+            { value: "all", label: "Todos los servicios" },
+            ...serviceIdOptions.map((s) => ({ value: s, label: s })),
+          ]}
+          value={filterService}
+          onValueChange={setFilterService}
+          placeholder="Servicio"
+          searchPlaceholder="Buscar servicio..."
+          emptyText="Sin resultados"
+          className="w-[200px] h-9 text-sm"
+        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
+              <CalendarIcon className="w-3.5 h-3.5" />
+              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Desde"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateTo && "text-muted-foreground")}>
+              <CalendarIcon className="w-3.5 h-3.5" />
+              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Hasta"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          </PopoverContent>
+        </Popover>
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+            Limpiar fechas
+          </Button>
+        )}
       </div>
 
       <BulkActionBar count={bulk.count} onClear={bulk.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="servicios" />

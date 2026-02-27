@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useServices } from "@/hooks/useServices";
 import { usePurchaseOrders, PurchaseOrderStatus } from "@/hooks/usePurchaseOrders";
 import { usePurchaseInvoices, InvoiceStatus } from "@/hooks/usePurchaseInvoices";
 import { useDeliveryNotes } from "@/hooks/useDeliveryNotes";
@@ -61,6 +62,9 @@ export default function Purchases() {
   const [filterSupplier, setFilterSupplier] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterService, setFilterService] = useState("all");
+  const [filterCollaborator, setFilterCollaborator] = useState("all");
+  const [filterSpecialty, setFilterSpecialty] = useState("all");
+  const { services } = useServices();
 
   // KPIs
   const totalOrdered = useMemo(() => orders.reduce((s, o) => s + (o.totalCost || 0), 0), [orders]);
@@ -94,6 +98,13 @@ export default function Purchases() {
     facturado: { label: "Facturado", color: "hsl(var(--success))" },
   };
 
+  // Build service lookup maps
+  const serviceMap = useMemo(() => {
+    const map: Record<string, { collaboratorName: string | null; specialty: string }> = {};
+    for (const s of services) map[s.id] = { collaboratorName: s.collaboratorName, specialty: s.specialty };
+    return map;
+  }, [services]);
+
   // Compute filter options from all data sources
   const supplierOptions = useMemo(() => {
     const set = new Set<string>();
@@ -110,6 +121,24 @@ export default function Purchases() {
     return Array.from(set).sort();
   }, [orders, deliveryNotes]);
 
+  const collaboratorOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const sid of serviceOptions) {
+      const s = serviceMap[sid];
+      if (s?.collaboratorName) set.add(s.collaboratorName);
+    }
+    return Array.from(set).sort();
+  }, [serviceOptions, serviceMap]);
+
+  const specialtyOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const sid of serviceOptions) {
+      const s = serviceMap[sid];
+      if (s?.specialty) set.add(s.specialty);
+    }
+    return Array.from(set).sort();
+  }, [serviceOptions, serviceMap]);
+
   const statusOptionsForTab = useMemo(() => {
     if (tab === "oc") return Object.keys(ocStatusConfig);
     if (tab === "albaranes") return Object.keys(dnStatusConfig);
@@ -120,6 +149,13 @@ export default function Purchases() {
     ...Object.fromEntries(Object.entries(ocStatusConfig).map(([k, v]) => [k, v.label])),
     ...Object.fromEntries(Object.entries(dnStatusConfig).map(([k, v]) => [k, v.label])),
     ...Object.fromEntries(Object.entries(invStatusConfig).map(([k, v]) => [k, v.label])),
+  };
+
+  const matchCollabSpecialty = (serviceId: string) => {
+    const s = serviceMap[serviceId];
+    if (filterCollaborator !== "all" && s?.collaboratorName !== filterCollaborator) return false;
+    if (filterSpecialty !== "all" && s?.specialty !== filterSpecialty) return false;
+    return true;
   };
 
   const dateInRange = (d: string | null | undefined) => {
@@ -142,9 +178,10 @@ export default function Purchases() {
         dateInRange(o.createdAt) &&
         (filterSupplier === "all" || o.supplierName === filterSupplier) &&
         (filterStatus === "all" || o.status === filterStatus) &&
-        (filterService === "all" || o.serviceId === filterService)
+        (filterService === "all" || o.serviceId === filterService) &&
+        matchCollabSpecialty(o.serviceId)
     );
-  }, [orders, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService]);
+  }, [orders, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService, filterCollaborator, filterSpecialty, serviceMap]);
 
   const filteredInv = useMemo(() => {
     const q = search.toLowerCase();
@@ -169,9 +206,10 @@ export default function Purchases() {
         dateInRange(d.createdAt) &&
         (filterSupplier === "all" || d.supplierName === filterSupplier) &&
         (filterStatus === "all" || d.status === filterStatus) &&
-        (filterService === "all" || d.serviceId === filterService)
+        (filterService === "all" || d.serviceId === filterService) &&
+        matchCollabSpecialty(d.serviceId)
     );
-  }, [deliveryNotes, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService]);
+  }, [deliveryNotes, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService, filterCollaborator, filterSpecialty, serviceMap]);
 
   // Bulk select per tab - use filtered items with id mapping
   const ocWithId = useMemo(() => filteredOC.map((o) => ({ ...o, id: o.id })), [filteredOC]);
@@ -304,6 +342,30 @@ export default function Purchases() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+          <Select value={filterCollaborator} onValueChange={setFilterCollaborator}>
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Colaborador:</span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {collaboratorOptions.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Especialidad:</span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {specialtyOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <SearchableSelect
             options={[
               { value: "all", label: "Todos los proveedores" },
