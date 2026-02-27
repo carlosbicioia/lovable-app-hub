@@ -267,15 +267,15 @@ export default function Purchases() {
         <TabsList>
           <TabsTrigger value="oc" className="gap-1.5">
             <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{orders.length}</Badge>
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredOC.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="albaranes" className="gap-1.5">
             <Truck className="w-3.5 h-3.5" /> Albaranes
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{deliveryNotes.length}</Badge>
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredDN.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="facturas" className="gap-1.5">
             <FileText className="w-3.5 h-3.5" /> Facturas
-            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{invoices.length}</Badge>
+            <Badge variant="secondary" className="text-[10px] h-5 ml-1">{filteredInv.length}</Badge>
           </TabsTrigger>
         </TabsList>
       </div>
