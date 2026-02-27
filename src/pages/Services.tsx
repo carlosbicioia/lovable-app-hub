@@ -4,7 +4,7 @@ import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic, Trash2 } from "lucide-react";
+import { Search, Plus, Filter, FileText, Upload, Loader2, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -19,16 +19,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
 import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types/urbango";
 
 const statusOptions: { value: ServiceStatus; label: string }[] = [
@@ -52,10 +45,7 @@ export default function Services() {
   const [tab, setTab] = useState<TabValue>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
   const { services, loading, updateService, refetch } = useServices();
@@ -67,7 +57,6 @@ export default function Services() {
     [appUsers]
   );
 
-  // Protocol
   const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
   const { data: protocolChecksMap, toggle: toggleProtocolCheck } = useBatchProtocolChecks(serviceIds);
   const { data: enabledSteps = [] } = useEnabledProtocolSteps();
@@ -75,6 +64,7 @@ export default function Services() {
     () => enabledSteps.map((s) => ({ id: s.stepId, label: s.label })),
     [enabledSteps]
   );
+
   const handleStatusChange = async (serviceId: string, newStatus: string) => {
     const updates: Record<string, any> = { status: newStatus };
     if (newStatus === "Agendado" || newStatus === "En_Curso" || newStatus === "Finalizado") {
@@ -90,18 +80,6 @@ export default function Services() {
     if (error) toast({ title: "Error", description: "No se pudo cambiar la urgencia", variant: "destructive" });
   };
 
-  const handleOperatorChange = async (serviceId: string, operatorId: string) => {
-    if (operatorId === "__none__") {
-      const { error } = await updateService(serviceId, { operator_id: null, operator_name: null });
-      if (error) toast({ title: "Error", description: "No se pudo cambiar el técnico", variant: "destructive" });
-      return;
-    }
-    const op = operators.find((o) => o.id === operatorId);
-    if (!op) return;
-    const { error } = await updateService(serviceId, { operator_id: op.id, operator_name: op.name });
-    if (error) toast({ title: "Error", description: "No se pudo cambiar el técnico", variant: "destructive" });
-  };
-
   const getBudgetStatusForService = (serviceId: string): BudgetStatus | null => {
     const budget = budgets.find((b) => b.serviceId === serviceId);
     return budget?.status ?? null;
@@ -109,36 +87,18 @@ export default function Services() {
 
   const filtered = useMemo(() => {
     let list = services;
-
-    // Tab filter
     if (tab === "billing") {
-      list = list.filter((s) => {
-        const bStatus = getBudgetStatusForService(s.id);
-        return bStatus === "Pte_Facturación";
-      });
+      list = list.filter((s) => getBudgetStatusForService(s.id) === "Pte_Facturación");
     }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      list = list.filter((s) => s.status === statusFilter);
-    }
-
-    // Urgency filter
-    if (urgencyFilter !== "all") {
-      list = list.filter((s) => s.urgency === urgencyFilter);
-    }
-
-    // Search filter
+    if (statusFilter !== "all") list = list.filter((s) => s.status === statusFilter);
+    if (urgencyFilter !== "all") list = list.filter((s) => s.urgency === urgencyFilter);
     if (search) {
-      list = list.filter(
-        (s) =>
-          s.clientName.toLowerCase().includes(search.toLowerCase()) ||
-          s.id.toLowerCase().includes(search.toLowerCase())
-      );
+      list = list.filter((s) => s.clientName.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
     }
-
     return list;
   }, [services, budgets, tab, search, statusFilter, urgencyFilter]);
+
+  const bulk = useBulkSelect(filtered);
 
   const billingCount = useMemo(
     () => services.filter((s) => getBudgetStatusForService(s.id) === "Pte_Facturación").length,
@@ -153,77 +113,58 @@ export default function Services() {
     return "ok";
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filtered.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map((s) => s.id)));
-    }
-  };
-
   const closedStatuses = ["Finalizado", "Liquidado"];
 
   const handleExportHolded = async () => {
-    const ids = Array.from(selectedIds);
+    const ids = Array.from(bulk.selectedIds);
     if (ids.length === 0) {
       toast({ title: "Selecciona al menos un servicio", variant: "destructive" });
       return;
     }
-
     const servicesToExport = filtered.filter((s) => ids.includes(s.id));
     const nonClosed = servicesToExport.filter((s) => !closedStatuses.includes(s.status));
-
     if (nonClosed.length > 0) {
-      toast({
-        title: "Servicios no cerrados",
-        description: `No se puede facturar: ${nonClosed.map((s) => s.id).join(", ")}. Solo se pueden facturar servicios en estado Finalizado o Liquidado.`,
-        variant: "destructive",
-      });
+      toast({ title: "Servicios no cerrados", description: `No se puede facturar: ${nonClosed.map((s) => s.id).join(", ")}`, variant: "destructive" });
       return;
     }
-
     setExporting(true);
     try {
       const budgetsToExport = budgets.filter((b) => ids.includes(b.serviceId));
-
       const { data, error } = await supabase.functions.invoke("export-holded", {
         body: { services: servicesToExport, budgets: budgetsToExport, type: "invoice" },
       });
-
       if (error) throw error;
-
-      toast({
-        title: "Exportación completada",
-        description: `${ids.length} servicio(s) enviados a Holded correctamente.`,
-      });
-      setSelectedIds(new Set());
+      toast({ title: "Exportación completada", description: `${ids.length} servicio(s) enviados a Holded correctamente.` });
+      bulk.clear();
     } catch (err: any) {
-      console.error("Error exporting to Holded:", err);
-      toast({
-        title: "Error al exportar",
-        description: err.message || "No se pudo conectar con Holded",
-        variant: "destructive",
-      });
+      toast({ title: "Error al exportar", description: err.message || "No se pudo conectar con Holded", variant: "destructive" });
     } finally {
       setExporting(false);
     }
   };
 
+  const handleBulkDelete = async () => {
+    const ids = bulk.selectedItems.map((s) => s.id);
+    for (const id of ids) {
+      await supabase.from("services").delete().eq("id", id);
+    }
+    bulk.clear();
+    refetch();
+    toast({ title: `${ids.length} servicio(s) eliminado(s)` });
+  };
+
+  const handleBulkExport = () => {
+    const headers = ["ID", "Cliente", "Especialidad", "Estado", "Urgencia", "Origen", "Fecha Alta", "Fecha Prevista", "Importe"];
+    const rows = bulk.selectedItems.map((s) => [
+      s.id, s.clientName, s.specialty, s.status, s.urgency, s.origin,
+      format(new Date(s.receivedAt), "dd/MM/yyyy"), s.scheduledAt ? format(new Date(s.scheduledAt), "dd/MM/yyyy HH:mm") : "",
+      s.budgetTotal?.toString() ?? "",
+    ]);
+    exportCsv("servicios.csv", headers, rows);
+  };
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   const isBillingTab = tab === "billing";
@@ -236,10 +177,7 @@ export default function Services() {
           <p className="text-muted-foreground text-sm mt-1">{services.length} servicios en sistema</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => {
-            const event = new CustomEvent("open-voice-assistant");
-            window.dispatchEvent(event);
-          }} className="gap-2">
+          <Button variant="outline" onClick={() => { const event = new CustomEvent("open-voice-assistant"); window.dispatchEvent(event); }} className="gap-2">
             <Mic className="w-4 h-4" /> Crear con Alex
           </Button>
           <Button onClick={() => navigate("/servicios/nuevo")}>
@@ -248,34 +186,19 @@ export default function Services() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={tab} onValueChange={(v) => { setTab(v as TabValue); setSelectedIds(new Set()); }}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as TabValue); bulk.clear(); }}>
         <div className="flex items-center justify-between gap-4">
           <TabsList>
-            <TabsTrigger value="all" className="gap-1.5">
-              <FileText className="w-3.5 h-3.5" />
-              Todos
-            </TabsTrigger>
+            <TabsTrigger value="all" className="gap-1.5"><FileText className="w-3.5 h-3.5" /> Todos</TabsTrigger>
             <TabsTrigger value="billing" className="gap-1.5">
-              <Upload className="w-3.5 h-3.5" />
-              Pendiente de facturar
-              {billingCount > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-info/15 text-info text-[10px] font-bold">
-                  {billingCount}
-                </span>
-              )}
+              <Upload className="w-3.5 h-3.5" /> Pendiente de facturar
+              {billingCount > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-info/15 text-info text-[10px] font-bold">{billingCount}</span>}
             </TabsTrigger>
           </TabsList>
-
           {isBillingTab && (
-            <Button
-              size="sm"
-              disabled={selectedIds.size === 0 || exporting}
-              onClick={handleExportHolded}
-              className="gap-1.5"
-            >
+            <Button size="sm" disabled={bulk.count === 0 || exporting} onClick={handleExportHolded} className="gap-1.5">
               {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              Exportar a Holded ({selectedIds.size})
+              Exportar a Holded ({bulk.count})
             </Button>
           )}
         </div>
@@ -287,53 +210,35 @@ export default function Services() {
           <Input placeholder="Buscar por ID o cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[170px]">
-            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[170px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los estados</SelectItem>
-            {statusOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                <StatusBadge status={opt.value} />
-              </SelectItem>
-            ))}
+            {statusOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge status={opt.value} /></SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-          <SelectTrigger className="w-[160px]">
-            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Urgencia" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[160px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Urgencia" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las urgencias</SelectItem>
-            {urgencyOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                <StatusBadge urgency={opt.value} />
-              </SelectItem>
-            ))}
+            {urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge urgency={opt.value} /></SelectItem>)}
           </SelectContent>
         </Select>
       </div>
+
+      <BulkActionBar count={bulk.count} onClear={bulk.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="servicios" />
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {isBillingTab && (
-                  <th className="px-3 py-3 w-10">
-                    <Checkbox
-                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
-                      onCheckedChange={toggleSelectAll}
-                    />
-                  </th>
-                )}
+                <th className="px-3 py-3 w-10">
+                  <Checkbox checked={bulk.allSelected} onCheckedChange={bulk.toggleAll} className={bulk.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} />
+                </th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Origen</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Cliente</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Especialidad</th>
-                
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Alta</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha Prevista</th>
@@ -342,207 +247,68 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Protocolo</th>
-                <th className="text-center px-3 py-3 text-muted-foreground font-medium w-10"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={isBillingTab ? 14 : 13} className="text-center py-12 text-muted-foreground">
-                    {isBillingTab
-                      ? "No hay servicios pendientes de facturación"
-                      : "No se encontraron servicios"}
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((s) => {
-                  const sla = getSlaStatus(s.receivedAt, s.contactedAt);
-                  return (
-                    <tr
-                      key={s.id}
-                      className={cn(
-                        "border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer",
-                        selectedIds.has(s.id) && "bg-primary/5",
-                        isBillingTab && !closedStatuses.includes(s.status) && "opacity-60"
-                      )}
-                      onClick={() => {
-                        if (isBillingTab) {
-                          toggleSelect(s.id);
-                        } else {
-                          navigate(`/servicios/${s.id}`);
-                        }
-                      }}
-                    >
-                      {isBillingTab && (
-                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedIds.has(s.id)}
-                            onCheckedChange={() => toggleSelect(s.id)}
-                          />
-                        </td>
-                      )}
-                      <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
-                        <span
-                          className="hover:text-primary hover:underline"
-                          onClick={(e) => {
-                            if (isBillingTab) {
-                              e.stopPropagation();
-                              navigate(`/servicios/${s.id}`);
-                            }
-                          }}
-                        >
-                          {s.id}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-                          {s.origin}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
-                      <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
-                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                        <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
-                          <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
-                            <StatusBadge status={s.status} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                <StatusBadge status={opt.value} />
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {isBillingTab && !closedStatuses.includes(s.status) && (
-                          <span className="block text-[10px] text-destructive mt-0.5">Servicio no cerrado</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground text-xs">
-                        {format(new Date(s.receivedAt), "dd MMM yyyy", { locale: es })}
-                      </td>
-                      <td className="px-5 py-3 text-xs">
-                        {s.scheduledAt ? (
-                          <span className="text-card-foreground font-medium">
-                            {format(new Date(s.scheduledAt), "dd MMM yyyy · HH:mm", { locale: es })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">Sin agendar</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        {sla === "expired" && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft">
-                            ⏰ Vencido
-                          </span>
-                        )}
-                        {sla === "warning" && (
-                          <span className="text-xs font-medium text-warning">⚠ Próximo</span>
-                        )}
-                        {sla === "ok" && (
-                          <span className="text-xs text-muted-foreground">✓ OK</span>
-                        )}
-                        {!sla && <span className="text-xs text-muted-foreground">—</span>}
-                      </td>
-                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                        <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
-                          <SelectTrigger className="h-7 w-auto min-w-[90px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1">
-                            <StatusBadge urgency={s.urgency} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {urgencyOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                <StatusBadge urgency={opt.value} />
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="px-5 py-3">
-                        {(() => {
-                          const bStatus = getBudgetStatusForService(s.id);
-                          if (!bStatus) return "—";
-                          return (
-                            <span className={cn(
-                              "text-xs font-medium",
-                              bStatus === "Aprobado" ? "text-success" :
-                              bStatus === "Borrador" || bStatus === "Enviado" ? "text-warning" :
-                              bStatus === "Rechazado" ? "text-destructive" :
-                              bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
-                            )}>
-                              {bStatus === "Pte_Facturación" ? "En proceso" : bStatus}
-                            </span>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-5 py-3 text-right font-medium text-card-foreground">
-                        {s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}
-                      </td>
-                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                        <TooltipProvider delayDuration={200}>
-                          <ProtocolDots
-                            steps={protocolSteps}
-                            checkedIds={protocolChecksMap[s.id] ?? new Set()}
-                            onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)}
-                          />
-                        </TooltipProvider>
-                      </td>
-                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => setDeleteTarget(s)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+                <tr><td colSpan={13} className="text-center py-12 text-muted-foreground">{isBillingTab ? "No hay servicios pendientes de facturación" : "No se encontraron servicios"}</td></tr>
+              ) : filtered.map((s) => {
+                const sla = getSlaStatus(s.receivedAt, s.contactedAt);
+                return (
+                  <tr key={s.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulk.selectedIds.has(s.id) && "bg-primary/5", isBillingTab && !closedStatuses.includes(s.status) && "opacity-60")}
+                    onClick={() => { if (isBillingTab) bulk.toggle(s.id); else navigate(`/servicios/${s.id}`); }}>
+                    <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={bulk.selectedIds.has(s.id)} onCheckedChange={() => bulk.toggle(s.id)} />
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
+                      <span className="hover:text-primary hover:underline" onClick={(e) => { if (isBillingTab) { e.stopPropagation(); navigate(`/servicios/${s.id}`); } }}>{s.id}</span>
+                    </td>
+                    <td className="px-5 py-3"><span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">{s.origin}</span></td>
+                    <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
+                        <SelectTrigger className="h-7 w-auto min-w-[120px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge status={s.status} /></SelectTrigger>
+                        <SelectContent>{statusOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge status={opt.value} /></SelectItem>)}</SelectContent>
+                      </Select>
+                      {isBillingTab && !closedStatuses.includes(s.status) && <span className="block text-[10px] text-destructive mt-0.5">Servicio no cerrado</span>}
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs">{format(new Date(s.receivedAt), "dd MMM yyyy", { locale: es })}</td>
+                    <td className="px-5 py-3 text-xs">
+                      {s.scheduledAt ? <span className="text-card-foreground font-medium">{format(new Date(s.scheduledAt), "dd MMM yyyy · HH:mm", { locale: es })}</span> : <span className="text-muted-foreground">Sin agendar</span>}
+                    </td>
+                    <td className="px-5 py-3">
+                      {sla === "expired" && <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft">⏰ Vencido</span>}
+                      {sla === "warning" && <span className="text-xs font-medium text-warning">⚠ Próximo</span>}
+                      {sla === "ok" && <span className="text-xs text-muted-foreground">✓ OK</span>}
+                      {!sla && <span className="text-xs text-muted-foreground">—</span>}
+                    </td>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
+                        <SelectTrigger className="h-7 w-auto min-w-[90px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge urgency={s.urgency} /></SelectTrigger>
+                        <SelectContent>{urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge urgency={opt.value} /></SelectItem>)}</SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-5 py-3">
+                      {(() => {
+                        const bStatus = getBudgetStatusForService(s.id);
+                        if (!bStatus) return "—";
+                        return <span className={cn("text-xs font-medium", bStatus === "Aprobado" ? "text-success" : bStatus === "Borrador" || bStatus === "Enviado" ? "text-warning" : bStatus === "Rechazado" ? "text-destructive" : bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground")}>{bStatus === "Pte_Facturación" ? "En proceso" : bStatus}</span>;
+                      })()}
+                    </td>
+                    <td className="px-5 py-3 text-right font-medium text-card-foreground">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <TooltipProvider delayDuration={200}>
+                        <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />
+                      </TooltipProvider>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Delete confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar servicio?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminará permanentemente el servicio{" "}
-              <span className="font-semibold text-foreground">{deleteTarget?.id}</span> de{" "}
-              <span className="font-semibold text-foreground">{deleteTarget?.clientName}</span>.
-              Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleting}
-              onClick={async () => {
-                if (!deleteTarget) return;
-                setDeleting(true);
-                const { error } = await supabase.from("services").delete().eq("id", deleteTarget.id);
-                setDeleting(false);
-                if (error) {
-                  toast({ title: "Error", description: "No se pudo eliminar el servicio", variant: "destructive" });
-                } else {
-                  toast({ title: "Servicio eliminado", description: `${deleteTarget.id} ha sido eliminado` });
-                  setDeleteTarget(null);
-                  refetch();
-                }
-              }}
-            >
-              {deleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
