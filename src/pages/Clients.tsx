@@ -1,5 +1,5 @@
-import { mockClients } from "@/data/mockData";
-import { Search, Plus, Filter } from "lucide-react";
+import { useClients, useCreateClient } from "@/hooks/useClients";
+import { Search, Plus, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,8 +7,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import type { Client, ClientPlanType } from "@/types/urbango";
+import type { ClientPlanType } from "@/types/urbango";
 
 const planColors: Record<string, string> = {
   Agua: "bg-info/15 text-info border-info/30",
@@ -17,17 +16,19 @@ const planColors: Record<string, string> = {
   Ninguno: "bg-muted text-muted-foreground border-border",
 };
 
-const emptyClient = (): Omit<Client, "id"> => ({
+const emptyClient = () => ({
   name: "", dni: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
-  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
+  clusterId: "", collaboratorId: null as string | null, collaboratorName: null as string | null, planType: "Ninguno", lastServiceDate: null as string | null,
 });
+
+
 
 export default function Clients() {
   const [search, setSearch] = useState("");
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const { data: clients = [], isLoading } = useClients();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyClient());
-  const { toast } = useToast();
+  const createClient = useCreateClient();
 
   const filtered = clients.filter(
     (c) =>
@@ -36,20 +37,18 @@ export default function Clients() {
       c.city.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim() || !form.dni.trim()) {
-      toast({ title: "Campos obligatorios", description: "Nombre y DNI son requeridos.", variant: "destructive" });
       return;
     }
-    const nextNum = clients.length + 1;
-    const newClient: Client = { ...form, id: `CLI-${String(nextNum).padStart(3, "0")}` };
-    setClients((prev) => [newClient, ...prev]);
+    await createClient.mutateAsync(form);
     setForm(emptyClient());
     setOpen(false);
-    toast({ title: "Cliente creado" });
   };
 
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  if (isLoading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6">

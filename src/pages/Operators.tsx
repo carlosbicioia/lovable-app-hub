@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mockOperators } from "@/data/mockData";
+import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,11 +77,12 @@ function NpsIndicator({ value }: { value: number }) {
 }
 
 // ─── OPERATOR LIST ─────────────────────────────────────────
-function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
+function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
+  const { data: allOperators = [] } = useOperators();
 
   // Build dynamic icon/color maps from DB specialties
   const dynSpecialtyIcon: Record<string, React.ReactNode> = {};
@@ -94,7 +95,7 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
   const getSpecColor = (name: string) => dynSpecialtyColor[name] ?? specialtyColor[name] ?? "bg-muted text-muted-foreground border-border";
   const activeSpecNames = (dbSpecialties ?? []).filter(s => s.active).map(s => s.name);
 
-  const filtered = mockOperators.filter((op) => {
+  const filtered = allOperators.filter((op) => {
     const matchSearch =
       op.name.toLowerCase().includes(search.toLowerCase()) ||
       op.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,9 +107,9 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
     return matchSearch && matchSpecialty;
   });
 
-  const totalActive = mockOperators.filter((o) => o.status === "Activo").length;
-  const avgNps = mockOperators.reduce((sum, o) => sum + o.npsMean, 0) / mockOperators.length;
-  const totalRevenue = mockOperators.reduce((sum, o) => sum + o.totalRevenue, 0);
+  const totalActive = allOperators.filter((o) => o.status === "Activo").length;
+  const avgNps = allOperators.length > 0 ? allOperators.reduce((sum, o) => sum + o.npsMean, 0) / allOperators.length : 0;
+  const totalRevenue = allOperators.reduce((sum, o) => sum + o.totalRevenue, 0);
 
   return (
     <div className="space-y-4">
@@ -124,7 +125,7 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <Users className="w-3.5 h-3.5" /> Total operarios
             </div>
-            <p className="text-2xl font-bold text-foreground">{mockOperators.length}</p>
+            <p className="text-2xl font-bold text-foreground">{allOperators.length}</p>
             <p className="text-xs text-muted-foreground">{totalActive} activos</p>
           </CardContent>
         </Card>
@@ -150,7 +151,7 @@ function OperatorList({ onSelect }: { onSelect: (op: Operator) => void }) {
               <Wrench className="w-3.5 h-3.5" /> Servicios completados
             </div>
             <p className="text-2xl font-bold text-foreground">
-              {mockOperators.reduce((sum, o) => sum + o.completedServices, 0)}
+              {allOperators.reduce((sum, o) => sum + o.completedServices, 0)}
             </p>
           </CardContent>
         </Card>

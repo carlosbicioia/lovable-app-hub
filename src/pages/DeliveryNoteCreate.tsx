@@ -6,7 +6,7 @@ import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockOperators } from "@/data/mockData";
+import { useOperators } from "@/hooks/useOperators";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,8 @@ export default function DeliveryNoteCreate() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const selectedOp = mockOperators.find((o) => o.id === operatorId);
+  const { data: allOperators = [] } = useOperators();
+  const selectedOp = allOperators.find((o) => o.id === operatorId);
   const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
   const totalTax = lines.reduce((s, l) => s + l.units * l.costPrice * (l.taxRate / 100), 0);
   const total = subtotal + totalTax;
@@ -293,7 +294,7 @@ export default function DeliveryNoteCreate() {
                 placeholder="Asignar operario…"
                 searchPlaceholder="Nombre del operario…"
                 emptyText="Sin operarios"
-                options={mockOperators.map((o) => ({
+                options={allOperators.map((o) => ({
                   value: o.id,
                   label: o.name,
                   subtitle: `${o.specialty} · NPS ${o.npsMean}`,

@@ -17,7 +17,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { mockClients, mockCollaborators, mockOperators } from "@/data/mockData";
+import { useClients } from "@/hooks/useClients";
+import { useCollaborators } from "@/hooks/useCollaborators";
+import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -27,6 +29,9 @@ export default function ServiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { services, loading: servicesLoading, updateService } = useServices();
+  const { data: clients = [] } = useClients();
+  const { data: collaborators = [] } = useCollaborators();
+  const { data: allOperators = [] } = useOperators();
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
 
