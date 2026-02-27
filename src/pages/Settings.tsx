@@ -16,6 +16,7 @@ import {
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useProtocolSteps, useUpdateProtocolStep, useCreateProtocolStep, useDeleteProtocolStep } from "@/hooks/useProtocolSteps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -448,6 +449,7 @@ export default function Settings() {
   const createUser = useCreateAppUser();
   const updateUser = useUpdateAppUser();
   const deleteUser = useDeleteAppUser();
+  const { user: currentUser } = useAuth();
   const { data: systemUsers, isLoading: systemUsersLoading } = useSystemUsers();
   const updateRole = useUpdateUserRole();
   const manageUser = useManageUser();
@@ -755,51 +757,57 @@ export default function Settings() {
                               {u.collaborator_id}
                             </span>
                           )}
-                          <div className="flex items-center gap-1">
-                            <Switch
-                              checked={!u.banned}
-                              disabled={manageUser.isPending}
-                              onCheckedChange={(checked) => {
-                                manageUser.mutate({ userId: u.id, action: checked ? "unban" : "ban" });
-                              }}
-                              className="scale-75"
-                            />
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            title="Restablecer contraseña"
-                            onClick={() => {
-                              setResetPwUser({ id: u.id, name: u.full_name, email: u.email });
-                              setNewPassword("");
-                            }}
-                          >
-                            <KeyRound className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => {
-                              setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
-                              setEditForm({ full_name: u.full_name, role: u.role ?? "operario", collaborator_id: u.collaborator_id ?? "" });
-                            }}
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => {
-                              if (!confirm(`¿Eliminar permanentemente a ${u.full_name || u.email}? Esta acción no se puede deshacer.`)) return;
-                              manageUser.mutate({ userId: u.id, action: "delete" });
-                            }}
-                            disabled={manageUser.isPending}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          {u.id === currentUser?.id ? (
+                            <span className="text-[10px] text-muted-foreground italic px-2">Tú</span>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <Switch
+                                  checked={!u.banned}
+                                  disabled={manageUser.isPending}
+                                  onCheckedChange={(checked) => {
+                                    manageUser.mutate({ userId: u.id, action: checked ? "unban" : "ban" });
+                                  }}
+                                  className="scale-75"
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Restablecer contraseña"
+                                onClick={() => {
+                                  setResetPwUser({ id: u.id, name: u.full_name, email: u.email });
+                                  setNewPassword("");
+                                }}
+                              >
+                                <KeyRound className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
+                                  setEditForm({ full_name: u.full_name, role: u.role ?? "operario", collaborator_id: u.collaborator_id ?? "" });
+                                }}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  if (!confirm(`¿Eliminar permanentemente a ${u.full_name || u.email}? Esta acción no se puede deshacer.`)) return;
+                                  manageUser.mutate({ userId: u.id, action: "delete" });
+                                }}
+                                disabled={manageUser.isPending}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     );
