@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   Building2, Users, Shield, FileText, Bell, Palette, Mail, KeyRound,
-  Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
+  Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat, GripVertical,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
   Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
@@ -1041,11 +1041,50 @@ export default function Settings() {
                   [1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full" />)
                 ) : (
                   <>
-                    {protocolItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-card-foreground">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                    {protocolItems.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", String(idx));
+                          (e.currentTarget as HTMLElement).classList.add("opacity-40");
+                        }}
+                        onDragEnd={(e) => {
+                          (e.currentTarget as HTMLElement).classList.remove("opacity-40");
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          (e.currentTarget as HTMLElement).classList.add("ring-2", "ring-primary/40");
+                        }}
+                        onDragLeave={(e) => {
+                          (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+                          const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                          const toIdx = idx;
+                          if (fromIdx === toIdx || isNaN(fromIdx)) return;
+                          // Reorder: swap sort_order values
+                          const reordered = [...protocolItems];
+                          const [moved] = reordered.splice(fromIdx, 1);
+                          reordered.splice(toIdx, 0, moved);
+                          reordered.forEach((step, i) => {
+                            if (step.sortOrder !== i) {
+                              updateStep.mutate({ id: step.id, sortOrder: i });
+                            }
+                          });
+                        }}
+                        className="flex items-center justify-between p-3 rounded-lg border border-border transition-all cursor-grab active:cursor-grabbing"
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <GripVertical className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-card-foreground">{item.label}</p>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
