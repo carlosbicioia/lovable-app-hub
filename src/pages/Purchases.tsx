@@ -15,7 +15,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download } from "lucide-react";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
 import { format as formatDate } from "date-fns";
@@ -48,40 +50,51 @@ export default function Purchases() {
   const [tab, setTab] = useState("oc");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ type: "oc" | "invoice" | "dn"; id: string } | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+
+  const dateInRange = (d: string | null | undefined) => {
+    if (!dateFrom && !dateTo) return true;
+    if (!d) return false;
+    const date = new Date(d);
+    if (dateFrom && date < dateFrom) return false;
+    if (dateTo && date > new Date(dateTo.getTime() + 86400000 - 1)) return false;
+    return true;
+  };
 
   const filteredOC = useMemo(() => {
-    if (!search) return orders;
     const q = search.toLowerCase();
     return orders.filter(
       (o) =>
-        o.id.toLowerCase().includes(q) ||
+        (!search || o.id.toLowerCase().includes(q) ||
         o.supplierName.toLowerCase().includes(q) ||
         o.serviceId.toLowerCase().includes(q) ||
-        (o.operatorName ?? "").toLowerCase().includes(q)
+        (o.operatorName ?? "").toLowerCase().includes(q)) &&
+        dateInRange(o.createdAt)
     );
-  }, [orders, search]);
+  }, [orders, search, dateFrom, dateTo]);
 
   const filteredInv = useMemo(() => {
-    if (!search) return invoices;
     const q = search.toLowerCase();
     return invoices.filter(
       (i) =>
-        i.invoiceNumber.toLowerCase().includes(q) ||
-        i.supplierName.toLowerCase().includes(q)
+        (!search || i.invoiceNumber.toLowerCase().includes(q) ||
+        i.supplierName.toLowerCase().includes(q)) &&
+        dateInRange(i.invoiceDate || i.createdAt)
     );
-  }, [invoices, search]);
+  }, [invoices, search, dateFrom, dateTo]);
 
   const filteredDN = useMemo(() => {
-    if (!search) return deliveryNotes;
     const q = search.toLowerCase();
     return deliveryNotes.filter(
       (d) =>
-        d.code.toLowerCase().includes(q) ||
+        (!search || d.code.toLowerCase().includes(q) ||
         d.supplierName.toLowerCase().includes(q) ||
         d.serviceId.toLowerCase().includes(q) ||
-        (d.operatorName ?? "").toLowerCase().includes(q)
+        (d.operatorName ?? "").toLowerCase().includes(q)) &&
+        dateInRange(d.createdAt)
     );
-  }, [deliveryNotes, search]);
+  }, [deliveryNotes, search, dateFrom, dateTo]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -140,11 +153,38 @@ export default function Purchases() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
+              <CalendarIcon className="w-3.5 h-3.5" />
+              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Desde"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateTo && "text-muted-foreground")}>
+              <CalendarIcon className="w-3.5 h-3.5" />
+              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Hasta"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          </PopoverContent>
+        </Popover>
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+            Limpiar fechas
+          </Button>
+        )}
         <TabsList>
           <TabsTrigger value="oc" className="gap-1.5">
             <ShoppingCart className="w-3.5 h-3.5" /> Órdenes
