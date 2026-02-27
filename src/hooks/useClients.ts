@@ -105,6 +105,39 @@ export function useCreateClient() {
   });
 }
 
+export function useUpdateClient() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (input: DbClient) => {
+      const { error } = await supabase.from("clients").update({
+        client_type: input.clientType,
+        name: input.name,
+        company_name: input.companyName,
+        dni: input.dni,
+        tax_id: input.taxId,
+        email: input.email,
+        phone: input.phone,
+        address: input.address,
+        postal_code: input.postalCode,
+        city: input.city,
+        province: input.province,
+        cluster_id: input.clusterId,
+        collaborator_id: input.collaboratorId,
+        collaborator_name: input.collaboratorName,
+        plan_type: input.planType,
+        last_service_date: input.lastServiceDate,
+      }).eq("id", input.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      toast({ title: "Cliente actualizado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}
+
 export function useDeleteClient() {
   const qc = useQueryClient();
   const { toast } = useToast();

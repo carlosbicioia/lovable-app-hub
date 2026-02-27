@@ -1,16 +1,13 @@
-import { useClients, useCreateClient, useDeleteClient } from "@/hooks/useClients";
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
-import { Search, Plus, Filter, Loader2, Trash2 } from "lucide-react";
+import { Search, Plus, Filter, Loader2, Trash2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { ClientPlanType } from "@/types/urbango";
 import type { DbClient } from "@/hooks/useClients";
+import ClientFormDialog, { type ClientFormData } from "@/components/clients/ClientFormDialog";
 
 const planColors: Record<string, string> = {
   Agua: "bg-info/15 text-info border-info/30",
@@ -19,20 +16,28 @@ const planColors: Record<string, string> = {
   Ninguno: "bg-muted text-muted-foreground border-border",
 };
 
-const emptyClient = () => ({
-  clientType: "Particular" as "Particular" | "Empresa",
+const emptyClient = (): ClientFormData => ({
+  clientType: "Particular",
   name: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
-  clusterId: "", collaboratorId: null as string | null, collaboratorName: null as string | null, planType: "Ninguno", lastServiceDate: null as string | null,
+  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
 });
 
-
+const clientToForm = (c: DbClient): ClientFormData => ({
+  clientType: c.clientType,
+  name: c.name, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
+  address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
+  clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
+  planType: c.planType, lastServiceDate: c.lastServiceDate,
+});
 
 export default function Clients() {
   const [search, setSearch] = useState("");
   const { data: clients = [], isLoading } = useClients();
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState(emptyClient());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<DbClient | null>(null);
+  const [form, setForm] = useState<ClientFormData>(emptyClient());
   const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
   const deleteClient = useDeleteClient();
   const { collaborators } = useCollaborators();
   const [deleteTarget, setDeleteTarget] = useState<DbClient | null>(null);
@@ -44,27 +49,28 @@ export default function Clients() {
       c.city.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = async () => {
+  const validateForm = () => {
     if (form.clientType === "Empresa") {
-      if (!form.companyName.trim() || !form.taxId.trim()) return;
-    } else {
-      if (!form.name.trim() || !form.dni.trim()) return;
+      return !!(form.companyName.trim() && form.taxId.trim());
     }
+    return !!(form.name.trim() && form.dni.trim());
+  };
+
+  const handleCreate = async () => {
+    if (!validateForm()) return;
     await createClient.mutateAsync(form);
     setForm(emptyClient());
-    setOpen(false);
+    setCreateOpen(false);
   };
 
-  const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
-
-  const handleCollaboratorChange = (value: string) => {
-    if (value === "none") {
-      setForm((prev) => ({ ...prev, collaboratorId: null, collaboratorName: null }));
-    } else {
-      const collab = collaborators.find((c) => c.id === value);
-      setForm((prev) => ({ ...prev, collaboratorId: value, collaboratorName: collab?.companyName ?? null }));
-    }
+  const handleEdit = async () => {
+    if (!editTarget || !validateForm()) return;
+    await updateClient.mutateAsync({ ...form, id: editTarget.id } as DbClient);
+    setEditTarget(null);
   };
+
+  const openCreate = () => { setForm(emptyClient()); setCreateOpen(true); };
+  const openEdit = (c: DbClient) => { setForm(clientToForm(c)); setEditTarget(c); };
 
   if (isLoading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
@@ -75,7 +81,7 @@ export default function Clients() {
           <h1 className="text-2xl font-display font-bold text-foreground">Clientes</h1>
           <p className="text-muted-foreground text-sm mt-1">{clients.length} clientes registrados</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={openCreate}>
           <Plus className="w-4 h-4 mr-2" /> Nuevo Cliente
         </Button>
       </div>
@@ -104,12 +110,12 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Últ. Servicio</th>
-                <th className="w-12"></th>
+                <th className="w-20"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
+                <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => openEdit(c)}>
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.id}</td>
                   <td className="px-5 py-3">
                     <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", c.clientType === "Empresa" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground")}>
@@ -132,7 +138,10 @@ export default function Clients() {
                   <td className="px-5 py-3 text-muted-foreground text-xs">
                     {c.lastServiceDate ? new Date(c.lastServiceDate).toLocaleDateString("es-ES") : "—"}
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-2 py-3 flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={(e) => { e.stopPropagation(); openEdit(c); }}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -145,103 +154,28 @@ export default function Clients() {
       </div>
 
       {/* Dialog nuevo cliente */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Nuevo Cliente</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="col-span-2 space-y-1.5">
-              <Label>Tipo de cliente</Label>
-              <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Particular">Particular</SelectItem>
-                  <SelectItem value="Empresa">Empresa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {form.clientType === "Empresa" ? (
-              <>
-                <div className="space-y-1.5">
-                  <Label>Razón Social *</Label>
-                  <Input value={form.companyName} onChange={(e) => upd("companyName", e.target.value)} placeholder="Nombre de la empresa" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>CIF *</Label>
-                  <Input value={form.taxId} onChange={(e) => upd("taxId", e.target.value)} placeholder="B12345678" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Persona de contacto</Label>
-                  <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre del contacto" />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-1.5">
-                  <Label>Nombre *</Label>
-                  <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>DNI *</Label>
-                  <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
-                </div>
-              </>
-            )}
-            <div className="space-y-1.5">
-              <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => upd("email", e.target.value)} placeholder="email@ejemplo.com" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Teléfono</Label>
-              <Input value={form.phone} onChange={(e) => upd("phone", e.target.value)} placeholder="612345678" />
-            </div>
-            <div className="col-span-2 space-y-1.5">
-              <Label>Dirección</Label>
-              <Input value={form.address} onChange={(e) => upd("address", e.target.value)} placeholder="Calle, número, piso" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Ciudad</Label>
-              <Input value={form.city} onChange={(e) => upd("city", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Provincia</Label>
-              <Input value={form.province} onChange={(e) => upd("province", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Código postal</Label>
-              <Input value={form.postalCode} onChange={(e) => upd("postalCode", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Plan</Label>
-              <Select value={form.planType} onValueChange={(v) => upd("planType", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(["Ninguno", "Agua", "Luz", "Clima"] as ClientPlanType[]).map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Colaborador</Label>
-              <Select value={form.collaboratorId ?? "none"} onValueChange={handleCollaboratorChange}>
-                <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin colaborador</SelectItem>
-                  {collaborators.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave}>Crear cliente</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ClientFormDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        form={form}
+        setForm={setForm}
+        onSave={handleCreate}
+        collaborators={collaborators}
+        title="Nuevo Cliente"
+        saveLabel="Crear cliente"
+      />
+
+      {/* Dialog editar cliente */}
+      <ClientFormDialog
+        open={!!editTarget}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        form={form}
+        setForm={setForm}
+        onSave={handleEdit}
+        collaborators={collaborators}
+        title={`Editar ${editTarget?.id ?? ""}`}
+        saveLabel="Guardar cambios"
+      />
 
       {/* Dialog confirmar eliminación */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
