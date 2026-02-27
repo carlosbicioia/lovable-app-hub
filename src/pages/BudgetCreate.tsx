@@ -99,9 +99,9 @@ export default function BudgetCreate() {
   };
 
   const calcLine = (l: BudgetLine) => {
-    const salePrice = l.costPrice * (1 + l.margin / 100);
-    const lineSubtotal = salePrice * l.units;
-    const lineTax = lineSubtotal * (l.taxRate / 100);
+    const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+    const lineSubtotal = Math.round(salePrice * l.units * 100) / 100;
+    const lineTax = Math.round(lineSubtotal * (l.taxRate / 100) * 100) / 100;
     return { salePrice, lineSubtotal, lineTax };
   };
 

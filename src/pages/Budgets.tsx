@@ -38,10 +38,10 @@ function calcBudgetTotals(lines: { costPrice: number; margin: number; units: num
   let subtotal = 0;
   let totalTax = 0;
   for (const l of lines) {
-    const salePrice = l.costPrice * (1 + l.margin / 100);
-    const lineTotal = salePrice * l.units;
+    const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+    const lineTotal = Math.round(salePrice * l.units * 100) / 100;
     subtotal += lineTotal;
-    totalTax += lineTotal * (l.taxRate / 100);
+    totalTax += Math.round(lineTotal * (l.taxRate / 100) * 100) / 100;
   }
   return { subtotal, totalTax, total: subtotal + totalTax };
 }
