@@ -158,24 +158,24 @@ export default function PurchaseCreate() {
         <CardContent>
           <div className="space-y-3">
             {lines.map((l, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-3 space-y-1">
+              <div key={i} className="grid gap-2 items-end" style={{ gridTemplateColumns: "2fr 5fr 70px 80px 100px auto" }}>
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Artículo</Label>}
                   <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre" />
                 </div>
-                <div className="col-span-3 space-y-1">
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Descripción</Label>}
                   <Textarea value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Descripción del artículo…" className="min-h-[40px] resize-y" rows={1} />
                 </div>
-                <div className="col-span-1 space-y-1">
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Uds.</Label>}
-                  <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
+                  <Input type="number" className="text-center px-1" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Coste</Label>}
-                  <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                  <Input type="number" step="0.01" className="px-1" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">IVA</Label>}
                   <Select value={String(l.taxRate)} onValueChange={(v) => updateLine(i, "taxRate", Number(v))}>
                     <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
@@ -187,7 +187,7 @@ export default function PurchaseCreate() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="col-span-1">
+                <div>
                   <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
