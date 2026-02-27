@@ -16,11 +16,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useClients } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
+import { useSpecialties } from "@/hooks/useIndustrialConfig";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceStatus, BudgetStatus } from "@/types/urbango";
@@ -32,9 +37,18 @@ export default function ServiceEdit() {
   const { data: clients = [] } = useClients();
   const { collaborators } = useCollaborators();
   const { data: allOperators = [] } = useOperators();
+  const { data: dbSpecialties = [] } = useSpecialties();
+  const activeSpecialties = dbSpecialties.filter(s => s.active);
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
+  const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
 
+  const handleServiceTypeChange = (v: string) => {
+    setServiceType(v as ServiceType);
+    if (v === "Presupuesto" && service?.serviceType !== "Presupuesto") {
+      setShowBudgetPrompt(true);
+    }
+  };
   // ── All state ──
   const [clientId, setClientId] = useState("");
   const [clientOpen, setClientOpen] = useState(false);
@@ -261,18 +275,20 @@ export default function ServiceEdit() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Colaborador</Label>
-              <Select value={collaboratorId} onValueChange={setCollaboratorId}>
-                <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin colaborador</SelectItem>
-                  {collaborators.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {origin === "B2B" && (
+              <div className="space-y-2">
+                <Label>Colaborador</Label>
+                <Select value={collaboratorId} onValueChange={setCollaboratorId}>
+                  <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin colaborador</SelectItem>
+                    {collaborators.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {selectedClient && (
@@ -331,9 +347,9 @@ export default function ServiceEdit() {
               <Select value={specialty} onValueChange={(v) => { setSpecialty(v as Specialty); setOperatorId(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Fontanería/Agua">Fontanería / Agua</SelectItem>
-                  <SelectItem value="Electricidad/Luz">Electricidad / Luz</SelectItem>
-                  <SelectItem value="Clima">Clima</SelectItem>
+                  {activeSpecialties.map((s) => (
+                    <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -352,7 +368,7 @@ export default function ServiceEdit() {
 
             <div className="space-y-2">
               <Label>Tipo de servicio</Label>
-              <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
+              <Select value={serviceType} onValueChange={handleServiceTypeChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Reparación_Directa">Reparación directa</SelectItem>
@@ -554,6 +570,24 @@ export default function ServiceEdit() {
           {saving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </div>
+
+      {/* Budget creation prompt */}
+      <AlertDialog open={showBudgetPrompt} onOpenChange={setShowBudgetPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Crear presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Has cambiado el tipo a "Requiere presupuesto". ¿Quieres crear el presupuesto ahora?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Más tarde</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+              Crear presupuesto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
