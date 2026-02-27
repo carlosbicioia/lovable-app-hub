@@ -26,6 +26,7 @@ import { useCollaborators } from "@/hooks/useCollaborators";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceStatus, BudgetStatus } from "@/types/urbango";
@@ -42,8 +43,19 @@ export default function ServiceEdit() {
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
+  const [hasBudget, setHasBudget] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    supabase.from("budgets").select("id").eq("service_id", id).limit(1)
+      .then(({ data }) => setHasBudget((data?.length ?? 0) > 0));
+  }, [id]);
 
   const handleServiceTypeChange = (v: string) => {
+    if (v === "Reparación_Directa" && hasBudget) {
+      toast({ title: "No permitido", description: "No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina el servicio y créalo de nuevo.", variant: "destructive" });
+      return;
+    }
     setServiceType(v as ServiceType);
     if (v === "Presupuesto" && service?.serviceType !== "Presupuesto") {
       setShowBudgetPrompt(true);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,9 +7,11 @@ import { Wrench, Zap, User, Activity, CalendarClock, ClipboardList } from "lucid
 import { useOperators } from "@/hooks/useOperators";
 import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
+import { supabase } from "@/integrations/supabase/client";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Props {
   service: Service;
@@ -21,6 +23,12 @@ export default function ServiceInfoCards({ service }: Props) {
   const { data: operators = [] } = useOperators();
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
+  const [hasBudget, setHasBudget] = useState(false);
+
+  useEffect(() => {
+    supabase.from("budgets").select("id").eq("service_id", service.id).limit(1)
+      .then(({ data }) => setHasBudget((data?.length ?? 0) > 0));
+  }, [service.id]);
 
   const handleUpdate = async (field: string, value: string | null) => {
     setSaving(field);
@@ -188,6 +196,10 @@ export default function ServiceInfoCards({ service }: Props) {
           <Select
             value={service.serviceType}
             onValueChange={(v) => {
+              if (v === "Reparación_Directa" && hasBudget) {
+                toast.error("No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina el servicio y créalo de nuevo.");
+                return;
+              }
               handleUpdate("service_type", v);
               if (v === "Presupuesto" && service.serviceType !== "Presupuesto") {
                 setShowBudgetPrompt(true);
