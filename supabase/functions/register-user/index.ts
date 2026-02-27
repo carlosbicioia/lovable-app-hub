@@ -34,13 +34,12 @@ Deno.serve(async (req) => {
     { global: { headers: { Authorization: authHeader } } }
   );
 
-  const token = authHeader.replace("Bearer ", "");
-  const { data: claims, error: claimsErr } = await anonClient.auth.getClaims(token);
-  if (claimsErr || !claims?.claims) {
+  const { data: { user: caller }, error: userErr } = await anonClient.auth.getUser();
+  if (userErr || !caller) {
     return errorResponse("Token inválido", 401);
   }
 
-  const callerId = claims.claims.sub as string;
+  const callerId = caller.id;
 
   // Check admin role using service role client
   const serviceClient = createClient(
