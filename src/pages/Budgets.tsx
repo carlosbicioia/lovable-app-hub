@@ -11,6 +11,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useServices } from "@/hooks/useServices";
 import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
+import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,15 +58,12 @@ export default function Budgets() {
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
 
-  // Default protocol steps — matches Settings page config
-  const protocolSteps: ProtocolStep[] = useMemo(() => [
-    { id: "contact", label: "Contacto con cliente (SLA 12h)" },
-    { id: "diagnosis", label: "Diagnóstico multimedia" },
-    { id: "operator", label: "Técnico asignado" },
-    { id: "materials", label: "Material preparado" },
-    { id: "budget", label: "Presupuesto gestionado" },
-    { id: "nps", label: "NPS recogido" },
-  ], []);
+  // Protocol steps from DB
+  const { data: enabledSteps = [] } = useEnabledProtocolSteps();
+  const protocolSteps: ProtocolStep[] = useMemo(
+    () => enabledSteps.map((s) => ({ id: s.stepId, label: s.label })),
+    [enabledSteps]
+  );
 
   // Batch fetch protocol checks for all budget service IDs
   const budgetServiceIds = useMemo(() => [...new Set(budgets.map((b) => b.serviceId))], [budgets]);

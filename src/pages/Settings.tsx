@@ -16,6 +16,7 @@ import {
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useProtocolSteps, useUpdateProtocolStep, useCreateProtocolStep, useDeleteProtocolStep } from "@/hooks/useProtocolSteps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -476,15 +477,11 @@ export default function Settings() {
   const [resetPwUser, setResetPwUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
-  // Protocol state
-  const [protocolItems, setProtocolItems] = useState([
-    { label: "Contacto con cliente (SLA 12h)", description: "Primer contacto telefónico o por email dentro del SLA establecido", enabled: true },
-    { label: "Diagnóstico multimedia", description: "Recibir fotos o vídeos del problema reportado", enabled: true },
-    { label: "Técnico asignado (por cluster y especialidad)", description: "Asignar un técnico del cluster correcto con la especialidad adecuada", enabled: true },
-    { label: "Material preparado", description: "Confirmar que los materiales necesarios están disponibles", enabled: true },
-    { label: "Presupuesto gestionado", description: "Solo para servicios con presupuesto: enviar y obtener aprobación", enabled: true },
-    { label: "NPS recogido", description: "Recoger la encuesta de satisfacción al finalizar", enabled: true },
-  ]);
+  // Protocol - now from DB
+  const { data: protocolItems = [], isLoading: protocolLoading } = useProtocolSteps();
+  const updateStep = useUpdateProtocolStep();
+  const createStep = useCreateProtocolStep();
+  const deleteStep = useDeleteProtocolStep();
   const [newStepLabel, setNewStepLabel] = useState("");
   const [newStepDesc, setNewStepDesc] = useState("");
   const [showNewStep, setShowNewStep] = useState(false);
@@ -1038,88 +1035,103 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                {protocolItems.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-card-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={item.enabled}
-                        onCheckedChange={(checked) =>
-                          setProtocolItems((prev) =>
-                            prev.map((p, idx) => idx === i ? { ...p, enabled: checked } : p)
-                          )
-                        }
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => setProtocolItems((prev) => prev.filter((_, idx) => idx !== i))}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {showNewStep ? (
-                  <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-sm">Nombre del paso *</Label>
-                      <Input
-                        value={newStepLabel}
-                        onChange={(e) => setNewStepLabel(e.target.value)}
-                        placeholder="Ej: Verificar garantía del equipo"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Descripción</Label>
-                      <Input
-                        value={newStepDesc}
-                        onChange={(e) => setNewStepDesc(e.target.value)}
-                        placeholder="Ej: Comprobar si el equipo está en período de garantía"
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setShowNewStep(false);
-                          setNewStepLabel("");
-                          setNewStepDesc("");
-                        }}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        size="sm"
-                        disabled={!newStepLabel.trim()}
-                        onClick={() => {
-                          setProtocolItems((prev) => [
-                            ...prev,
-                            { label: newStepLabel.trim(), description: newStepDesc.trim(), enabled: true },
-                          ]);
-                          setNewStepLabel("");
-                          setNewStepDesc("");
-                          setShowNewStep(false);
-                        }}
-                      >
-                        Añadir
-                      </Button>
-                    </div>
-                  </div>
+                {protocolLoading ? (
+                  [1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full" />)
                 ) : (
-                  <Button variant="outline" className="w-full" onClick={() => setShowNewStep(true)}>
-                    <Plus className="w-4 h-4 mr-2" /> Añadir paso al protocolo
-                  </Button>
+                  <>
+                    {protocolItems.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-card-foreground">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={item.enabled}
+                            onCheckedChange={(checked) =>
+                              updateStep.mutate({ id: item.id, enabled: !!checked })
+                            }
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => deleteStep.mutate(item.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {showNewStep ? (
+                      <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
+                        <div className="space-y-2">
+                          <Label className="text-sm">Nombre del paso *</Label>
+                          <Input
+                            value={newStepLabel}
+                            onChange={(e) => setNewStepLabel(e.target.value)}
+                            placeholder="Ej: Verificar garantía del equipo"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm">Descripción</Label>
+                          <Input
+                            value={newStepDesc}
+                            onChange={(e) => setNewStepDesc(e.target.value)}
+                            placeholder="Ej: Comprobar si el equipo está en período de garantía"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setShowNewStep(false);
+                              setNewStepLabel("");
+                              setNewStepDesc("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={!newStepLabel.trim() || createStep.isPending}
+                            onClick={() => {
+                              const stepId = newStepLabel.trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+                              createStep.mutate(
+                                {
+                                  stepId,
+                                  label: newStepLabel.trim(),
+                                  description: newStepDesc.trim(),
+                                  sortOrder: protocolItems.length,
+                                },
+                                {
+                                  onSuccess: () => {
+                                    setNewStepLabel("");
+                                    setNewStepDesc("");
+                                    setShowNewStep(false);
+                                    toast.success("Paso añadido al protocolo");
+                                  },
+                                  onError: (e: any) => toast.error(e.message),
+                                }
+                              );
+                            }}
+                          >
+                            Añadir
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button variant="outline" className="w-full" onClick={() => setShowNewStep(true)}>
+                        <Plus className="w-4 h-4 mr-2" /> Añadir paso al protocolo
+                      </Button>
+                    )}
+                  </>
                 )}
 
-                <p className="text-xs text-muted-foreground">Los cambios se aplicarán a todos los servicios nuevos. Los servicios existentes mantendrán su protocolo actual.</p>
+                <p className="text-xs text-muted-foreground">Los cambios se aplican inmediatamente a todos los servicios y presupuestos.</p>
               </div>
             </CardContent>
           </Card>
