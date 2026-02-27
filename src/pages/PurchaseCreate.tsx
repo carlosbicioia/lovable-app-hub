@@ -169,11 +169,11 @@ export default function PurchaseCreate() {
                 </div>
                 <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Uds.</Label>}
-                  <Input type="number" className="text-center px-1" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
+                  <Input type="number" min="0" max="99999" className="text-center px-1" value={l.units} onChange={(e) => updateLine(i, "units", Math.max(0, Number(e.target.value)))} />
                 </div>
                 <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Coste</Label>}
-                  <Input type="number" step="0.01" className="px-1" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                  <Input type="number" min="0" max="99999" step="0.01" className="px-1" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Math.max(0, Number(e.target.value)))} />
                 </div>
                 <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">IVA</Label>}
