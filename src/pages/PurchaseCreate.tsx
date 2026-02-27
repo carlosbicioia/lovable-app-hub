@@ -4,7 +4,7 @@ import { useCreatePurchaseOrder, useNextPurchaseOrderId } from "@/hooks/usePurch
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
-import { mockOperators } from "@/data/mockData";
+import { useOperators } from "@/hooks/useOperators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,8 @@ export default function PurchaseCreate() {
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-  const selectedOp = mockOperators.find((o) => o.id === operatorId);
+  const { data: operators = [] } = useOperators();
+  const selectedOp = operators.find((o) => o.id === operatorId);
   const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
   const totalTax = lines.reduce((s, l) => s + l.units * l.costPrice * (l.taxRate / 100), 0);
   const total = subtotal + totalTax;
@@ -127,7 +128,7 @@ export default function PurchaseCreate() {
                 placeholder="Asignar operario…"
                 searchPlaceholder="Nombre del operario…"
                 emptyText="Sin operarios"
-                options={mockOperators.map((o) => ({
+                options={operators.map((o) => ({
                   value: o.id,
                   label: o.name,
                   subtitle: `${o.specialty} · NPS ${o.npsMean}`,

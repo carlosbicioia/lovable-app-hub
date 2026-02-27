@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wrench, Zap, User, Activity, CalendarClock, ClipboardList } from "lucide-react";
-import { mockOperators } from "@/data/mockData";
+import { useOperators } from "@/hooks/useOperators";
 import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
 import { format, isSameDay } from "date-fns";
@@ -15,6 +15,7 @@ interface Props {
 
 export default function ServiceInfoCards({ service }: Props) {
   const { updateService } = useServices();
+  const { data: operators = [] } = useOperators();
   const [saving, setSaving] = useState<string | null>(null);
 
   const handleUpdate = async (field: string, value: string | null) => {
@@ -23,7 +24,7 @@ export default function ServiceInfoCards({ service }: Props) {
 
     // Sync related name fields
     if (field === "operator_id") {
-      const op = mockOperators.find((o) => o.id === value);
+      const op = operators.find((o) => o.id === value);
       updates.operator_name = op?.name ?? null;
     }
 
@@ -42,11 +43,11 @@ export default function ServiceInfoCards({ service }: Props) {
     return map[s] ?? s;
   };
 
-  const availableOperators = mockOperators.filter(
+  const availableOperators = operators.filter(
     (o) => o.status === "Activo" && o.available
   );
   // Include current operator
-  const currentOp = service.operatorId ? mockOperators.find((o) => o.id === service.operatorId) : null;
+  const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
   const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
     ? [currentOp, ...availableOperators]
     : availableOperators;

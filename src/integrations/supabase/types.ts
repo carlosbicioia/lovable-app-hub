@@ -204,6 +204,63 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          address: string
+          city: string
+          cluster_id: string
+          collaborator_id: string | null
+          collaborator_name: string | null
+          created_at: string
+          dni: string
+          email: string
+          id: string
+          last_service_date: string | null
+          name: string
+          phone: string
+          plan_type: string
+          postal_code: string
+          province: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          cluster_id?: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          dni?: string
+          email?: string
+          id: string
+          last_service_date?: string | null
+          name?: string
+          phone?: string
+          plan_type?: string
+          postal_code?: string
+          province?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          cluster_id?: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          dni?: string
+          email?: string
+          id?: string
+          last_service_date?: string | null
+          name?: string
+          phone?: string
+          plan_type?: string
+          postal_code?: string
+          province?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       collaborators: {
         Row: {
           active_services: number
@@ -515,6 +572,137 @@ export type Database = {
           id?: string
           notification_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      operator_monthly_revenue: {
+        Row: {
+          created_at: string
+          id: string
+          month: string
+          operator_id: string
+          revenue: number
+          services: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: string
+          operator_id: string
+          revenue?: number
+          services?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: string
+          operator_id?: string
+          revenue?: number
+          services?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_monthly_revenue_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operators: {
+        Row: {
+          active_services: number
+          address: string
+          available: boolean
+          avg_response_time: number
+          certifications: string[]
+          city: string
+          cluster_id: string
+          cluster_ids: string[]
+          color: string
+          completed_services: number
+          created_at: string
+          dni: string
+          email: string
+          first_name: string
+          hire_date: string | null
+          id: string
+          last_name: string
+          last_service_date: string | null
+          name: string
+          nps_mean: number
+          phone: string
+          photo: string
+          province: string
+          secondary_specialty: string | null
+          specialty: string
+          status: string
+          total_revenue: number
+          updated_at: string
+          vehicle_plate: string | null
+        }
+        Insert: {
+          active_services?: number
+          address?: string
+          available?: boolean
+          avg_response_time?: number
+          certifications?: string[]
+          city?: string
+          cluster_id?: string
+          cluster_ids?: string[]
+          color?: string
+          completed_services?: number
+          created_at?: string
+          dni?: string
+          email?: string
+          first_name?: string
+          hire_date?: string | null
+          id: string
+          last_name?: string
+          last_service_date?: string | null
+          name?: string
+          nps_mean?: number
+          phone?: string
+          photo?: string
+          province?: string
+          secondary_specialty?: string | null
+          specialty?: string
+          status?: string
+          total_revenue?: number
+          updated_at?: string
+          vehicle_plate?: string | null
+        }
+        Update: {
+          active_services?: number
+          address?: string
+          available?: boolean
+          avg_response_time?: number
+          certifications?: string[]
+          city?: string
+          cluster_id?: string
+          cluster_ids?: string[]
+          color?: string
+          completed_services?: number
+          created_at?: string
+          dni?: string
+          email?: string
+          first_name?: string
+          hire_date?: string | null
+          id?: string
+          last_name?: string
+          last_service_date?: string | null
+          name?: string
+          nps_mean?: number
+          phone?: string
+          photo?: string
+          province?: string
+          secondary_specialty?: string | null
+          specialty?: string
+          status?: string
+          total_revenue?: number
+          updated_at?: string
+          vehicle_plate?: string | null
         }
         Relationships: []
       }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "react";
-import { mockOperators } from "@/data/mockData";
+import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import {
   format,
@@ -81,9 +81,11 @@ const statusLabels: Record<string, string> = {
   Liquidado: "Liquidado",
 };
 
+// operators cache for getOperatorColor - set by CalendarView component
+let _operatorsCache: any[] = [];
 function getOperatorColor(operatorId: string | null): { bg: string; text: string; border: string } {
   if (!operatorId) return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))", border: "hsl(var(--border))" };
-  const op = mockOperators.find((o) => o.id === operatorId);
+  const op = _operatorsCache.find((o: any) => o.id === operatorId);
   if (!op) return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))", border: "hsl(var(--border))" };
   return {
     bg: `hsl(${op.color} / 0.15)`,
@@ -258,9 +260,11 @@ function DayView({
     (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date)
   );
 
+  const { data: allOps = [] } = useOperators();
+  _operatorsCache = allOps;
   const operators = selectedOperatorId
-    ? mockOperators.filter((op) => op.id === selectedOperatorId)
-    : mockOperators;
+    ? allOps.filter((op) => op.id === selectedOperatorId)
+    : allOps;
   const unassigned = scheduledServices.filter((s) => !s.operatorId);
 
   // ── Hour range selection state ──
@@ -851,7 +855,7 @@ function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: {
       >
         <span className="text-sm font-medium text-foreground">Todos los operarios</span>
       </button>
-      {mockOperators.map((op) => {
+      {allOps.map((op) => {
         const assignedCount = services.filter(
           (s) =>
             s.operatorId === op.id &&
@@ -912,7 +916,7 @@ export default function CalendarView() {
   }, [services, selectedOperatorId, selectedSpecialty, selectedStatus]);
 
   const selectedOperatorName = selectedOperatorId
-    ? mockOperators.find((o) => o.id === selectedOperatorId)?.name ?? null
+    ? allOps.find((o) => o.id === selectedOperatorId)?.name ?? null
     : null;
 
   // ── Create-from-calendar dialog state ──
@@ -1088,7 +1092,7 @@ export default function CalendarView() {
           <CollapsibleContent className="absolute z-50 mt-1 w-72 rounded-lg border border-border bg-popover p-3 shadow-lg">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operarios</p>
             <div className="space-y-1.5">
-              {mockOperators.map((op) => (
+              {allOps.map((op) => (
                 <div key={op.id} className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(${op.color})` }} />
                   <span className="text-xs text-foreground">{op.name}</span>

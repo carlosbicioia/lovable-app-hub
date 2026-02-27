@@ -1,4 +1,4 @@
-import { mockServices } from "@/data/mockData";
+import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -18,9 +18,10 @@ const statusLabels: Record<string, string> = {
 
 export default function CollaboratorPortal() {
   const { user, collaboratorId, signOut } = useAuth();
+  const { services: allServices } = useServices();
 
   // Filter services for this collaborator
-  const services = mockServices.filter((s) => s.collaboratorId === collaboratorId);
+  const services = allServices.filter((s) => s.collaboratorId === collaboratorId);
 
   const activeCount = services.filter((s) => !["Finalizado", "Liquidado"].includes(s.status)).length;
   const completedCount = services.filter((s) => ["Finalizado", "Liquidado"].includes(s.status)).length;
