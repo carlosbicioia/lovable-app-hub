@@ -17,9 +17,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download } from "lucide-react";
+import DatePresetSelect from "@/components/shared/DatePresetSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -404,33 +403,11 @@ export default function Purchases() {
               className="w-[200px] h-9 text-sm"
             />
           )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
-              <CalendarIcon className="w-3.5 h-3.5" />
-              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Desde"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" locale={es} />
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateTo && "text-muted-foreground")}>
-              <CalendarIcon className="w-3.5 h-3.5" />
-              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Hasta"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" locale={es} />
-          </PopoverContent>
-        </Popover>
-        {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
-            Limpiar fechas
-          </Button>
-        )}
+        <DatePresetSelect
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateChange={(from, to) => { setDateFrom(from); setDateTo(to); }}
+        />
       </div>
 
         <TabsContent value="oc" className="mt-4 space-y-4">

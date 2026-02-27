@@ -4,7 +4,7 @@ import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Search, Plus, Filter, FileText, Upload, Loader2, Mic, CalendarIcon } from "lucide-react";
+import { Search, Plus, Filter, FileText, Upload, Loader2, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -23,8 +23,7 @@ import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
 import SearchableSelect from "@/components/shared/SearchableSelect";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import DatePresetSelect from "@/components/shared/DatePresetSelect";
 import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types/urbango";
 
 const statusOptions: { value: ServiceStatus; label: string }[] = [
@@ -293,33 +292,11 @@ export default function Services() {
           emptyText="Sin resultados"
           className="w-[200px] h-9 text-sm"
         />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
-              <CalendarIcon className="w-3.5 h-3.5" />
-              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Desde"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" locale={es} />
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateTo && "text-muted-foreground")}>
-              <CalendarIcon className="w-3.5 h-3.5" />
-              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Hasta"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" locale={es} />
-          </PopoverContent>
-        </Popover>
-        {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
-            Limpiar fechas
-          </Button>
-        )}
+        <DatePresetSelect
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateChange={(from, to) => { setDateFrom(from); setDateTo(to); }}
+        />
       </div>
 
       <BulkActionBar count={bulk.count} onClear={bulk.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="servicios" />
