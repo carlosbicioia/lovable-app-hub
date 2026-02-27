@@ -401,18 +401,20 @@ export default function ServiceCreate() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Colaborador</Label>
-              <Select value={collaboratorId} onValueChange={setCollaboratorId}>
-                <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin colaborador</SelectItem>
-                  {collaborators.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {origin === "B2B" && (
+              <div className="space-y-2">
+                <Label>Colaborador</Label>
+                <Select value={collaboratorId} onValueChange={setCollaboratorId}>
+                  <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin colaborador</SelectItem>
+                    {collaborators.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {selectedClient && (
