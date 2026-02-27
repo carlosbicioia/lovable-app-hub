@@ -651,7 +651,12 @@ export default function Settings() {
                 <CardTitle className="text-base">Usuarios con acceso</CardTitle>
                 <CardDescription>Usuarios autenticados en la plataforma y sus roles asignados</CardDescription>
               </div>
-              <span className="text-xs text-muted-foreground">{systemUsers?.length ?? 0} usuario(s)</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">{systemUsers?.length ?? 0} usuario(s)</span>
+                <Button size="sm" onClick={() => setShowNewUser(true)}>
+                  <Plus className="w-4 h-4 mr-1.5" /> Nuevo Usuario
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {systemUsersLoading ? (
@@ -1088,8 +1093,19 @@ export default function Settings() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {roles.map(r => (
-                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    <SelectItem key={r.value} value={r.value}>
+                      <div>
+                        <p className="text-sm font-medium">{r.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{r.desc}</p>
+                      </div>
+                    </SelectItem>
                   ))}
+                  <SelectItem value="colaborador">
+                    <div>
+                      <p className="text-sm font-medium">Colaborador</p>
+                      <p className="text-[10px] text-muted-foreground">Acceso al portal de colaborador</p>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
