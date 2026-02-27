@@ -1,4 +1,5 @@
 import { useClients, useCreateClient } from "@/hooks/useClients";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import { Search, Plus, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export default function Clients() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyClient());
   const createClient = useCreateClient();
+  const { collaborators } = useCollaborators();
 
   const filtered = clients.filter(
     (c) =>
@@ -47,6 +49,15 @@ export default function Clients() {
   };
 
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleCollaboratorChange = (value: string) => {
+    if (value === "none") {
+      setForm((prev) => ({ ...prev, collaboratorId: null, collaboratorName: null }));
+    } else {
+      const collab = collaborators.find((c) => c.id === value);
+      setForm((prev) => ({ ...prev, collaboratorId: value, collaboratorName: collab?.companyName ?? null }));
+    }
+  };
 
   if (isLoading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
@@ -160,6 +171,18 @@ export default function Clients() {
                 <SelectContent>
                   {(["Ninguno", "Agua", "Luz", "Clima"] as ClientPlanType[]).map((p) => (
                     <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Colaborador</Label>
+              <Select value={form.collaboratorId ?? "none"} onValueChange={handleCollaboratorChange}>
+                <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin colaborador</SelectItem>
+                  {collaborators.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
