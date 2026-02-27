@@ -8,6 +8,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { useServices } from "@/hooks/useServices";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useClients } from "@/hooks/useClients";
 import { useOperators } from "@/hooks/useOperators";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export default function Dashboard() {
   const { collaborators } = useCollaborators();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
   const { data: operators = [] } = useOperators();
+  const { data: clients = [] } = useClients();
 
   const alertOrders = purchaseOrders.filter((o) => o.status === "Borrador");
 
@@ -60,7 +62,7 @@ export default function Dashboard() {
   const operatorNpsValues = operators.filter((op) => op.npsMean > 0).map((op) => op.npsMean);
   const avgNps = operatorNpsValues.length > 0 ? (operatorNpsValues.reduce((a, b) => a + b, 0) / operatorNpsValues.length).toFixed(1) : "—";
 
-  const uniqueClients = new Set(filtered.map((s) => s.clientId)).size;
+  const uniqueClients = clients.length;
   const uniqueCollabs = collaborators.length;
 
   // Chart data: group by day or week depending on range span
