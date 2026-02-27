@@ -1354,6 +1354,51 @@ export type Database = {
         }
         Relationships: []
       }
+      time_records: {
+        Row: {
+          created_at: string
+          hours: number
+          id: string
+          latitude: number | null
+          location: string
+          longitude: number | null
+          notes: string | null
+          operator_id: string
+          record_date: string
+          service_id: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hours?: number
+          id?: string
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          notes?: string | null
+          operator_id: string
+          record_date?: string
+          service_id?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hours?: number
+          id?: string
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          notes?: string | null
+          operator_id?: string
+          record_date?: string
+          service_id?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           collaborator_id: string | null
