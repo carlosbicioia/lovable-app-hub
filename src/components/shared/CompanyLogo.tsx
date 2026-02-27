@@ -8,9 +8,9 @@ interface CompanyLogoProps {
 }
 
 const sizeClasses = {
-  sm: "w-8 h-8",
-  md: "w-12 h-12",
-  lg: "w-20 h-20",
+  sm: "w-32 h-32",
+  md: "w-48 h-48",
+  lg: "w-80 h-80",
 };
 
 export default function CompanyLogo({ className, fallback, size = "md" }: CompanyLogoProps) {
