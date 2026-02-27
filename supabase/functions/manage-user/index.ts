@@ -88,7 +88,6 @@ Deno.serve(async (req) => {
         ban_duration: "876000h",
       });
       if (error) return errorResponse(error.message, 422);
-      // Sync app_users active status
       const { data: profile } = await serviceClient.from("profiles").select("email").eq("id", targetUserId).maybeSingle();
       if (profile?.email) {
         await serviceClient.from("app_users").update({ active: false }).eq("email", profile.email);
@@ -108,22 +107,35 @@ Deno.serve(async (req) => {
       return jsonResponse({ message: "Usuario reactivado" });
     }
 
-    case "delete": {
-      // Delete user from auth (cascades to profiles via FK, user_roles via FK)
-      const { error } = await serviceClient.auth.admin.deleteUser(targetUserId);
+    case "reset_password": {
+      // Get user email
+      const { data: profile3 } = await serviceClient.from("profiles").select("email").eq("id", targetUserId).maybeSingle();
+      if (!profile3?.email) return errorResponse("No se encontró el email del usuario", 404);
+
+      // Generate a new random password
+      const newPassword = body.new_password as string | undefined;
+      if (!newPassword || newPassword.length < 8) {
+        return errorResponse("Se requiere una contraseña de al menos 8 caracteres", 400);
+      }
+
+      const { error } = await serviceClient.auth.admin.updateUserById(targetUserId, {
+        password: newPassword,
+      });
       if (error) return errorResponse(error.message, 422);
 
-      // Also clean up app_users if exists
+      return jsonResponse({ message: `Contraseña actualizada. Comunica la nueva contraseña al usuario: ${profile3.email}` });
+    }
+
+    case "delete": {
+      const { error } = await serviceClient.auth.admin.deleteUser(targetUserId);
+      if (error) return errorResponse(error.message, 422);
       await serviceClient.from("app_users").delete().eq("email",
-        // We need to find by email since app_users doesn't have auth user_id
-        // Let's just try to clean up
         (await serviceClient.from("profiles").select("email").eq("id", targetUserId).maybeSingle())?.data?.email ?? ""
       );
-
       return jsonResponse({ message: "Usuario eliminado permanentemente" });
     }
 
     default:
-      return errorResponse("Acción inválida. Opciones: ban, unban, delete", 400);
+      return errorResponse("Acción inválida. Opciones: ban, unban, reset_password, delete", 400);
   }
 });

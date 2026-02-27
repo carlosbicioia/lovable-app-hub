@@ -86,9 +86,9 @@ export function useUpdateUserRole() {
 export function useManageUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, action }: { userId: string; action: "ban" | "unban" | "delete" }) => {
+    mutationFn: async ({ userId, action, new_password }: { userId: string; action: "ban" | "unban" | "delete" | "reset_password"; new_password?: string }) => {
       const { data, error } = await supabase.functions.invoke("manage-user", {
-        body: { user_id: userId, action },
+        body: { user_id: userId, action, ...(new_password ? { new_password } : {}) },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Building2, Users, Shield, FileText, Bell, Palette, Mail,
+  Building2, Users, Shield, FileText, Bell, Palette, Mail, KeyRound,
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
   Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
@@ -473,6 +473,8 @@ export default function Settings() {
   const [editForm, setEditForm] = useState({ full_name: "", role: "", collaborator_id: "" });
   const updateAppUser = useUpdateAppUser();
   const deleteAppUser = useDeleteAppUser();
+  const [resetPwUser, setResetPwUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   // Protocol state
   const [protocolItems, setProtocolItems] = useState([
@@ -764,6 +766,18 @@ export default function Settings() {
                               className="scale-75"
                             />
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Restablecer contraseña"
+                            onClick={() => {
+                              setResetPwUser({ id: u.id, name: u.full_name, email: u.email });
+                              setNewPassword("");
+                            }}
+                          >
+                            <KeyRound className="w-3.5 h-3.5" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -1312,6 +1326,44 @@ export default function Settings() {
                 Guardar
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={!!resetPwUser} onOpenChange={(o) => !o && setResetPwUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restablecer contraseña</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Establece una nueva contraseña para <strong>{resetPwUser?.name || resetPwUser?.email}</strong>
+          </p>
+          <div className="space-y-2">
+            <Label>Nueva contraseña</Label>
+            <Input
+              type="text"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo 8 caracteres"
+            />
+            {newPassword.length > 0 && newPassword.length < 8 && (
+              <p className="text-xs text-destructive">La contraseña debe tener al menos 8 caracteres</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetPwUser(null)}>Cancelar</Button>
+            <Button
+              disabled={newPassword.length < 8 || manageUser.isPending}
+              onClick={() => {
+                manageUser.mutate(
+                  { userId: resetPwUser!.id, action: "reset_password", new_password: newPassword },
+                  { onSuccess: () => setResetPwUser(null) }
+                );
+              }}
+            >
+              {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Actualizar contraseña"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
