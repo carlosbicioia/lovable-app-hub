@@ -24,6 +24,8 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
 import KpiCard from "@/components/shared/KpiCard";
 import { format as formatDate } from "date-fns";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -64,6 +66,32 @@ export default function Purchases() {
   const totalInvoiced = useMemo(() => invoices.reduce((s, i) => s + (i.total || 0), 0), [invoices]);
   const totalPending = totalOrdered - totalInvoiced;
   const fmtEur = (v: number) => v.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+
+  // Monthly chart data
+  const monthlyData = useMemo(() => {
+    const map = new Map<string, { pedido: number; facturado: number }>();
+    const addMonth = (date: string | null | undefined, field: "pedido" | "facturado", amount: number) => {
+      if (!date) return;
+      const key = format(new Date(date), "yyyy-MM");
+      const cur = map.get(key) || { pedido: 0, facturado: 0 };
+      cur[field] += amount;
+      map.set(key, cur);
+    };
+    for (const o of orders) addMonth(o.createdAt, "pedido", o.totalCost || 0);
+    for (const i of invoices) addMonth(i.invoiceDate || i.createdAt, "facturado", i.total || 0);
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([month, vals]) => ({
+        month: format(new Date(month + "-01"), "MMM yy", { locale: es }),
+        ...vals,
+      }));
+  }, [orders, invoices]);
+
+  const chartConfig = {
+    pedido: { label: "Pedido", color: "hsl(var(--primary))" },
+    facturado: { label: "Facturado", color: "hsl(var(--success))" },
+  };
 
   // Compute filter options from all data sources
   const supplierOptions = useMemo(() => {
@@ -205,6 +233,24 @@ export default function Purchases() {
         <KpiCard title="Total facturado" value={fmtEur(totalInvoiced)} subtitle={`${invoices.length} facturas`} icon={Receipt} variant="success" />
         <KpiCard title="Pendiente facturar" value={fmtEur(Math.max(0, totalPending))} subtitle={totalPending < 0 ? "Sobrefacturado" : undefined} icon={Clock} variant={totalPending > 0 ? "warning" : "info"} />
       </div>
+
+      {monthlyData.length > 0 && (
+        <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" /> Evolución mensual
+          </h3>
+          <ChartContainer config={chartConfig} className="h-[220px] w-full">
+            <BarChart data={monthlyData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-[11px]" />
+              <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} className="text-[11px]" width={40} />
+              <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmtEur(Number(value))} />} />
+              <Bar dataKey="pedido" fill="var(--color-pedido)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="facturado" fill="var(--color-facturado)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
         <TabsList className="mb-4">
