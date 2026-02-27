@@ -15,13 +15,14 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon } from "lucide-react";
+import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon, TrendingUp, Receipt, Clock } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
+import KpiCard from "@/components/shared/KpiCard";
 import { format as formatDate } from "date-fns";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
@@ -57,6 +58,12 @@ export default function Purchases() {
   const [filterSupplier, setFilterSupplier] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterService, setFilterService] = useState("all");
+
+  // KPIs
+  const totalOrdered = useMemo(() => orders.reduce((s, o) => s + (o.totalCost || 0), 0), [orders]);
+  const totalInvoiced = useMemo(() => invoices.reduce((s, i) => s + (i.total || 0), 0), [invoices]);
+  const totalPending = totalOrdered - totalInvoiced;
+  const fmtEur = (v: number) => v.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
 
   // Compute filter options from all data sources
   const supplierOptions = useMemo(() => {
@@ -191,6 +198,12 @@ export default function Purchases() {
             </Button>
           )}
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard title="Total pedido" value={fmtEur(totalOrdered)} subtitle={`${orders.length} órdenes`} icon={ShoppingCart} variant="primary" />
+        <KpiCard title="Total facturado" value={fmtEur(totalInvoiced)} subtitle={`${invoices.length} facturas`} icon={Receipt} variant="success" />
+        <KpiCard title="Pendiente facturar" value={fmtEur(Math.max(0, totalPending))} subtitle={totalPending < 0 ? "Sobrefacturado" : undefined} icon={Clock} variant={totalPending > 0 ? "warning" : "info"} />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
