@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/useCompanySettings";
 import { useAppUsers, useCreateAppUser, useUpdateAppUser, useDeleteAppUser } from "@/hooks/useAppUsers";
-import { useSystemUsers, useUpdateUserRole } from "@/hooks/useSystemUsers";
+import { useSystemUsers, useUpdateUserRole, useManageUser } from "@/hooks/useSystemUsers";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useSpecialties, useCreateSpecialty, useUpdateSpecialty, useDeleteSpecialty,
@@ -448,6 +448,7 @@ export default function Settings() {
   const deleteUser = useDeleteAppUser();
   const { data: systemUsers, isLoading: systemUsersLoading } = useSystemUsers();
   const updateRole = useUpdateUserRole();
+  const manageUser = useManageUser();
   const queryClient = useQueryClient();
 
   // Company form state
@@ -681,9 +682,9 @@ export default function Settings() {
                       : u.email?.[0]?.toUpperCase() ?? "?";
                     const roleCfg = roles.find(r => r.value === u.role);
                     return (
-                      <div key={u.id} className="flex items-center justify-between py-3 gap-4">
+                      <div key={u.id} className={cn("flex items-center justify-between py-3 gap-4", u.banned && "opacity-50")}>
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden", u.banned ? "bg-muted" : "bg-primary/10")}>
                             {u.avatar_url ? (
                               <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -691,7 +692,12 @@ export default function Settings() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-card-foreground truncate">{u.full_name || "Sin nombre"}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-card-foreground truncate">{u.full_name || "Sin nombre"}</p>
+                              {u.banned && (
+                                <span className="text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded font-medium">Desactivado</span>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                             <p className="text-[10px] text-muted-foreground/60">
                               Registrado: {new Date(u.created_at).toLocaleDateString("es-ES")}
@@ -701,6 +707,7 @@ export default function Settings() {
                         <div className="flex items-center gap-3 shrink-0">
                           <Select
                             value={u.role ?? "sin_rol"}
+                            disabled={u.banned}
                             onValueChange={(v) => {
                               if (v === "sin_rol") return;
                               updateRole.mutate({ userId: u.id, role: v });
@@ -740,6 +747,16 @@ export default function Settings() {
                               {u.collaborator_id}
                             </span>
                           )}
+                          <div className="flex items-center gap-1">
+                            <Switch
+                              checked={!u.banned}
+                              disabled={manageUser.isPending}
+                              onCheckedChange={(checked) => {
+                                manageUser.mutate({ userId: u.id, action: checked ? "unban" : "ban" });
+                              }}
+                              className="scale-75"
+                            />
+                          </div>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -750,6 +767,18 @@ export default function Settings() {
                             }}
                           >
                             <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => {
+                              if (!confirm(`¿Eliminar permanentemente a ${u.full_name || u.email}? Esta acción no se puede deshacer.`)) return;
+                              manageUser.mutate({ userId: u.id, action: "delete" });
+                            }}
+                            disabled={manageUser.isPending}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                       </div>
@@ -1194,14 +1223,14 @@ export default function Settings() {
               size="sm"
               onClick={() => {
                 if (!editingUser) return;
-                if (!confirm("¿Eliminar este usuario? Esta acción no se puede deshacer.")) return;
-                deleteAppUser.mutate(editingUser.id, {
+                if (!confirm(`¿Eliminar permanentemente a ${editingUser.full_name || editingUser.email}? Esta acción no se puede deshacer.`)) return;
+                manageUser.mutate({ userId: editingUser.id, action: "delete" }, {
                   onSuccess: () => setEditingUser(null),
                 });
               }}
-              disabled={deleteAppUser.isPending}
+              disabled={manageUser.isPending}
             >
-              {deleteAppUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
+              {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
               Eliminar
             </Button>
             <div className="flex gap-2">

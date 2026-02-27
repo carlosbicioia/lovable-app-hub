@@ -10,16 +10,17 @@ export interface SystemUser {
   created_at: string;
   role: string | null;
   collaborator_id: string | null;
+  banned: boolean;
 }
 
 export function useSystemUsers() {
   return useQuery({
     queryKey: ["system_users"],
     queryFn: async () => {
-      // Fetch profiles and user_roles in parallel
-      const [{ data: profiles, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
+      const [{ data: profiles, error: e1 }, { data: roles, error: e2 }, { data: appUsers, error: e3 }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, avatar_url, created_at").order("created_at"),
         supabase.from("user_roles").select("user_id, role, collaborator_id"),
+        supabase.from("app_users").select("email, active"),
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
@@ -27,6 +28,11 @@ export function useSystemUsers() {
       const roleMap = new Map<string, { role: string; collaborator_id: string | null }>();
       (roles ?? []).forEach((r: any) => {
         roleMap.set(r.user_id, { role: r.role, collaborator_id: r.collaborator_id });
+      });
+
+      const activeMap = new Map<string, boolean>();
+      (appUsers ?? []).forEach((a: any) => {
+        activeMap.set(a.email, a.active);
       });
 
       return (profiles ?? []).map((p: any) => ({
@@ -37,6 +43,7 @@ export function useSystemUsers() {
         created_at: p.created_at,
         role: roleMap.get(p.id)?.role ?? null,
         collaborator_id: roleMap.get(p.id)?.collaborator_id ?? null,
+        banned: activeMap.get(p.email) === false,
       })) as SystemUser[];
     },
   });
@@ -72,6 +79,28 @@ export function useUpdateUserRole() {
     },
     onError: (e: any) => {
       toast.error(e.message || "Error al actualizar rol");
+    },
+  });
+}
+
+export function useManageUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, action }: { userId: string; action: "ban" | "unban" | "delete" }) => {
+      const { data, error } = await supabase.functions.invoke("manage-user", {
+        body: { user_id: userId, action },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ["system_users"] });
+      qc.invalidateQueries({ queryKey: ["app_users"] });
+      toast.success(data?.message ?? "Operación completada");
+    },
+    onError: (e: any) => {
+      toast.error(e.message || "Error al gestionar usuario");
     },
   });
 }
