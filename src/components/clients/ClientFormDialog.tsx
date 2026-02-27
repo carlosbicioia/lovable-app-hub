@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { ClientPlanType } from "@/types/urbango";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 export interface ClientFormData {
   clientType: "Particular" | "Empresa";
@@ -36,6 +36,8 @@ interface Props {
 }
 
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
+  const { data: plans = [] } = useSubscriptionPlans();
+  const activePlans = plans.filter((p) => p.active);
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleCollaboratorChange = (value: string) => {
@@ -120,8 +122,9 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             <Select value={form.planType} onValueChange={(v) => upd("planType", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {(["Ninguno", "Agua", "Luz", "Clima"] as ClientPlanType[]).map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                <SelectItem value="Ninguno">Ninguno</SelectItem>
+                {activePlans.map((p) => (
+                  <SelectItem key={p.slug} value={p.name}>{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -33,6 +33,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import TaxTypesConfigTab from "@/components/settings/TaxTypesConfigTab";
 import BulkImportTab from "@/components/settings/BulkImportTab";
+import SubscriptionPlansTab from "@/components/settings/SubscriptionPlansTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -566,6 +567,7 @@ export default function Settings() {
           <TabsTrigger value="protocol" className="text-sm gap-1.5"><Wrench className="w-3.5 h-3.5" /> Protocolo</TabsTrigger>
           <TabsTrigger value="industrial" className="text-sm gap-1.5"><HardHat className="w-3.5 h-3.5" /> Industriales</TabsTrigger>
           <TabsTrigger value="fiscal" className="text-sm gap-1.5"><Percent className="w-3.5 h-3.5" /> Fiscal</TabsTrigger>
+          <TabsTrigger value="plans" className="text-sm gap-1.5"><ShieldCheckIcon className="w-3.5 h-3.5" /> Planes</TabsTrigger>
           <TabsTrigger value="import" className="text-sm gap-1.5"><Database className="w-3.5 h-3.5" /> Importar datos</TabsTrigger>
         </TabsList>
 
@@ -1145,6 +1147,11 @@ export default function Settings() {
         {/* ===== FISCAL ===== */}
         <TabsContent value="fiscal" className="space-y-6 mt-4">
           <TaxTypesConfigTab />
+        </TabsContent>
+
+        {/* ===== PLANES DE SUSCRIPCIÓN ===== */}
+        <TabsContent value="plans" className="space-y-6 mt-4">
+          <SubscriptionPlansTab />
         </TabsContent>
 
         {/* ===== IMPORTAR DATOS ===== */}
