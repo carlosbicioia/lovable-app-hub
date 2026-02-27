@@ -208,9 +208,11 @@ export type Database = {
         Row: {
           address: string
           city: string
+          client_type: string
           cluster_id: string
           collaborator_id: string | null
           collaborator_name: string | null
+          company_name: string
           created_at: string
           dni: string
           email: string
@@ -221,14 +223,17 @@ export type Database = {
           plan_type: string
           postal_code: string
           province: string
+          tax_id: string
           updated_at: string
         }
         Insert: {
           address?: string
           city?: string
+          client_type?: string
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          company_name?: string
           created_at?: string
           dni?: string
           email?: string
@@ -239,14 +244,17 @@ export type Database = {
           plan_type?: string
           postal_code?: string
           province?: string
+          tax_id?: string
           updated_at?: string
         }
         Update: {
           address?: string
           city?: string
+          client_type?: string
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          company_name?: string
           created_at?: string
           dni?: string
           email?: string
@@ -257,6 +265,7 @@ export type Database = {
           plan_type?: string
           postal_code?: string
           province?: string
+          tax_id?: string
           updated_at?: string
         }
         Relationships: []

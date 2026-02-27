@@ -4,8 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface DbClient {
   id: string;
+  clientType: "Particular" | "Empresa";
   name: string;
+  companyName: string;
   dni: string;
+  taxId: string;
   email: string;
   phone: string;
   address: string;
@@ -22,8 +25,11 @@ export interface DbClient {
 function mapRow(r: any): DbClient {
   return {
     id: r.id,
+    clientType: r.client_type ?? "Particular",
     name: r.name,
+    companyName: r.company_name ?? "",
     dni: r.dni,
+    taxId: r.tax_id ?? "",
     email: r.email,
     phone: r.phone,
     address: r.address,
@@ -71,8 +77,11 @@ export function useCreateClient() {
       }
       const { error } = await supabase.from("clients").insert({
         id,
+        client_type: input.clientType,
         name: input.name,
+        company_name: input.companyName,
         dni: input.dni,
+        tax_id: input.taxId,
         email: input.email,
         phone: input.phone,
         address: input.address,

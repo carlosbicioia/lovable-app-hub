@@ -18,7 +18,8 @@ const planColors: Record<string, string> = {
 };
 
 const emptyClient = () => ({
-  name: "", dni: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
+  clientType: "Particular" as "Particular" | "Empresa",
+  name: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
   clusterId: "", collaboratorId: null as string | null, collaboratorName: null as string | null, planType: "Ninguno", lastServiceDate: null as string | null,
 });
 
@@ -40,8 +41,10 @@ export default function Clients() {
   );
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.dni.trim()) {
-      return;
+    if (form.clientType === "Empresa") {
+      if (!form.companyName.trim() || !form.taxId.trim()) return;
+    } else {
+      if (!form.name.trim() || !form.dni.trim()) return;
     }
     await createClient.mutateAsync(form);
     setForm(emptyClient());
@@ -89,7 +92,8 @@ export default function Clients() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Tipo</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI/CIF</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
@@ -102,9 +106,14 @@ export default function Clients() {
               {filtered.map((c) => (
                 <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.id}</td>
-                  <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.dni}</td>
                   <td className="px-5 py-3">
-                    <p className="font-medium text-card-foreground">{c.name}</p>
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", c.clientType === "Empresa" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground")}>
+                      {c.clientType}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.clientType === "Empresa" ? c.taxId : c.dni}</td>
+                  <td className="px-5 py-3">
+                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.name}</p>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
                   </td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>
@@ -132,14 +141,43 @@ export default function Clients() {
             <DialogTitle>Nuevo Cliente</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Nombre *</Label>
-              <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
+            <div className="col-span-2 space-y-1.5">
+              <Label>Tipo de cliente</Label>
+              <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Particular">Particular</SelectItem>
+                  <SelectItem value="Empresa">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>DNI *</Label>
-              <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
-            </div>
+            {form.clientType === "Empresa" ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Razón Social *</Label>
+                  <Input value={form.companyName} onChange={(e) => upd("companyName", e.target.value)} placeholder="Nombre de la empresa" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>CIF *</Label>
+                  <Input value={form.taxId} onChange={(e) => upd("taxId", e.target.value)} placeholder="B12345678" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Persona de contacto</Label>
+                  <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre del contacto" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Nombre *</Label>
+                  <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>DNI *</Label>
+                  <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
+                </div>
+              </>
+            )}
             <div className="space-y-1.5">
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => upd("email", e.target.value)} placeholder="email@ejemplo.com" />
