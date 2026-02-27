@@ -42,6 +42,7 @@ export function useCreateAppUser() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["app_users"] });
+      qc.invalidateQueries({ queryKey: ["system_users"] });
       toast.success(data?.message ?? "Usuario registrado");
       if (data?.warning) toast.warning(data.warning);
     },
