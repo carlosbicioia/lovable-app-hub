@@ -6,6 +6,7 @@ import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useServices } from "@/hooks/useServices";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function Dashboard() {
   const navigate = useNavigate();
   const { services, loading } = useServices();
+  const { collaborators } = useCollaborators();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
 
   const alertOrders = purchaseOrders.filter((o) => o.status === "Borrador");
@@ -57,7 +59,7 @@ export default function Dashboard() {
   const avgNps = npsValues.length > 0 ? (npsValues.reduce((a, b) => a + b, 0) / npsValues.length).toFixed(1) : "—";
 
   const uniqueClients = new Set(filtered.map((s) => s.clientId)).size;
-  const uniqueCollabs = new Set(filtered.filter((s) => s.collaboratorId).map((s) => s.collaboratorId)).size;
+  const uniqueCollabs = collaborators.length;
 
   // Chart data: group by day or week depending on range span
   const chartData = useMemo(() => {
