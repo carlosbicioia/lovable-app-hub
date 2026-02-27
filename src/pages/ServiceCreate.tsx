@@ -15,6 +15,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useClients } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
@@ -40,6 +50,14 @@ export default function ServiceCreate() {
   const [searchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
   const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
+  const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
+
+  const handleServiceTypeChange = (v: string) => {
+    setServiceType(v as ServiceType);
+    if (v === "Presupuesto") {
+      setShowBudgetPrompt(true);
+    }
+  };
 
   // ── Client & origin ──
   const [clientId, setClientId] = useState("");
@@ -483,7 +501,7 @@ export default function ServiceCreate() {
 
             <div className="space-y-2">
               <Label>Tipo de servicio</Label>
-              <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
+              <Select value={serviceType} onValueChange={handleServiceTypeChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Reparación_Directa">Reparación directa</SelectItem>
@@ -809,6 +827,22 @@ export default function ServiceCreate() {
           <Send className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar y Agendar"}
         </Button>
       </div>
+
+      {/* Budget creation prompt */}
+      <AlertDialog open={showBudgetPrompt} onOpenChange={setShowBudgetPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Crear presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Has seleccionado que este servicio requiere presupuesto. ¿Quieres crearlo ahora?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Más tarde</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateBudget}>Crear presupuesto</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
