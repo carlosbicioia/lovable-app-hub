@@ -69,7 +69,7 @@ export default function Services() {
 
   // Protocol
   const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
-  const protocolChecksMap = useBatchProtocolChecks(serviceIds);
+  const { data: protocolChecksMap, toggle: toggleProtocolCheck } = useBatchProtocolChecks(serviceIds);
   const { data: enabledSteps = [] } = useEnabledProtocolSteps();
   const protocolSteps: ProtocolStep[] = useMemo(
     () => enabledSteps.map((s) => ({ id: s.stepId, label: s.label })),
@@ -478,11 +478,12 @@ export default function Services() {
                       <td className="px-5 py-3 text-right font-medium text-card-foreground">
                         {s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                         <TooltipProvider delayDuration={200}>
                           <ProtocolDots
                             steps={protocolSteps}
                             checkedIds={protocolChecksMap[s.id] ?? new Set()}
+                            onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)}
                           />
                         </TooltipProvider>
                       </td>

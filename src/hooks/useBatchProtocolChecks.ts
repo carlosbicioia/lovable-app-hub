@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /** Fetch protocol check status for multiple services at once */
@@ -34,5 +34,31 @@ export function useBatchProtocolChecks(serviceIds: string[]) {
     fetch();
   }, [serviceIds.join(",")]);
 
-  return { data, loading };
+  const toggle = useCallback(async (serviceId: string, checkId: string) => {
+    const current = data[serviceId] ?? new Set();
+    const isChecked = current.has(checkId);
+    const newChecked = !isChecked;
+
+    // Optimistic update
+    setData((prev) => {
+      const next = { ...prev };
+      const set = new Set(next[serviceId] ?? []);
+      if (newChecked) set.add(checkId);
+      else set.delete(checkId);
+      next[serviceId] = set;
+      return next;
+    });
+
+    await supabase.from("protocol_checks").upsert(
+      {
+        service_id: serviceId,
+        check_id: checkId,
+        checked: newChecked,
+        checked_at: newChecked ? new Date().toISOString() : null,
+      },
+      { onConflict: "service_id,check_id" }
+    );
+  }, [data]);
+
+  return { data, loading, toggle };
 }
