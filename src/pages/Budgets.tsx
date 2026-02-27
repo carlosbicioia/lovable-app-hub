@@ -1,4 +1,4 @@
-import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter } from "lucide-react";
+import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter, CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMemo, useState } from "react";
@@ -16,6 +16,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BudgetKanban from "@/components/budgets/BudgetKanban";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 const statusConfig: Record<BudgetStatus, { label: string; className: string }> = {
   Borrador: { label: "Borrador", className: "bg-muted text-muted-foreground" },
@@ -46,6 +48,8 @@ export default function Budgets() {
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterService, setFilterService] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
@@ -90,7 +94,10 @@ export default function Budgets() {
     const matchSpecialty = filterSpecialty === "all" || serviceSpecialtyMap[b.serviceId] === filterSpecialty;
     const matchStatus = filterStatus === "all" || b.status === filterStatus;
     const matchService = filterService === "all" || b.serviceId === filterService;
-    return matchSearch && matchCollaborator && matchSpecialty && matchStatus && matchService;
+    const budgetDate = new Date(b.createdAt);
+    const matchDateFrom = !dateFrom || budgetDate >= dateFrom;
+    const matchDateTo = !dateTo || budgetDate <= new Date(dateTo.getTime() + 86400000 - 1);
+    return matchSearch && matchCollaborator && matchSpecialty && matchStatus && matchService && matchDateFrom && matchDateTo;
   });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
@@ -209,6 +216,33 @@ export default function Budgets() {
               ))}
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
+                <CalendarIcon className="w-3.5 h-3.5" />
+                {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Desde"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" locale={es} />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateTo && "text-muted-foreground")}>
+                <CalendarIcon className="w-3.5 h-3.5" />
+                {dateTo ? format(dateTo, "dd/MM/yyyy") : "Hasta"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" locale={es} />
+            </PopoverContent>
+          </Popover>
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+              Limpiar fechas
+            </Button>
+          )}
           <TabsList className="ml-auto">
             <TabsTrigger value="list" className="gap-1.5"><List className="w-4 h-4" /> Lista</TabsTrigger>
             <TabsTrigger value="kanban" className="gap-1.5"><Columns3 className="w-4 h-4" /> Kanban</TabsTrigger>
