@@ -69,22 +69,36 @@ export function useVoiceAssistant() {
     (text: string): Promise<void> => {
       return new Promise((resolve) => {
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voice = getSpanishVoice();
-        if (voice) utterance.voice = voice;
-        utterance.lang = "es-ES";
-        utterance.rate = 1.0;
-        utterance.pitch = 0.95;
+
+        // Chrome bug: long utterances get cut off. Split into sentences.
+        const chunks = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+        let remaining = chunks.length;
+        if (remaining === 0) { resolve(); return; }
+
         setIsSpeaking(true);
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          resolve();
+
+        const speakChunk = (i: number) => {
+          if (i >= chunks.length) {
+            setIsSpeaking(false);
+            resolve();
+            return;
+          }
+          const utterance = new SpeechSynthesisUtterance(chunks[i].trim());
+          const voice = getSpanishVoice();
+          if (voice) utterance.voice = voice;
+          utterance.lang = "es-ES";
+          utterance.rate = 1.0;
+          utterance.pitch = 0.95;
+          utterance.onend = () => speakChunk(i + 1);
+          utterance.onerror = () => {
+            setIsSpeaking(false);
+            resolve();
+          };
+          window.speechSynthesis.speak(utterance);
         };
-        utterance.onerror = () => {
-          setIsSpeaking(false);
-          resolve();
-        };
-        window.speechSynthesis.speak(utterance);
+
+        speakChunk(0);
       });
     },
     [getSpanishVoice]
@@ -342,6 +356,14 @@ export function useVoiceAssistant() {
     setTranscript("");
     setOpen(true);
 
+    // Warm-up TTS synchronously within user gesture to unlock audio
+    const warmUp = new SpeechSynthesisUtterance("");
+    warmUp.volume = 0;
+    warmUp.lang = "es-ES";
+    const voice = getSpanishVoice();
+    if (voice) warmUp.voice = voice;
+    window.speechSynthesis.speak(warmUp);
+
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke("voice-assistant", {
@@ -364,7 +386,7 @@ export function useVoiceAssistant() {
       await speak(fallback);
       startListening();
     }
-  }, [speak, startListening, cleanDisplayText]);
+  }, [speak, startListening, cleanDisplayText, getSpanishVoice]);
 
   const close = useCallback(() => {
     stopListening();
