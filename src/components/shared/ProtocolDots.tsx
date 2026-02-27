@@ -23,11 +23,13 @@ export default function ProtocolDots({ steps, checkedIds }: Props) {
         return (
           <Tooltip key={step.id}>
             <TooltipTrigger asChild>
-              {done ? (
-                <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-              ) : (
-                <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
-              )}
+              <span className="inline-flex">
+                {done ? (
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                ) : (
+                  <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+                )}
+              </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
               <span className={done ? "text-success" : ""}>
