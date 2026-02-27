@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, MessageSquare, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,33 @@ import ChatPanel from "@/components/chat/ChatPanel";
 import NotificationsPopover from "@/components/layout/NotificationsPopover";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TopBar() {
   const [chatOpen, setChatOpen] = useState(false);
   const { totalUnread } = useChat();
   const { user, signOut } = useAuth();
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setProfileName(data.full_name || null);
+          setProfileAvatar(data.avatar_url || null);
+        }
+      });
+  }, [user]);
+
+  const displayName = profileName || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const avatarUrl = profileAvatar || user?.user_metadata?.avatar_url || null;
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
@@ -40,8 +60,8 @@ export default function TopBar() {
           <NotificationsPopover />
           <Link to="/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-lg transition-colors group">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-primary/20 transition-all">
-              {user?.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-primary-foreground text-xs font-semibold">{initials}</span>
               )}
