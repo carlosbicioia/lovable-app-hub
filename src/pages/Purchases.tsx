@@ -18,6 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Loader2, ShoppingCart, FileText, Truck, Trash2, Download, CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
 import { format as formatDate } from "date-fns";
@@ -52,6 +54,37 @@ export default function Purchases() {
   const [deleteTarget, setDeleteTarget] = useState<{ type: "oc" | "invoice" | "dn"; id: string } | null>(null);
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [filterSupplier, setFilterSupplier] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterService, setFilterService] = useState("all");
+
+  // Compute filter options from all data sources
+  const supplierOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const o of orders) if (o.supplierName) set.add(o.supplierName);
+    for (const i of invoices) if (i.supplierName) set.add(i.supplierName);
+    for (const d of deliveryNotes) if (d.supplierName) set.add(d.supplierName);
+    return Array.from(set).sort();
+  }, [orders, invoices, deliveryNotes]);
+
+  const serviceOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const o of orders) if (o.serviceId) set.add(o.serviceId);
+    for (const d of deliveryNotes) if (d.serviceId) set.add(d.serviceId);
+    return Array.from(set).sort();
+  }, [orders, deliveryNotes]);
+
+  const statusOptionsForTab = useMemo(() => {
+    if (tab === "oc") return Object.keys(ocStatusConfig);
+    if (tab === "albaranes") return Object.keys(dnStatusConfig);
+    return Object.keys(invStatusConfig);
+  }, [tab]);
+
+  const statusLabelMap: Record<string, string> = {
+    ...Object.fromEntries(Object.entries(ocStatusConfig).map(([k, v]) => [k, v.label])),
+    ...Object.fromEntries(Object.entries(dnStatusConfig).map(([k, v]) => [k, v.label])),
+    ...Object.fromEntries(Object.entries(invStatusConfig).map(([k, v]) => [k, v.label])),
+  };
 
   const dateInRange = (d: string | null | undefined) => {
     if (!dateFrom && !dateTo) return true;
@@ -70,9 +103,12 @@ export default function Purchases() {
         o.supplierName.toLowerCase().includes(q) ||
         o.serviceId.toLowerCase().includes(q) ||
         (o.operatorName ?? "").toLowerCase().includes(q)) &&
-        dateInRange(o.createdAt)
+        dateInRange(o.createdAt) &&
+        (filterSupplier === "all" || o.supplierName === filterSupplier) &&
+        (filterStatus === "all" || o.status === filterStatus) &&
+        (filterService === "all" || o.serviceId === filterService)
     );
-  }, [orders, search, dateFrom, dateTo]);
+  }, [orders, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService]);
 
   const filteredInv = useMemo(() => {
     const q = search.toLowerCase();
@@ -80,9 +116,11 @@ export default function Purchases() {
       (i) =>
         (!search || i.invoiceNumber.toLowerCase().includes(q) ||
         i.supplierName.toLowerCase().includes(q)) &&
-        dateInRange(i.invoiceDate || i.createdAt)
+        dateInRange(i.invoiceDate || i.createdAt) &&
+        (filterSupplier === "all" || i.supplierName === filterSupplier) &&
+        (filterStatus === "all" || i.status === filterStatus)
     );
-  }, [invoices, search, dateFrom, dateTo]);
+  }, [invoices, search, dateFrom, dateTo, filterSupplier, filterStatus]);
 
   const filteredDN = useMemo(() => {
     const q = search.toLowerCase();
@@ -92,9 +130,12 @@ export default function Purchases() {
         d.supplierName.toLowerCase().includes(q) ||
         d.serviceId.toLowerCase().includes(q) ||
         (d.operatorName ?? "").toLowerCase().includes(q)) &&
-        dateInRange(d.createdAt)
+        dateInRange(d.createdAt) &&
+        (filterSupplier === "all" || d.supplierName === filterSupplier) &&
+        (filterStatus === "all" || d.status === filterStatus) &&
+        (filterService === "all" || d.serviceId === filterService)
     );
-  }, [deliveryNotes, search, dateFrom, dateTo]);
+  }, [deliveryNotes, search, dateFrom, dateTo, filterSupplier, filterStatus, filterService]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -152,12 +193,50 @@ export default function Purchases() {
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+          <SearchableSelect
+            options={[
+              { value: "all", label: "Todos los proveedores" },
+              ...supplierOptions.map((s) => ({ value: s, label: s })),
+            ]}
+            value={filterSupplier}
+            onValueChange={setFilterSupplier}
+            placeholder="Proveedor"
+            searchPlaceholder="Buscar proveedor..."
+            emptyText="Sin resultados"
+            className="w-[200px] h-9 text-sm"
+          />
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <span className="text-muted-foreground mr-1">Estado:</span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {statusOptionsForTab.map((s) => (
+                <SelectItem key={s} value={s}>{statusLabelMap[s] || s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {tab !== "facturas" && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "Todos los servicios" },
+                ...serviceOptions.map((s) => ({ value: s, label: s })),
+              ]}
+              value={filterService}
+              onValueChange={setFilterService}
+              placeholder="Servicio"
+              searchPlaceholder="Buscar servicio..."
+              emptyText="Sin resultados"
+              className="w-[200px] h-9 text-sm"
+            />
+          )}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("h-9 text-sm gap-2 font-normal", !dateFrom && "text-muted-foreground")}>
