@@ -4,11 +4,11 @@ import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic } from "lucide-react";
+import { Search, Plus, Filter, FileText, Upload, Loader2, CheckSquare, Mic, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { differenceInHours, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types/urbango";
 
 const statusOptions: { value: ServiceStatus; label: string }[] = [
@@ -44,9 +54,11 @@ export default function Services() {
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
-  const { services, loading, updateService } = useServices();
+  const { services, loading, updateService, refetch } = useServices();
   const { toast } = useToast();
   const { data: appUsers = [] } = useAppUsers();
 
@@ -330,12 +342,13 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Protocolo</th>
+                <th className="text-center px-3 py-3 text-muted-foreground font-medium w-10"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={isBillingTab ? 13 : 12} className="text-center py-12 text-muted-foreground">
+                  <td colSpan={isBillingTab ? 14 : 13} className="text-center py-12 text-muted-foreground">
                     {isBillingTab
                       ? "No hay servicios pendientes de facturación"
                       : "No se encontraron servicios"}
@@ -473,6 +486,16 @@ export default function Services() {
                           />
                         </TooltipProvider>
                       </td>
+                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeleteTarget(s)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })
@@ -481,6 +504,44 @@ export default function Services() {
           </table>
         </div>
       </div>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar servicio?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente el servicio{" "}
+              <span className="font-semibold text-foreground">{deleteTarget?.id}</span> de{" "}
+              <span className="font-semibold text-foreground">{deleteTarget?.clientName}</span>.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={async () => {
+                if (!deleteTarget) return;
+                setDeleting(true);
+                const { error } = await supabase.from("services").delete().eq("id", deleteTarget.id);
+                setDeleting(false);
+                if (error) {
+                  toast({ title: "Error", description: "No se pudo eliminar el servicio", variant: "destructive" });
+                } else {
+                  toast({ title: "Servicio eliminado", description: `${deleteTarget.id} ha sido eliminado` });
+                  setDeleteTarget(null);
+                  refetch();
+                }
+              }}
+            >
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
