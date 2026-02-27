@@ -345,7 +345,7 @@ export default function DeliveryNoteCreate() {
           <div className="space-y-3">
             {lines.map((l, i) => (
               <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-3 space-y-1">
+                <div className="col-span-2 space-y-1">
                   {i === 0 && <Label className="text-xs">Servicio</Label>}
                   <SearchableSelect
                     value={l.serviceId}
@@ -356,7 +356,7 @@ export default function DeliveryNoteCreate() {
                     options={serviceOptions}
                   />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="col-span-3 space-y-1">
                   {i === 0 && <Label className="text-xs">Artículo</Label>}
                   <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre" />
                 </div>

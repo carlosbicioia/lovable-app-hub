@@ -420,7 +420,23 @@ export default function InvoiceCreate() {
           <div className="space-y-3">
             {lines.map((line, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-5 space-y-1">
+                <div className="col-span-2 space-y-1">
+                  {idx === 0 && <Label className="text-xs">Servicio</Label>}
+                  <SearchableSelect
+                    value={line.serviceId ?? ""}
+                    onValueChange={(v) => updateLine(idx, { serviceId: v || null })}
+                    placeholder="Servicio…"
+                    searchPlaceholder="Buscar…"
+                    emptyText="—"
+                    options={services.map((s) => ({
+                      value: s.id,
+                      label: s.id,
+                      subtitle: s.clientName,
+                      searchText: `${s.clientName} ${s.address ?? ""} ${s.description ?? ""}`,
+                    }))}
+                  />
+                </div>
+                <div className="col-span-4 space-y-1">
                   {idx === 0 && <Label className="text-xs">Descripción</Label>}
                   <Input
                     value={line.description}
@@ -428,7 +444,7 @@ export default function InvoiceCreate() {
                     placeholder="Concepto"
                   />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="col-span-1 space-y-1">
                   {idx === 0 && <Label className="text-xs">Uds.</Label>}
                   <Input
                     type="number"
