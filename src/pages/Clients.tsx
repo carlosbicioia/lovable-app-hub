@@ -1,9 +1,10 @@
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { Search, Plus, Filter, Loader2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { DbClient } from "@/hooks/useClients";
@@ -15,12 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-const planColors: Record<string, string> = {
-  Agua: "bg-info/15 text-info border-info/30",
-  Luz: "bg-warning/15 text-warning border-warning/30",
-  Clima: "bg-primary/15 text-primary border-primary/30",
-  Ninguno: "bg-muted text-muted-foreground border-border",
-};
+const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
@@ -45,6 +41,12 @@ export default function Clients() {
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
   const { collaborators } = useCollaborators();
+  const { data: plans = [] } = useSubscriptionPlans();
+  const planColorMap = useMemo(() => {
+    const m: Record<string, string> = { Ninguno: defaultPlanColor };
+    plans.forEach((p) => { m[p.name] = p.color; });
+    return m;
+  }, [plans]);
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -174,7 +176,7 @@ export default function Clients() {
                   <td className="px-5 py-3 text-muted-foreground">{c.city}</td>
                   <td className="px-5 py-3 text-muted-foreground">{c.collaboratorName ?? <span className="italic">Directo</span>}</td>
                   <td className="px-5 py-3">
-                    <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", planColors[c.planType])}>
+                    <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", planColorMap[c.planType] ?? defaultPlanColor)}>
                       {c.planType}
                     </span>
                   </td>

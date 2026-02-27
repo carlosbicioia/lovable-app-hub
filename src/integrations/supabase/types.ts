@@ -1210,6 +1210,63 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          active: boolean
+          annual_price: number
+          color: string
+          created_at: string
+          description: string
+          features: Json
+          founder_price: number | null
+          founder_slots: number | null
+          id: string
+          max_homes: number | null
+          min_months: number
+          monthly_price: number
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          annual_price?: number
+          color?: string
+          created_at?: string
+          description?: string
+          features?: Json
+          founder_price?: number | null
+          founder_slots?: number | null
+          id?: string
+          max_homes?: number | null
+          min_months?: number
+          monthly_price?: number
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          annual_price?: number
+          color?: string
+          created_at?: string
+          description?: string
+          features?: Json
+          founder_price?: number | null
+          founder_slots?: number | null
+          id?: string
+          max_homes?: number | null
+          min_months?: number
+          monthly_price?: number
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           active: boolean
