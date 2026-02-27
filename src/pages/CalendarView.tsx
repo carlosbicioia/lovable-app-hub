@@ -308,8 +308,8 @@ function DayView({
   }, [date]);
 
   return (
-    <div className="h-full flex flex-col" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
-      <div className="min-w-[700px]">
+    <div className="h-full flex flex-col overflow-hidden" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
+      <div className="min-w-[700px] flex flex-col h-full">
         <div className="grid gap-0 border-b border-border shrink-0" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
           <div className="p-2 text-xs font-medium text-muted-foreground border-r border-border">Hora</div>
           {operators.map((op) => (
