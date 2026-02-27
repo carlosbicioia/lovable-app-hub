@@ -41,7 +41,7 @@ Cuando tengas todos los datos y el usuario confirme, responde EXACTAMENTE con es
 
 IMPORTANTE: Solo incluye el bloque JSON cuando el usuario CONFIRME que quiere crear el servicio. Antes de eso, solo conversa normalmente.
 
-Empieza saludando brevemente y preguntando por el nombre del cliente.`;
+Empieza saludando con: "Hola, soy Álex, el asistente de UrbanGO. Dime en qué trabajamos." y espera la respuesta del usuario.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
