@@ -23,10 +23,11 @@ interface LineInput {
   description: string;
   units: number;
   costPrice: number;
+  taxRate: number;
   serviceId: string;
 }
 
-const emptyLine = (): LineInput => ({ articleName: "", description: "", units: 1, costPrice: 0, serviceId: "" });
+const emptyLine = (): LineInput => ({ articleName: "", description: "", units: 1, costPrice: 0, taxRate: 21, serviceId: "" });
 
 export default function DeliveryNoteCreate() {
   const navigate = useNavigate();
@@ -54,7 +55,9 @@ export default function DeliveryNoteCreate() {
 
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   const selectedOp = mockOperators.find((o) => o.id === operatorId);
-  const total = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
+  const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
+  const totalTax = lines.reduce((s, l) => s + l.units * l.costPrice * (l.taxRate / 100), 0);
+  const total = subtotal + totalTax;
   const mainServiceId = lines[0]?.serviceId || preServiceId;
 
   // Pre-fill from selected OC
@@ -71,6 +74,7 @@ export default function DeliveryNoteCreate() {
             description: l.description,
             units: l.units,
             costPrice: l.costPrice,
+            taxRate: (l as any).taxRate ?? 21,
             serviceId: oc.serviceId,
           }))
         : [{ ...emptyLine(), serviceId: oc.serviceId }]
@@ -344,50 +348,68 @@ export default function DeliveryNoteCreate() {
         <CardContent>
           <div className="space-y-3">
             {lines.map((l, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-2 space-y-1">
-                  {i === 0 && <Label className="text-xs">Servicio</Label>}
-                  <SearchableSelect
-                    value={l.serviceId}
-                    onValueChange={(v) => updateLine(i, "serviceId", v)}
-                    placeholder="Servicio…"
-                    searchPlaceholder="Buscar…"
-                    emptyText="—"
-                    options={serviceOptions}
-                  />
+              <div key={i} className="border border-border rounded-lg p-3 space-y-2">
+                <div className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-2 space-y-1">
+                    {i === 0 && <Label className="text-xs">Servicio</Label>}
+                    <SearchableSelect
+                      value={l.serviceId}
+                      onValueChange={(v) => updateLine(i, "serviceId", v)}
+                      placeholder="Servicio…"
+                      searchPlaceholder="Buscar…"
+                      emptyText="—"
+                      options={serviceOptions}
+                    />
+                  </div>
+                  <div className="col-span-3 space-y-1">
+                    {i === 0 && <Label className="text-xs">Artículo</Label>}
+                    <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre del artículo" />
+                  </div>
+                  <div className="col-span-1 space-y-1">
+                    {i === 0 && <Label className="text-xs">Uds.</Label>}
+                    <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
+                  </div>
+                  <div className="col-span-2 space-y-1">
+                    {i === 0 && <Label className="text-xs">Coste ud.</Label>}
+                    <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                  </div>
+                  <div className="col-span-1 space-y-1">
+                    {i === 0 && <Label className="text-xs">IVA %</Label>}
+                    <Input type="number" value={l.taxRate} onChange={(e) => updateLine(i, "taxRate", Number(e.target.value))} />
+                  </div>
+                  <div className="col-span-2 space-y-1">
+                    {i === 0 && <Label className="text-xs">Total</Label>}
+                    <div className="flex items-center h-10 px-2 text-sm font-medium text-foreground bg-muted rounded-md">
+                      €{(l.units * l.costPrice * (1 + l.taxRate / 100)).toLocaleString("es-ES", { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  <div className="col-span-1">
+                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="col-span-3 space-y-1">
-                  {i === 0 && <Label className="text-xs">Artículo</Label>}
-                  <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre" />
-                </div>
-                <div className="col-span-3 space-y-1">
+                <div className="space-y-1">
                   {i === 0 && <Label className="text-xs">Descripción</Label>}
                   <Textarea
                     value={l.description}
                     onChange={(e) => updateLine(i, "description", e.target.value)}
-                    placeholder="Descripción…"
-                    className="min-h-[40px] resize-y"
-                    rows={1}
+                    placeholder="Descripción del artículo o servicio…"
+                    className="min-h-[60px] resize-y"
+                    rows={2}
                   />
-                </div>
-                <div className="col-span-1 space-y-1">
-                  {i === 0 && <Label className="text-xs">Uds.</Label>}
-                  <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
-                </div>
-                <div className="col-span-2 space-y-1">
-                  {i === 0 && <Label className="text-xs">Coste</Label>}
-                  <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
-                </div>
-                <div className="col-span-1">
-                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
                 </div>
               </div>
             ))}
           </div>
           <div className="border-t border-border pt-4 mt-4 space-y-1 text-sm text-right">
-            <p className="text-base font-semibold text-foreground">Total: €{total.toFixed(2)}</p>
+            <p className="text-muted-foreground">
+              Base imponible: <span className="font-medium text-foreground">€{subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+            </p>
+            <p className="text-muted-foreground">
+              IVA: <span className="font-medium text-foreground">€{totalTax.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+            </p>
+            <p className="text-base font-semibold text-foreground">Total: €{total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</p>
           </div>
         </CardContent>
       </Card>
