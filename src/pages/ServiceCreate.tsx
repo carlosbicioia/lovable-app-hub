@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
+import { useSpecialties } from "@/hooks/useIndustrialConfig";
 
 const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
@@ -33,6 +34,8 @@ export default function ServiceCreate() {
   const { data: clients = [] } = useClients();
   const { collaborators } = useCollaborators();
   const { data: allOperators = [] } = useOperators();
+  const { data: dbSpecialties = [] } = useSpecialties();
+  const activeSpecialties = dbSpecialties.filter(s => s.active);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
@@ -459,9 +462,9 @@ export default function ServiceCreate() {
               <Select value={specialty} onValueChange={(v) => { setSpecialty(v as Specialty); setOperatorId(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Fontanería/Agua">Fontanería / Agua</SelectItem>
-                  <SelectItem value="Electricidad/Luz">Electricidad / Luz</SelectItem>
-                  <SelectItem value="Clima">Clima</SelectItem>
+                  {activeSpecialties.map((s) => (
+                    <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
