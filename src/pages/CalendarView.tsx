@@ -251,7 +251,7 @@ function DayView({
   filteredServices?: Service[];
   selectedOperatorId?: string | null;
 }) {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7);
+  const hours = Array.from({ length: 24 }, (_, i) => i);
   const { services: allServices } = useServices();
   const services = filteredServices ?? allServices;
   const scheduledServices = services.filter(
@@ -296,10 +296,21 @@ function DayView({
     return hour >= minH && hour <= maxH;
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to current hour on mount
+  useEffect(() => {
+    if (scrollRef.current && isToday(date)) {
+      const currentHour = getHours(new Date());
+      const rowHeight = 56;
+      scrollRef.current.scrollTop = Math.max(0, currentHour * rowHeight - 100);
+    }
+  }, [date]);
+
   return (
-    <div className="overflow-x-auto" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
+    <div className="h-full flex flex-col" onMouseUp={handleSelMouseUp} onMouseLeave={() => { if (selecting) handleSelMouseUp(); }}>
       <div className="min-w-[700px]">
-        <div className="grid gap-0 border-b border-border" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
+        <div className="grid gap-0 border-b border-border shrink-0" style={{ gridTemplateColumns: `80px repeat(${operators.length + (unassigned.length ? 1 : 0)}, 1fr)` }}>
           <div className="p-2 text-xs font-medium text-muted-foreground border-r border-border">Hora</div>
           {operators.map((op) => (
             <div key={op.id} className="p-2 text-center border-r border-border last:border-r-0">
@@ -320,6 +331,7 @@ function DayView({
           )}
         </div>
 
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-auto select-none">
         {hours.map((hour) => (
           <div
             key={hour}
@@ -359,6 +371,7 @@ function DayView({
             )}
           </div>
         ))}
+        </div>
       </div>
     </div>
   );
@@ -378,6 +391,16 @@ function WeekView({
 }) {
   const { services: allServices } = useServices();
   const navigate = useNavigate();
+  const weekScrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to current hour on mount
+  useEffect(() => {
+    if (weekScrollRef.current) {
+      const currentHour = getHours(new Date());
+      const rowHeight = 52;
+      weekScrollRef.current.scrollTop = Math.max(0, currentHour * rowHeight - 100);
+    }
+  }, [date]);
   const services = filteredServices ?? allServices;
   const weekStart = startOfWeek(date, { locale: es, weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
@@ -522,7 +545,7 @@ function WeekView({
       )}
 
       {/* Hour rows — with selection support */}
-      <div className="flex-1 overflow-y-auto select-none">
+      <div ref={weekScrollRef} className="flex-1 overflow-y-auto select-none">
         {hours.map((hour) => {
           const hasToday = days.some((d) => isToday(d));
           const todayColIdx = days.findIndex((d) => isToday(d));
@@ -866,7 +889,7 @@ function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: {
 
 // ─── MAIN ──────────────────────────────────────────────────
 export default function CalendarView() {
-  const [currentDate, setCurrentDate] = useState(new Date("2026-02-24"));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewMode>("week");
   const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
