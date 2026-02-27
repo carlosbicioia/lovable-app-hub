@@ -4,6 +4,8 @@ import { useCreatePurchaseInvoice } from "@/hooks/usePurchaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useServices } from "@/hooks/useServices";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useActiveTaxTypes } from "@/hooks/useTaxTypes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,7 @@ export default function InvoiceCreate() {
   const { data: suppliers = [] } = useSuppliers();
   const { services } = useServices();
   const { data: orders = [] } = usePurchaseOrders();
+  const { data: taxTypes = [] } = useActiveTaxTypes();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Mode: "oc" = contra OC, "directa" = factura directa
@@ -397,8 +400,17 @@ export default function InvoiceCreate() {
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>IVA general (%)</Label>
-              <Input type="number" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value) || 0)} />
+              <Label>IVA general</Label>
+              <Select value={String(taxRate)} onValueChange={(v) => setTaxRate(Number(v))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {taxTypes.map((t) => (
+                    <SelectItem key={t.id} value={String(t.rate)}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="space-y-1.5">
