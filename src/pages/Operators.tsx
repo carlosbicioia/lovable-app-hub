@@ -3,6 +3,12 @@ import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { useTimeRecords } from "@/hooks/useTimeRecords";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import BulkActionBar from "@/components/shared/BulkActionBar";
+import { exportCsv } from "@/lib/exportCsv";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +90,7 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: allOperators = [] } = useOperators();
+  const qc = useQueryClient();
 
   // Build dynamic icon/color maps from DB specialties
   const dynSpecialtyIcon: Record<string, React.ReactNode> = {};
@@ -107,6 +114,8 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
       op.secondarySpecialty === filterSpecialty;
     return matchSearch && matchSpecialty;
   });
+
+  const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
 
   const totalActive = allOperators.filter((o) => o.status === "Activo").length;
   const avgNps = allOperators.length > 0 ? allOperators.reduce((sum, o) => sum + o.npsMean, 0) / allOperators.length : 0;
@@ -192,6 +201,26 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
         </div>
       </div>
 
+      {/* Bulk actions */}
+      <BulkActionBar
+        count={count}
+        onClear={clear}
+        onDelete={async () => {
+          const ids = Array.from(selectedIds);
+          for (const id of ids) {
+            await supabase.from("operators").delete().eq("id", id);
+          }
+          qc.invalidateQueries({ queryKey: ["operators"] });
+          clear();
+        }}
+        onExport={() => {
+          const sel = filtered.filter((o) => selectedIds.has(o.id));
+          const headers = ["ID", "Nombre", "Especialidad", "Ciudad", "Email", "Teléfono", "Estado"];
+          const csvRows = sel.map((o) => [o.id, o.name, o.specialty, o.city, o.email, o.phone, o.status]);
+          exportCsv("operarios.csv", headers, csvRows);
+        }}
+      />
+
       {/* Operator cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((op) => {
@@ -199,15 +228,22 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
           const assignedServices = services.filter(
             (s) => s.operatorId === op.id && ["En_Curso", "Agendado"].includes(s.status)
           ).length;
+          const isSelected = selectedIds.has(op.id);
 
           return (
             <Card
               key={op.id}
-              className="cursor-pointer hover:ring-2 hover:ring-ring transition-all group"
+              className={cn("cursor-pointer hover:ring-2 hover:ring-ring transition-all group", isSelected && "ring-2 ring-primary")}
               onClick={() => onSelect(op)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggle(op.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 shrink-0"
+                  />
                   {/* Avatar with color indicator */}
                   <div className="relative">
                     <img
