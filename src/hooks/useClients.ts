@@ -104,3 +104,19 @@ export function useCreateClient() {
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 }
+
+export function useDeleteClient() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("clients").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      toast({ title: "Cliente eliminado" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+}

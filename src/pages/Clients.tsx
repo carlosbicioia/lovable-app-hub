@@ -1,14 +1,16 @@
-import { useClients, useCreateClient } from "@/hooks/useClients";
+import { useClients, useCreateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
-import { Search, Plus, Filter, Loader2 } from "lucide-react";
+import { Search, Plus, Filter, Loader2, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClientPlanType } from "@/types/urbango";
+import type { DbClient } from "@/hooks/useClients";
 
 const planColors: Record<string, string> = {
   Agua: "bg-info/15 text-info border-info/30",
@@ -31,7 +33,9 @@ export default function Clients() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyClient());
   const createClient = useCreateClient();
+  const deleteClient = useDeleteClient();
   const { collaborators } = useCollaborators();
+  const [deleteTarget, setDeleteTarget] = useState<DbClient | null>(null);
 
   const filtered = clients.filter(
     (c) =>
@@ -100,6 +104,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Últ. Servicio</th>
+                <th className="w-12"></th>
               </tr>
             </thead>
             <tbody>
@@ -126,6 +131,11 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 text-muted-foreground text-xs">
                     {c.lastServiceDate ? new Date(c.lastServiceDate).toLocaleDateString("es-ES") : "—"}
+                  </td>
+                  <td className="px-2 py-3">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -232,6 +242,24 @@ export default function Clients() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog confirmar eliminación */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente el cliente <strong>{deleteTarget?.clientType === "Empresa" ? deleteTarget?.companyName : deleteTarget?.name}</strong> ({deleteTarget?.id}). Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { deleteClient.mutate(deleteTarget.id); setDeleteTarget(null); } }}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
