@@ -228,29 +228,6 @@ export default function Purchases() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KpiCard title="Total pedido" value={fmtEur(totalOrdered)} subtitle={`${orders.length} órdenes`} icon={ShoppingCart} variant="primary" />
-        <KpiCard title="Total facturado" value={fmtEur(totalInvoiced)} subtitle={`${invoices.length} facturas`} icon={Receipt} variant="success" />
-        <KpiCard title="Pendiente facturar" value={fmtEur(Math.max(0, totalPending))} subtitle={totalPending < 0 ? "Sobrefacturado" : undefined} icon={Clock} variant={totalPending > 0 ? "warning" : "info"} />
-      </div>
-
-      {monthlyData.length > 0 && (
-        <div className="bg-card rounded-xl border border-border shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-primary" /> Evolución mensual
-          </h3>
-          <ChartContainer config={chartConfig} className="h-[220px] w-full">
-            <BarChart data={monthlyData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-[11px]" />
-              <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} className="text-[11px]" width={40} />
-              <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmtEur(Number(value))} />} />
-              <Bar dataKey="pedido" fill="var(--color-pedido)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="facturado" fill="var(--color-facturado)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ChartContainer>
-        </div>
-      )}
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setFilterStatus("all"); }}>
         <TabsList className="mb-4">
