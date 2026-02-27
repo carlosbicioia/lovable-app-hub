@@ -69,21 +69,16 @@ export default function AppSidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border shrink-0">
+      <div className="flex items-center justify-center px-4 h-16 border-b border-sidebar-border shrink-0">
         <CompanyLogo
-          size="sm"
+          size="md"
           className="rounded-lg shrink-0"
           fallback={
-            <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
-              <span className="text-sidebar-primary-foreground font-display font-bold text-sm">U</span>
+            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
+              <span className="text-sidebar-primary-foreground font-display font-bold text-lg">U</span>
             </div>
           }
         />
-        {!collapsed && (
-          <span className="font-display font-bold text-lg text-sidebar-accent-foreground tracking-tight">
-            UrbanGO
-          </span>
-        )}
       </div>
 
       {/* Nav */}
