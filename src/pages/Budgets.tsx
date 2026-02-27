@@ -45,6 +45,7 @@ export default function Budgets() {
   const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterService, setFilterService] = useState<string>("all");
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
@@ -74,6 +75,12 @@ export default function Budgets() {
     return Array.from(set).sort();
   }, [budgets, serviceSpecialtyMap]);
 
+  const serviceOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of budgets) set.add(b.serviceId);
+    return Array.from(set).sort();
+  }, [budgets]);
+
   const filtered = budgets.filter((b) => {
     const matchSearch =
       b.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,7 +89,8 @@ export default function Budgets() {
     const matchCollaborator = filterCollaborator === "all" || b.collaboratorName === filterCollaborator;
     const matchSpecialty = filterSpecialty === "all" || serviceSpecialtyMap[b.serviceId] === filterSpecialty;
     const matchStatus = filterStatus === "all" || b.status === filterStatus;
-    return matchSearch && matchCollaborator && matchSpecialty && matchStatus;
+    const matchService = filterService === "all" || b.serviceId === filterService;
+    return matchSearch && matchCollaborator && matchSpecialty && matchStatus && matchService;
   });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
@@ -187,6 +195,17 @@ export default function Budgets() {
               <SelectItem value="all">Todos los estados</SelectItem>
               {allStatuses.map((s) => (
                 <SelectItem key={s} value={s}>{statusConfig[s].label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterService} onValueChange={setFilterService}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Servicio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los servicios</SelectItem>
+              {serviceOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
