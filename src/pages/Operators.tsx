@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
+import { useTimeRecords } from "@/hooks/useTimeRecords";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -370,6 +371,7 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
           <TabsTrigger value="info">Información</TabsTrigger>
           <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           <TabsTrigger value="services">Servicios ({operatorServices.length})</TabsTrigger>
+          <TabsTrigger value="time-records">Registro horario</TabsTrigger>
         </TabsList>
 
         {/* ─── INFO TAB ─── */}
@@ -542,8 +544,85 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ─── TIME RECORDS TAB ─── */}
+        <TabsContent value="time-records">
+          <TimeRecordsSection operatorId={operator.id} />
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function TimeRecordsSection({ operatorId }: { operatorId: string }) {
+  const { data: records, isLoading } = useTimeRecords(operatorId);
+  const [monthFilter, setMonthFilter] = useState(() => format(new Date(), "yyyy-MM"));
+
+  const filtered = (records ?? []).filter((r) => r.recordDate.startsWith(monthFilter));
+  const totalHours = filtered.reduce((sum, r) => sum + r.hours, 0);
+  const totalDays = new Set(filtered.map((r) => r.recordDate)).size;
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-sm">Registro horario</CardTitle>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary" className="text-xs font-mono">{totalDays} días</Badge>
+            <Badge variant="secondary" className="text-xs font-mono">{totalHours.toFixed(1)}h</Badge>
+          </div>
+          <Input
+            type="month"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            className="w-40 h-8 text-xs"
+          />
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 rounded-lg bg-muted/50 animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-10">
+            <Clock className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">Sin registros para este mes</p>
+            <p className="text-xs text-muted-foreground mt-1">Los registros llegarán desde la app del operario</p>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {filtered.map((r) => (
+              <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                <div className="w-12 text-center">
+                  <p className="text-lg font-bold text-foreground leading-none">
+                    {format(new Date(r.recordDate), "dd")}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase">
+                    {format(new Date(r.recordDate), "EEE", { locale: es })}
+                  </p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    {r.serviceId && (
+                      <Badge variant="outline" className="text-[10px] font-mono shrink-0">{r.serviceId}</Badge>
+                    )}
+                    <span className="text-sm text-foreground truncate">{r.location || "Sin ubicación"}</span>
+                  </div>
+                  {r.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{r.notes}</p>}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold text-foreground">{r.hours}h</p>
+                  <p className="text-[10px] text-muted-foreground">{r.source}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
