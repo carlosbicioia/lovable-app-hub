@@ -352,7 +352,7 @@ export default function DeliveryNoteCreate() {
           <div className="space-y-3">
             {lines.map((l, i) => (
               <div key={i} className="border border-border rounded-lg p-3">
-                <div className="grid grid-cols-[2fr_3fr_3fr_1fr_1.5fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                <div className="grid gap-2 items-end" style={{ gridTemplateColumns: "2fr 2fr 1fr 70px 80px 100px 90px auto" }}>
                   <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Servicio</Label>}
                     <SearchableSelect

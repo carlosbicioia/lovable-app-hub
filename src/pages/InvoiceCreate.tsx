@@ -419,7 +419,7 @@ export default function InvoiceCreate() {
           <div className="space-y-3">
             {lines.map((line, idx) => (
               <div key={idx} className="border border-border rounded-lg p-3">
-                <div className="grid grid-cols-[2fr_5fr_1fr_1.5fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                <div className="grid gap-2 items-end" style={{ gridTemplateColumns: "2fr 1fr 70px 80px 100px 90px auto" }}>
                   <div className="space-y-1">
                     {idx === 0 && <Label className="text-xs">Servicio</Label>}
                     <SearchableSelect
