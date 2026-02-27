@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
   const fullName = typeof body.full_name === "string" ? body.full_name.trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const role = typeof body.role === "string" ? body.role : "operario";
+  const collaboratorId = typeof body.collaborator_id === "string" ? body.collaborator_id : null;
 
   // Validate email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -115,10 +116,14 @@ Deno.serve(async (req) => {
   }
 
   // ── Assign role ──
-  const { error: roleErr } = await serviceClient.from("user_roles").insert({
+  const roleInsert: Record<string, unknown> = {
     user_id: newUser.user.id,
     role,
-  });
+  };
+  if (role === "colaborador" && collaboratorId) {
+    roleInsert.collaborator_id = collaboratorId;
+  }
+  const { error: roleErr } = await serviceClient.from("user_roles").insert(roleInsert);
 
   if (roleErr) {
     console.error("Role assignment error:", roleErr);
