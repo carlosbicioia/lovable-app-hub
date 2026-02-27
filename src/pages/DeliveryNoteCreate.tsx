@@ -351,9 +351,9 @@ export default function DeliveryNoteCreate() {
         <CardContent>
           <div className="space-y-3">
             {lines.map((l, i) => (
-              <div key={i} className="border border-border rounded-lg p-3 space-y-2">
-                <div className="grid grid-cols-12 gap-2 items-end">
-                  <div className="col-span-2 space-y-1">
+              <div key={i} className="border border-border rounded-lg p-3">
+                <div className="grid grid-cols-[2fr_3fr_3fr_1fr_1.5fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                  <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Servicio</Label>}
                     <SearchableSelect
                       value={l.serviceId}
@@ -364,22 +364,26 @@ export default function DeliveryNoteCreate() {
                       options={serviceOptions}
                     />
                   </div>
-                  <div className="col-span-3 space-y-1">
+                  <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Artículo</Label>}
-                    <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Nombre del artículo" />
+                    <Input value={l.articleName} onChange={(e) => updateLine(i, "articleName", e.target.value)} placeholder="Artículo" />
                   </div>
-                  <div className="col-span-1 space-y-1">
+                  <div className="space-y-1">
+                    {i === 0 && <Label className="text-xs">Descripción</Label>}
+                    <Input value={l.description} onChange={(e) => updateLine(i, "description", e.target.value)} placeholder="Descripción…" />
+                  </div>
+                  <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Uds.</Label>}
-                    <Input type="number" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
+                    <Input type="number" className="text-center px-1" value={l.units} onChange={(e) => updateLine(i, "units", Number(e.target.value))} />
                   </div>
-                  <div className="col-span-2 space-y-1">
+                  <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Coste ud.</Label>}
-                    <Input type="number" step="0.01" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
+                    <Input type="number" step="0.01" className="px-1" value={l.costPrice} onChange={(e) => updateLine(i, "costPrice", Number(e.target.value))} />
                   </div>
-                  <div className="col-span-1 space-y-1">
-                    {i === 0 && <Label className="text-xs">IVA %</Label>}
+                  <div className="space-y-1">
+                    {i === 0 && <Label className="text-xs">IVA</Label>}
                     <Select value={String(l.taxRate)} onValueChange={(v) => updateLine(i, "taxRate", Number(v))}>
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-10 px-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -389,27 +393,18 @@ export default function DeliveryNoteCreate() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="col-span-2 space-y-1">
+                  <div className="space-y-1">
                     {i === 0 && <Label className="text-xs">Total</Label>}
-                    <div className="flex items-center h-10 px-2 text-sm font-medium text-foreground bg-muted rounded-md">
+                    <div className="flex items-center h-10 px-2 text-sm font-medium text-foreground bg-muted rounded-md whitespace-nowrap">
                       €{(l.units * l.costPrice * (1 + l.taxRate / 100)).toLocaleString("es-ES", { minimumFractionDigits: 2 })}
                     </div>
                   </div>
-                  <div className="col-span-1">
+                  <div>
+                    {i === 0 && <Label className="text-xs invisible">X</Label>}
                     <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setLines((p) => p.filter((_, j) => j !== i))} disabled={lines.length === 1}>
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  {i === 0 && <Label className="text-xs">Descripción</Label>}
-                  <Textarea
-                    value={l.description}
-                    onChange={(e) => updateLine(i, "description", e.target.value)}
-                    placeholder="Descripción del artículo o servicio…"
-                    className="min-h-[60px] resize-y"
-                    rows={2}
-                  />
                 </div>
               </div>
             ))}

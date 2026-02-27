@@ -431,58 +431,76 @@ export default function InvoiceCreate() {
         <CardContent>
           <div className="space-y-3">
             {lines.map((line, idx) => (
-              <div key={idx} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-2 space-y-1">
-                  {idx === 0 && <Label className="text-xs">Servicio</Label>}
-                  <SearchableSelect
-                    value={line.serviceId ?? ""}
-                    onValueChange={(v) => updateLine(idx, { serviceId: v || null })}
-                    placeholder="Servicio…"
-                    searchPlaceholder="Buscar…"
-                    emptyText="—"
-                    options={services.map((s) => ({
-                      value: s.id,
-                      label: s.id,
-                      subtitle: s.clientName,
-                      searchText: `${s.clientName} ${s.address ?? ""} ${s.description ?? ""}`,
-                    }))}
-                  />
-                </div>
-                <div className="col-span-4 space-y-1">
-                  {idx === 0 && <Label className="text-xs">Descripción</Label>}
-                  <Input
-                    value={line.description}
-                    onChange={(e) => updateLine(idx, { description: e.target.value })}
-                    placeholder="Concepto"
-                  />
-                </div>
-                <div className="col-span-1 space-y-1">
-                  {idx === 0 && <Label className="text-xs">Uds.</Label>}
-                  <Input
-                    type="number"
-                    value={line.units}
-                    onChange={(e) => updateLine(idx, { units: Number(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="col-span-2 space-y-1">
-                  {idx === 0 && <Label className="text-xs">Precio ud.</Label>}
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={line.unitPrice}
-                    onChange={(e) => updateLine(idx, { unitPrice: Number(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="col-span-2 space-y-1">
-                  {idx === 0 && <Label className="text-xs">Total</Label>}
-                  <div className="flex items-center h-10 px-2 text-sm font-medium text-card-foreground bg-muted rounded-md">
-                    €{line.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
+              <div key={idx} className="border border-border rounded-lg p-3">
+                <div className="grid grid-cols-[2fr_5fr_1fr_1.5fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">Servicio</Label>}
+                    <SearchableSelect
+                      value={line.serviceId ?? ""}
+                      onValueChange={(v) => updateLine(idx, { serviceId: v || null })}
+                      placeholder="Servicio…"
+                      searchPlaceholder="Buscar…"
+                      emptyText="—"
+                      options={services.map((s) => ({
+                        value: s.id,
+                        label: s.id,
+                        subtitle: s.clientName,
+                        searchText: `${s.clientName} ${s.address ?? ""} ${s.description ?? ""}`,
+                      }))}
+                    />
                   </div>
-                </div>
-                <div className="col-span-1">
-                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">Descripción</Label>}
+                    <Input
+                      value={line.description}
+                      onChange={(e) => updateLine(idx, { description: e.target.value })}
+                      placeholder="Concepto / descripción"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">Uds.</Label>}
+                    <Input
+                      type="number"
+                      className="text-center px-1"
+                      value={line.units}
+                      onChange={(e) => updateLine(idx, { units: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">Precio ud.</Label>}
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="px-1"
+                      value={line.unitPrice}
+                      onChange={(e) => updateLine(idx, { unitPrice: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">IVA</Label>}
+                    <Select value={String(line.taxRate)} onValueChange={(v) => updateLine(idx, { taxRate: Number(v) })}>
+                      <SelectTrigger className="h-10 px-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {taxTypes.map((t) => (
+                          <SelectItem key={t.id} value={String(t.rate)}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    {idx === 0 && <Label className="text-xs">Total</Label>}
+                    <div className="flex items-center h-10 px-2 text-sm font-medium text-card-foreground bg-muted rounded-md whitespace-nowrap">
+                      €{line.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  <div>
+                    {idx === 0 && <Label className="text-xs invisible">X</Label>}
+                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
