@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus } from "lucide-react";
+import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus, FileText } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
@@ -52,6 +52,10 @@ export default function Dashboard() {
   const inProgress = services.filter((s) => s.status === "En_Curso").length;
   const urgent = services.filter((s) => s.urgency !== "Estándar" && !["Finalizado", "Liquidado", "Cancelado"].includes(s.status)).length;
   const finalized = filtered.filter((s) => s.status === "Finalizado" || s.status === "Liquidado").length;
+
+  const pendingInvoice = services.filter((s) => s.status === "Finalizado");
+  const pendingInvoiceCount = pendingInvoice.length;
+  const pendingInvoiceTotal = pendingInvoice.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
 
   const totalBudget = filtered.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
   const operatorNpsValues = operators.filter((op) => op.npsMean > 0).map((op) => op.npsMean);
@@ -129,7 +133,7 @@ export default function Dashboard() {
         <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard title="Clientes" value={uniqueClients} icon={Users} variant="default" onClick={() => navigate("/clientes")} />
         <KpiCard title="Colaboradores" value={uniqueCollabs} icon={Handshake} variant="success" onClick={() => navigate("/colaboradores")} />
         <KpiCard title="NPS Medio" value={avgNps} icon={Star} variant="primary" />
@@ -138,6 +142,14 @@ export default function Dashboard() {
           value={totalBudget > 0 ? `€${(totalBudget / 1000).toFixed(1)}k` : "€0"}
           icon={Euro}
           variant="success"
+        />
+        <KpiCard
+          title="Pte. Facturar"
+          value={pendingInvoiceCount}
+          subtitle={pendingInvoiceTotal > 0 ? `€${pendingInvoiceTotal.toLocaleString()}` : "€0"}
+          icon={FileText}
+          variant="warning"
+          onClick={() => navigate("/servicios?status=Finalizado")}
         />
       </div>
 
