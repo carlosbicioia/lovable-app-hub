@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, CalendarIcon, ShoppingCart } from "lucide-react";
+import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
@@ -11,11 +11,8 @@ import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useClients } from "@/hooks/useClients";
 import { useOperators } from "@/hooks/useOperators";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
+import DatePresetSelect from "@/components/shared/DatePresetSelect";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
@@ -28,16 +25,13 @@ export default function Dashboard() {
 
   const alertOrders = purchaseOrders.filter((o) => o.status === "Borrador");
 
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
-  });
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [dateTo, setDateTo] = useState<Date | undefined>(endOfMonth(new Date()));
 
   const filtered = useMemo(() => {
-    if (!dateRange?.from) return services;
-    const from = dateRange.from;
-    const to = dateRange.to ?? dateRange.from;
-    // set to end of day for 'to'
+    if (!dateFrom) return services;
+    const from = dateFrom;
+    const to = dateTo ?? dateFrom;
     const toEnd = new Date(to);
     toEnd.setHours(23, 59, 59, 999);
 
@@ -49,7 +43,7 @@ export default function Dashboard() {
         return false;
       }
     });
-  }, [services, dateRange]);
+  }, [services, dateFrom, dateTo]);
 
   // Global KPIs (not filtered by date range)
   const totalServices = services.length;
@@ -68,9 +62,9 @@ export default function Dashboard() {
 
   // Chart data: group by day or week depending on range span
   const chartData = useMemo(() => {
-    if (!dateRange?.from) return [];
-    const from = dateRange.from;
-    const to = dateRange.to ?? dateRange.from;
+    if (!dateFrom) return [];
+    const from = dateFrom;
+    const to = dateTo ?? dateFrom;
     const span = differenceInDays(to, from);
     const useWeeks = span > 21;
 
@@ -101,15 +95,7 @@ export default function Dashboard() {
       acc += dayServices.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
       return { label: format(day, "d MMM", { locale: es }), servicios: dayServices.length, facturación: acc };
     });
-  }, [filtered, dateRange]);
-
-  const formatRange = () => {
-    if (!dateRange?.from) return "Seleccionar fechas";
-    const fromStr = format(dateRange.from, "d MMM", { locale: es });
-    if (!dateRange.to || dateRange.from.getTime() === dateRange.to.getTime()) return fromStr;
-    const toStr = format(dateRange.to, "d MMM yyyy", { locale: es });
-    return `${fromStr} – ${toStr}`;
-  };
+  }, [filtered, dateFrom, dateTo]);
 
   if (loading) {
     return (
@@ -127,31 +113,11 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-sm mt-1">Resumen operativo de UrbanGO</p>
         </div>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start text-left font-normal min-w-[220px]",
-                !dateRange?.from && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formatRange()}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={2}
-              locale={es}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePresetSelect
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateChange={(from, to) => { setDateFrom(from); setDateTo(to); }}
+        />
       </div>
 
       {/* KPIs */}
