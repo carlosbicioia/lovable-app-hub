@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart } from "lucide-react";
+import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
@@ -121,9 +121,10 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" />
         <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" />
+        <KpiCard title="Pte. Asignación" value={pendingAssignment} subtitle="Sin técnico asignado" icon={UserPlus} variant="info" />
         <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" />
         <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" />
       </div>
