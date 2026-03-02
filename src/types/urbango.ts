@@ -3,7 +3,7 @@
 export type ClientPlanType = "Ninguno" | "Agua" | "Luz" | "Clima";
 export type CollaboratorCategory = "Administrador" | "Corredor" | "Gestoría" | "Otros";
 export type ServiceOrigin = "App" | "B2B" | "Directo" | "API_Externa";
-export type ServiceStatus = "Pendiente_Contacto" | "Agendado" | "En_Curso" | "Finalizado" | "Liquidado";
+export type ServiceStatus = "Pendiente_Contacto" | "Pte_Asignacion" | "Agendado" | "En_Curso" | "Finalizado" | "Liquidado";
 export type UrgencyLevel = "Estándar" | "24h" | "Inmediato";
 export type Specialty = "Fontanería/Agua" | "Electricidad/Luz" | "Clima";
 

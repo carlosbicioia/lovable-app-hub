@@ -3,6 +3,7 @@ import type { ServiceStatus, UrgencyLevel } from "@/types/urbango";
 
 const statusConfig: Record<ServiceStatus, { label: string; className: string }> = {
   Pendiente_Contacto: { label: "Pte. Contacto", className: "bg-warning/15 text-warning border-warning/30" },
+  Pte_Asignacion: { label: "Pte. Asignación", className: "bg-accent/15 text-accent-foreground border-accent/30" },
   Agendado: { label: "Agendado", className: "bg-info/15 text-info border-info/30" },
   En_Curso: { label: "En Curso", className: "bg-primary/15 text-primary border-primary/30" },
   Finalizado: { label: "Finalizado", className: "bg-success/15 text-success border-success/30" },

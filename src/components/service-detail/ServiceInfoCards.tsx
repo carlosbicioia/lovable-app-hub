@@ -47,6 +47,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const statusLabel = (s: string) => {
     const map: Record<string, string> = {
       Pendiente_Contacto: "Pte. Contacto",
+      Pte_Asignacion: "Pte. Asignación",
       Agendado: "Agendado",
       En_Curso: "En Curso",
       Finalizado: "Finalizado",
@@ -235,6 +236,7 @@ export default function ServiceInfoCards({ service }: Props) {
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
               <SelectItem value="Pendiente_Contacto">Pte. Contacto</SelectItem>
+              <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
               <SelectItem value="Agendado">Agendado</SelectItem>
               <SelectItem value="En_Curso">En Curso</SelectItem>
               <SelectItem value="Finalizado">Finalizado</SelectItem>

@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 
 const statusLabels: Record<string, string> = {
   Pendiente_Contacto: "Pendiente contacto",
+  Pte_Asignacion: "Pte. Asignación",
   Agendado: "Agendado",
   En_Curso: "En curso",
   Finalizado: "Finalizado",
