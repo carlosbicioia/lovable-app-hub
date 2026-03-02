@@ -346,6 +346,7 @@ export default function ServiceEdit() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Pendiente_Contacto">Pendiente de contacto</SelectItem>
+                  <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
                   <SelectItem value="Agendado">Agendado</SelectItem>
                   <SelectItem value="En_Curso">En curso</SelectItem>
                   <SelectItem value="Finalizado">Finalizado</SelectItem>

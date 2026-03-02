@@ -48,6 +48,7 @@ interface AssignedService {
 
 const statusColors: Record<string, string> = {
   Pendiente_Contacto: "bg-warning/15 text-warning border-warning/30",
+  Pte_Asignacion: "bg-accent/15 text-accent-foreground border-accent/30",
   Agendado: "bg-info/15 text-info border-info/30",
   En_Curso: "bg-primary/15 text-primary border-primary/30",
   Finalizado: "bg-success/15 text-success border-success/30",

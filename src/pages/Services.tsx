@@ -28,6 +28,7 @@ import type { BudgetStatus, Service, ServiceStatus, UrgencyLevel } from "@/types
 
 const statusOptions: { value: ServiceStatus; label: string }[] = [
   { value: "Pendiente_Contacto", label: "Pte. Contacto" },
+  { value: "Pte_Asignacion", label: "Pte. Asignación" },
   { value: "Agendado", label: "Agendado" },
   { value: "En_Curso", label: "En Curso" },
   { value: "Finalizado", label: "Finalizado" },

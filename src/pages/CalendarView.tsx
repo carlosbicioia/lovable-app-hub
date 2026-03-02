@@ -75,6 +75,7 @@ const specialtyColor: Record<Specialty, string> = {
 
 const statusLabels: Record<string, string> = {
   Pendiente_Contacto: "Pendiente contacto",
+  Pte_Asignacion: "Pte. Asignación",
   Agendado: "Agendado",
   En_Curso: "En curso",
   Finalizado: "Finalizado",
@@ -1063,6 +1064,7 @@ export default function CalendarView() {
         <div className="flex items-center gap-1.5">
           {([
             { key: "Pendiente_Contacto" as ServiceStatus, label: "Pendiente", icon: <Phone className="w-3 h-3" />, cls: "bg-warning/15 text-warning border-warning/30" },
+            { key: "Pte_Asignacion" as ServiceStatus, label: "Pte. Asignación", icon: <Clock className="w-3 h-3" />, cls: "bg-accent/15 text-accent-foreground border-accent/30" },
             { key: "Agendado" as ServiceStatus, label: "Agendado", icon: <Clock className="w-3 h-3" />, cls: "bg-info/15 text-info border-info/30" },
             { key: "En_Curso" as ServiceStatus, label: "En curso", icon: <PlayCircle className="w-3 h-3" />, cls: "bg-primary/15 text-primary border-primary/30" },
             { key: "Finalizado" as ServiceStatus, label: "Finalizado", icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-success/15 text-success border-success/30" },
