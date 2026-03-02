@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
-import { useTimeRecords } from "@/hooks/useTimeRecords";
+import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord } from "@/hooks/useTimeRecords";
+import { useToast } from "@/hooks/use-toast";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
@@ -32,10 +33,16 @@ import {
   TrendingUp,
   Activity,
   Users,
+  Plus,
+  X,
+  Save,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Operator, Specialty, OperatorStatus } from "@/types/urbango";
 import {
   BarChart,
@@ -592,11 +599,63 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
 
 function TimeRecordsSection({ operatorId }: { operatorId: string }) {
   const { data: records, isLoading } = useTimeRecords(operatorId);
+  const createMutation = useCreateTimeRecord();
+  const deleteMutation = useDeleteTimeRecord();
+  const { services } = useServices();
+  const { toast } = useToast();
   const [monthFilter, setMonthFilter] = useState(() => format(new Date(), "yyyy-MM"));
+  const [showForm, setShowForm] = useState(false);
+
+  // Form state
+  const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [formHours, setFormHours] = useState("1");
+  const [formServiceId, setFormServiceId] = useState("");
+  const [formLocation, setFormLocation] = useState("");
+  const [formNotes, setFormNotes] = useState("");
 
   const filtered = (records ?? []).filter((r) => r.recordDate.startsWith(monthFilter));
   const totalHours = filtered.reduce((sum, r) => sum + r.hours, 0);
   const totalDays = new Set(filtered.map((r) => r.recordDate)).size;
+
+  const operatorServices = useMemo(
+    () => services.filter((s) => s.operatorId === operatorId),
+    [services, operatorId]
+  );
+
+  const handleSubmit = async () => {
+    const hours = parseFloat(formHours);
+    if (!formDate || isNaN(hours) || hours <= 0 || hours > 24) {
+      toast({ title: "Datos inválidos", description: "Revisa la fecha y las horas (1-24)", variant: "destructive" });
+      return;
+    }
+    try {
+      await createMutation.mutateAsync({
+        operatorId,
+        serviceId: formServiceId || null,
+        recordDate: formDate,
+        hours,
+        location: formLocation.trim(),
+        notes: formNotes.trim() || null,
+      });
+      toast({ title: "Registro añadido" });
+      setShowForm(false);
+      setFormHours("1");
+      setFormServiceId("");
+      setFormLocation("");
+      setFormNotes("");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync({ id, operatorId });
+      toast({ title: "Registro eliminado" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
 
   return (
     <Card>
@@ -613,9 +672,59 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
             onChange={(e) => setMonthFilter(e.target.value)}
             className="w-40 h-8 text-xs"
           />
+          <Button size="sm" onClick={() => setShowForm(!showForm)} variant={showForm ? "secondary" : "default"} className="gap-1.5">
+            {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            {showForm ? "Cancelar" : "Añadir registro"}
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
+        {/* Manual entry form */}
+        {showForm && (
+          <div className="border border-border rounded-lg p-4 mb-4 bg-muted/30 space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Fecha *</label>
+                <Input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Horas *</label>
+                <Input type="number" min="0.5" max="24" step="0.5" value={formHours} onChange={(e) => setFormHours(e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Servicio</label>
+                <Select value={formServiceId} onValueChange={setFormServiceId}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Opcional" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sin servicio</SelectItem>
+                    {operatorServices.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.id} – {s.clientName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Ubicación</label>
+                <Input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} placeholder="Dirección o zona" className="h-8 text-sm" />
+              </div>
+            </div>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Notas</label>
+                <Input value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Observaciones opcionales" className="h-8 text-sm" />
+              </div>
+              <Button size="sm" onClick={handleSubmit} disabled={createMutation.isPending} className="gap-1.5">
+                {createMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                Guardar
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -626,12 +735,12 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
           <div className="text-center py-10">
             <Clock className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">Sin registros para este mes</p>
-            <p className="text-xs text-muted-foreground mt-1">Los registros llegarán desde la app del operario</p>
+            <p className="text-xs text-muted-foreground mt-1">Puedes añadir registros manualmente con el botón superior</p>
           </div>
         ) : (
           <div className="space-y-1.5">
             {filtered.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
+              <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors group">
                 <div className="w-12 text-center">
                   <p className="text-lg font-bold text-foreground leading-none">
                     {format(new Date(r.recordDate), "dd")}
@@ -649,9 +758,20 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
                   </div>
                   {r.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{r.notes}</p>}
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-foreground">{r.hours}h</p>
-                  <p className="text-[10px] text-muted-foreground">{r.source}</p>
+                <div className="text-right shrink-0 flex items-center gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{r.hours}h</p>
+                    <p className="text-[10px] text-muted-foreground">{r.source}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                    onClick={() => handleDelete(r.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </div>
             ))}
