@@ -8,6 +8,7 @@ interface KpiCardProps {
   icon: LucideIcon;
   trend?: { value: string; positive: boolean };
   variant?: "default" | "primary" | "success" | "warning" | "info";
+  onClick?: () => void;
 }
 
 const variantStyles = {
@@ -26,9 +27,9 @@ const iconVariants = {
   info: "bg-info/10 text-info",
 };
 
-export default function KpiCard({ title, value, subtitle, icon: Icon, trend, variant = "default" }: KpiCardProps) {
+export default function KpiCard({ title, value, subtitle, icon: Icon, trend, variant = "default", onClick }: KpiCardProps) {
   return (
-    <div className={cn("rounded-xl border border-border p-5 shadow-sm", variantStyles[variant])}>
+    <div className={cn("rounded-xl border border-border p-5 shadow-sm", variantStyles[variant], onClick && "cursor-pointer hover:border-primary/40 transition-colors")} onClick={onClick}>
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground font-medium">{title}</p>

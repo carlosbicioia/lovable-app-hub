@@ -8,11 +8,11 @@ import { Search, Plus, Filter, FileText, Upload, Loader2, Mic } from "lucide-rea
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { differenceInHours, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,10 +44,13 @@ const urgencyOptions: { value: UrgencyLevel; label: string }[] = [
 type TabValue = "all" | "billing";
 
 export default function Services() {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabValue>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all");
+  const [urgencyFilter, setUrgencyFilter] = useState<string>(
+    searchParams.get("urgency") === "urgent" ? "no_estandar" : "all"
+  );
   const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [filterService, setFilterService] = useState<string>("all");
@@ -114,7 +117,11 @@ export default function Services() {
       list = list.filter((s) => getBudgetStatusForService(s.id) === "Pte_Facturación");
     }
     if (statusFilter !== "all") list = list.filter((s) => s.status === statusFilter);
-    if (urgencyFilter !== "all") list = list.filter((s) => s.urgency === urgencyFilter);
+    if (urgencyFilter === "no_estandar") {
+      list = list.filter((s) => s.urgency !== "Estándar" && !["Finalizado", "Liquidado", "Cancelado"].includes(s.status));
+    } else if (urgencyFilter !== "all") {
+      list = list.filter((s) => s.urgency === urgencyFilter);
+    }
     if (filterCollaborator !== "all") list = list.filter((s) => s.collaboratorName === filterCollaborator);
     if (filterSpecialty !== "all") list = list.filter((s) => s.specialty === filterSpecialty);
     if (filterService !== "all") list = list.filter((s) => s.id === filterService);
@@ -278,6 +285,7 @@ export default function Services() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="no_estandar">⚠ No estándar</SelectItem>
             {urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>
         </Select>

@@ -122,16 +122,16 @@ export default function Dashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" />
-        <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" />
-        <KpiCard title="Pte. Asignación" value={pendingAssignment} subtitle="Sin técnico asignado" icon={UserPlus} variant="info" />
-        <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" />
-        <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" />
+        <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" onClick={() => navigate("/servicios")} />
+        <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" onClick={() => navigate("/servicios?status=Pendiente_Contacto")} />
+        <KpiCard title="Pte. Asignación" value={pendingAssignment} subtitle="Sin técnico asignado" icon={UserPlus} variant="info" onClick={() => navigate("/servicios?status=Pte_Asignacion")} />
+        <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
+        <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Clientes" value={uniqueClients} icon={Users} variant="default" />
-        <KpiCard title="Colaboradores" value={uniqueCollabs} icon={Handshake} variant="success" />
+        <KpiCard title="Clientes" value={uniqueClients} icon={Users} variant="default" onClick={() => navigate("/clientes")} />
+        <KpiCard title="Colaboradores" value={uniqueCollabs} icon={Handshake} variant="success" onClick={() => navigate("/colaboradores")} />
         <KpiCard title="NPS Medio" value={avgNps} icon={Star} variant="primary" />
         <KpiCard
           title="Facturación"
