@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Wrench, Zap, User, Activity, CalendarClock, ClipboardList } from "lucide-react";
+import { Wrench, Zap, User, Users, Activity, CalendarClock, ClipboardList } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
+import { useCollaborators } from "@/hooks/useCollaborators";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +23,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const navigate = useNavigate();
   const { updateService } = useServices();
   const { data: operators = [] } = useOperators();
+  const { collaborators } = useCollaborators();
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
@@ -38,6 +41,10 @@ export default function ServiceInfoCards({ service }: Props) {
     if (field === "operator_id") {
       const op = operators.find((o) => o.id === value);
       updates.operator_name = op?.name ?? null;
+    }
+    if (field === "collaborator_id") {
+      const col = collaborators.find((c) => c.id === value);
+      updates.collaborator_name = col?.companyName ?? null;
     }
 
     await updateService(service.id, updates);
@@ -66,7 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
       {/* Cita */}
       <Card className="bg-card">
         <CardContent className="p-3">
@@ -169,21 +176,52 @@ export default function ServiceInfoCards({ service }: Props) {
             <User className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Técnico</span>
           </div>
-          <Select
+          <SearchableSelect
+            options={[
+              { value: "none", label: "Sin asignar" },
+              ...operatorOptions.map((o) => ({
+                value: o.id,
+                label: o.name,
+                subtitle: o.specialty,
+                searchText: `${o.dni} ${o.email}`,
+              })),
+            ]}
             value={service.operatorId ?? "none"}
             onValueChange={(v) => handleUpdate("operator_id", v === "none" ? null : v)}
+            placeholder="Seleccionar técnico…"
+            searchPlaceholder="Buscar técnico…"
+            emptyText="Sin técnicos disponibles"
             disabled={saving === "operator_id"}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value="none">Sin asignar</SelectItem>
-              {operatorOptions.map((o) => (
-                <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Colaborador */}
+      <Card className="bg-card">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Users className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Colaborador</span>
+          </div>
+          <SearchableSelect
+            options={[
+              { value: "none", label: "Sin colaborador" },
+              ...collaborators.map((c) => ({
+                value: c.id,
+                label: c.companyName,
+                subtitle: c.contactPerson,
+                searchText: `${c.email} ${c.phone}`,
+              })),
+            ]}
+            value={service.collaboratorId ?? "none"}
+            onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
+            placeholder="Seleccionar colaborador…"
+            searchPlaceholder="Buscar colaborador…"
+            emptyText="Sin colaboradores"
+            disabled={saving === "collaborator_id"}
+            className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent"
+          />
         </CardContent>
       </Card>
 
