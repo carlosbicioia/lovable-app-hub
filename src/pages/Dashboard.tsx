@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus, FileText } from "lucide-react";
+import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus, FileText, UserCheck } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
@@ -49,6 +49,7 @@ export default function Dashboard() {
   const totalServices = services.length;
   const pendingContact = services.filter((s) => s.status === "Pendiente_Contacto").length;
   const pendingAssignment = services.filter((s) => s.status === "Pte_Asignacion").length;
+  const assigned = services.filter((s) => s.status === "Asignado").length;
   const inProgress = services.filter((s) => s.status === "En_Curso").length;
   const urgent = services.filter((s) => s.urgency !== "Estándar" && !["Finalizado", "Liquidado", "Cancelado"].includes(s.status)).length;
   const finalized = filtered.filter((s) => s.status === "Finalizado" || s.status === "Liquidado").length;
@@ -125,11 +126,12 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" onClick={() => navigate("/servicios")} />
         <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" onClick={() => navigate("/servicios?status=Pendiente_Contacto")} />
         <KpiCard title="Pte. Asignación" value={pendingAssignment} subtitle="Sin técnico asignado" icon={UserPlus} variant="info" onClick={() => navigate("/servicios?status=Pte_Asignacion")} />
-        <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos asignados" icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
+        <KpiCard title="Asignado" value={assigned} subtitle="Con técnico, sin cita" icon={UserCheck} variant="default" onClick={() => navigate("/servicios?status=Asignado")} />
+        <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos trabajando" icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
         <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />
       </div>
 
