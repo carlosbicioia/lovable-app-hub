@@ -2,10 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useOperators } from "@/hooks/useOperators";
+import { useCollaborators } from "@/hooks/useCollaborators";
+import { useServices } from "@/hooks/useServices";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface Props {
   service: Service;
@@ -14,9 +19,34 @@ interface Props {
 export default function ServiceSidebar({ service }: Props) {
   const navigate = useNavigate();
   const { budgets } = useBudgets();
+  const { data: operators = [] } = useOperators();
+  const { collaborators } = useCollaborators();
+  const { updateService } = useServices();
+  const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
+
+  const availableOperators = operators.filter((o) => o.status === "Activo" && o.available);
+  const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
+  const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
+    ? [currentOp, ...availableOperators]
+    : availableOperators;
+
+  const handleUpdate = async (field: string, value: string | null) => {
+    setSavingField(field);
+    const updates: Record<string, any> = { [field]: value };
+    if (field === "operator_id") {
+      const op = operators.find((o) => o.id === value);
+      updates.operator_name = op?.name ?? null;
+    }
+    if (field === "collaborator_id") {
+      const col = collaborators.find((c) => c.id === value);
+      updates.collaborator_name = col?.companyName ?? null;
+    }
+    await updateService(service.id, updates);
+    setSavingField(null);
+  };
 
   // Compute budget total from lines
   const budgetTotal = linkedBudget
@@ -76,14 +106,23 @@ export default function ServiceSidebar({ service }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {service.collaboratorName ? (
-            <div>
-              <p className="text-sm font-medium text-card-foreground">{service.collaboratorName}</p>
-              <p className="text-xs text-muted-foreground">{service.collaboratorId}</p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">Sin colaborador (directo)</p>
-          )}
+          <SearchableSelect
+            options={[
+              { value: "none", label: "Sin colaborador" },
+              ...collaborators.map((c) => ({
+                value: c.id,
+                label: c.companyName,
+                subtitle: c.contactPerson,
+                searchText: `${c.email} ${c.phone}`,
+              })),
+            ]}
+            value={service.collaboratorId ?? "none"}
+            onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
+            placeholder="Seleccionar colaborador…"
+            searchPlaceholder="Buscar colaborador…"
+            emptyText="Sin colaboradores"
+            disabled={savingField === "collaborator_id"}
+          />
         </CardContent>
       </Card>
 
@@ -95,14 +134,23 @@ export default function ServiceSidebar({ service }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {service.operatorName ? (
-            <div>
-              <p className="text-sm font-medium text-card-foreground">{service.operatorName}</p>
-              <p className="text-xs text-muted-foreground">{service.operatorId} · Cluster {service.clusterId}</p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">Sin técnico asignado</p>
-          )}
+          <SearchableSelect
+            options={[
+              { value: "none", label: "Sin asignar" },
+              ...operatorOptions.map((o) => ({
+                value: o.id,
+                label: o.name,
+                subtitle: o.specialty,
+                searchText: `${o.dni} ${o.email}`,
+              })),
+            ]}
+            value={service.operatorId ?? "none"}
+            onValueChange={(v) => handleUpdate("operator_id", v === "none" ? null : v)}
+            placeholder="Seleccionar técnico…"
+            searchPlaceholder="Buscar técnico…"
+            emptyText="Sin técnicos disponibles"
+            disabled={savingField === "operator_id"}
+          />
         </CardContent>
       </Card>
 
