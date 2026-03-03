@@ -73,7 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {/* Cita */}
       <Card className="bg-card">
         <CardContent className="p-3">
@@ -169,33 +169,7 @@ export default function ServiceInfoCards({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Técnico */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <User className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Técnico</span>
-          </div>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin asignar" },
-              ...operatorOptions.map((o) => ({
-                value: o.id,
-                label: o.name,
-                subtitle: o.specialty,
-                searchText: `${o.dni} ${o.email}`,
-              })),
-            ]}
-            value={service.operatorId ?? "none"}
-            onValueChange={(v) => handleUpdate("operator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar técnico…"
-            searchPlaceholder="Buscar técnico…"
-            emptyText="Sin técnicos disponibles"
-            disabled={saving === "operator_id"}
-            className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent"
-          />
-        </CardContent>
-      </Card>
+
 
 
 
