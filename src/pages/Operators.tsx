@@ -233,7 +233,7 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
         {filtered.map((op) => {
           const stCfg = statusConfig[op.status];
           const assignedServices = services.filter(
-            (s) => s.operatorId === op.id && ["En_Curso", "Agendado"].includes(s.status)
+            (s) => s.operatorId === op.id && ["En_Curso", "Agendado", "Asignado"].includes(s.status)
           ).length;
           const isSelected = selectedIds.has(op.id);
 
@@ -325,7 +325,7 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
   };
 
   const operatorServices = services.filter((s) => s.operatorId === operator.id);
-  const activeServices = operatorServices.filter((s) => ["En_Curso", "Agendado", "Pendiente_Contacto"].includes(s.status));
+  const activeServices = operatorServices.filter((s) => ["En_Curso", "Agendado", "Asignado", "Pendiente_Contacto"].includes(s.status));
   const recentServices = [...operatorServices].sort(
     (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
   ).slice(0, 8);
@@ -551,6 +551,7 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
                   const statusCls =
                     s.status === "En_Curso" ? "bg-warning/15 text-warning" :
                     s.status === "Agendado" ? "bg-info/15 text-info" :
+                    s.status === "Asignado" ? "bg-chart-4/15 text-chart-4" :
                     s.status === "Finalizado" ? "bg-success/15 text-success" :
                     s.status === "Liquidado" ? "bg-muted text-muted-foreground" :
                     "bg-destructive/15 text-destructive";
