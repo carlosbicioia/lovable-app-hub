@@ -13,6 +13,13 @@ function mapRow(row: any): Collaborator {
     npsMean: Number(row.nps_mean),
     activeServices: row.active_services,
     totalClients: row.total_clients,
+    taxId: row.tax_id ?? "",
+    address: row.address ?? "",
+    city: row.city ?? "",
+    province: row.province ?? "",
+    postalCode: row.postal_code ?? "",
+    website: row.website ?? "",
+    notes: row.notes ?? "",
   };
 }
 
@@ -22,6 +29,13 @@ export type CollaboratorInput = {
   email: string;
   phone: string;
   contactPerson: string;
+  taxId: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  website: string;
+  notes: string;
 };
 
 export function useCollaborators() {
@@ -59,6 +73,13 @@ export function useCollaborators() {
       email: input.email,
       phone: input.phone,
       contact_person: input.contactPerson,
+      tax_id: input.taxId,
+      address: input.address,
+      city: input.city,
+      province: input.province,
+      postal_code: input.postalCode,
+      website: input.website,
+      notes: input.notes,
     } as any);
     if (!error) await fetch();
     return { error };
@@ -73,6 +94,13 @@ export function useCollaborators() {
         email: input.email,
         phone: input.phone,
         contact_person: input.contactPerson,
+        tax_id: input.taxId,
+        address: input.address,
+        city: input.city,
+        province: input.province,
+        postal_code: input.postalCode,
+        website: input.website,
+        notes: input.notes,
       } as any)
       .eq("id", id);
     if (!error) await fetch();

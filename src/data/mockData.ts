@@ -25,11 +25,11 @@ export const mockClients: Client[] = [
 ];
 
 export const mockCollaborators: Collaborator[] = [
-  { id: "COL-001", companyName: "Fincas Reunidas SL", category: "Administrador", email: "info@fincasreunidas.es", phone: "911234567", npsMean: 8.7, activeServices: 12, totalClients: 45, contactPerson: "Antonio Pérez" },
-  { id: "COL-002", companyName: "InmoGest BCN", category: "Administrador", email: "contacto@inmogestbcn.es", phone: "932345678", npsMean: 9.1, activeServices: 8, totalClients: 32, contactPerson: "Montse Vila" },
-  { id: "COL-003", companyName: "Correduría Andaluza", category: "Corredor", email: "info@correduriaandaluza.es", phone: "954567890", npsMean: 7.8, activeServices: 5, totalClients: 18, contactPerson: "Francisco Romero" },
-  { id: "COL-004", companyName: "Gestoría Norte", category: "Gestoría", email: "gestion@gestorianorte.es", phone: "976789012", npsMean: 8.2, activeServices: 3, totalClients: 11, contactPerson: "Isabel Martín" },
-  { id: "COL-005", companyName: "AdminPro Madrid", category: "Administrador", email: "admin@adminpro.es", phone: "913456789", npsMean: 9.4, activeServices: 15, totalClients: 58, contactPerson: "Luis Gómez" },
+  { id: "COL-001", companyName: "Fincas Reunidas SL", category: "Administrador", email: "info@fincasreunidas.es", phone: "911234567", npsMean: 8.7, activeServices: 12, totalClients: 45, contactPerson: "Antonio Pérez", taxId: "B12345678", address: "Calle Gran Vía 1", city: "Madrid", province: "Madrid", postalCode: "28001", website: "www.fincasreunidas.es", notes: "" },
+  { id: "COL-002", companyName: "InmoGest BCN", category: "Administrador", email: "contacto@inmogestbcn.es", phone: "932345678", npsMean: 9.1, activeServices: 8, totalClients: 32, contactPerson: "Montse Vila", taxId: "B87654321", address: "Av. Diagonal 200", city: "Barcelona", province: "Barcelona", postalCode: "08018", website: "", notes: "" },
+  { id: "COL-003", companyName: "Correduría Andaluza", category: "Corredor", email: "info@correduriaandaluza.es", phone: "954567890", npsMean: 7.8, activeServices: 5, totalClients: 18, contactPerson: "Francisco Romero", taxId: "", address: "", city: "Sevilla", province: "Sevilla", postalCode: "", website: "", notes: "" },
+  { id: "COL-004", companyName: "Gestoría Norte", category: "Gestoría", email: "gestion@gestorianorte.es", phone: "976789012", npsMean: 8.2, activeServices: 3, totalClients: 11, contactPerson: "Isabel Martín", taxId: "", address: "", city: "Zaragoza", province: "Zaragoza", postalCode: "", website: "", notes: "" },
+  { id: "COL-005", companyName: "AdminPro Madrid", category: "Administrador", email: "admin@adminpro.es", phone: "913456789", npsMean: 9.4, activeServices: 15, totalClients: 58, contactPerson: "Luis Gómez", taxId: "B11223344", address: "Calle Serrano 50", city: "Madrid", province: "Madrid", postalCode: "28006", website: "www.adminpro.es", notes: "" },
 ];
 
 export const mockServices: Service[] = [

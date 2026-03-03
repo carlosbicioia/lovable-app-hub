@@ -64,6 +64,8 @@ export default function CollaboratorDetail() {
   const [form, setForm] = useState({
     companyName: "", category: "Administrador" as CollaboratorCategory,
     email: "", phone: "", contactPerson: "",
+    taxId: "", address: "", city: "", province: "", postalCode: "",
+    website: "", notes: "",
   });
   const [saving, setSaving] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -92,11 +94,17 @@ export default function CollaboratorDetail() {
       email: row.email, phone: row.phone, contactPerson: row.contact_person,
       npsMean: Number(row.nps_mean), activeServices: row.active_services,
       totalClients: row.total_clients,
+      taxId: row.tax_id ?? "", address: row.address ?? "", city: row.city ?? "",
+      province: row.province ?? "", postalCode: row.postal_code ?? "",
+      website: row.website ?? "", notes: row.notes ?? "",
     };
     setCollaborator(c);
     setForm({
       companyName: c.companyName, category: c.category,
       email: c.email, phone: c.phone, contactPerson: c.contactPerson,
+      taxId: c.taxId, address: c.address, city: c.city,
+      province: c.province, postalCode: c.postalCode,
+      website: c.website, notes: c.notes,
     });
     setPortalEnabled(!!row.portal_enabled);
     setPortalEmail(row.portal_email || c.email);
@@ -154,6 +162,9 @@ export default function CollaboratorDetail() {
       .update({
         company_name: form.companyName, category: form.category,
         email: form.email, phone: form.phone, contact_person: form.contactPerson,
+        tax_id: form.taxId, address: form.address, city: form.city,
+        province: form.province, postal_code: form.postalCode,
+        website: form.website, notes: form.notes,
       } as any)
       .eq("id", id);
     setSaving(false);
@@ -274,7 +285,7 @@ export default function CollaboratorDetail() {
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson }); }}>
+                  <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes }); }}>
                     Cancelar
                   </Button>
                   <Button size="sm" onClick={handleSave} disabled={saving}>
@@ -330,6 +341,64 @@ export default function CollaboratorDetail() {
                     <p className="text-sm text-foreground">{collaborator.phone || "—"}</p>
                   )}
                 </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>NIF / CIF</Label>
+                {editing ? (
+                  <Input value={form.taxId} onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))} placeholder="B12345678" />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.taxId || "—"}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Dirección</Label>
+                {editing ? (
+                  <Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.address || "—"}</p>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Ciudad</Label>
+                  {editing ? (
+                    <Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} />
+                  ) : (
+                    <p className="text-sm text-foreground">{collaborator.city || "—"}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Provincia</Label>
+                  {editing ? (
+                    <Input value={form.province} onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))} />
+                  ) : (
+                    <p className="text-sm text-foreground">{collaborator.province || "—"}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label>C.P.</Label>
+                  {editing ? (
+                    <Input value={form.postalCode} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} />
+                  ) : (
+                    <p className="text-sm text-foreground">{collaborator.postalCode || "—"}</p>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Web</Label>
+                {editing ? (
+                  <Input value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="www.empresa.es" />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.website || "—"}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Notas</Label>
+                {editing ? (
+                  <Input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Observaciones internas..." />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.notes || "—"}</p>
+                )}
               </div>
             </div>
           </div>

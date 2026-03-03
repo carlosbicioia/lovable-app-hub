@@ -57,6 +57,13 @@ const emptyForm: CollaboratorInput = {
   email: "",
   phone: "",
   contactPerson: "",
+  taxId: "",
+  address: "",
+  city: "",
+  province: "",
+  postalCode: "",
+  website: "",
+  notes: "",
 };
 
 export default function Collaborators() {
@@ -96,6 +103,13 @@ export default function Collaborators() {
       email: c.email,
       phone: c.phone,
       contactPerson: c.contactPerson,
+      taxId: c.taxId,
+      address: c.address,
+      city: c.city,
+      province: c.province,
+      postalCode: c.postalCode,
+      website: c.website,
+      notes: c.notes,
     });
     setDialogOpen(true);
   };
@@ -261,7 +275,7 @@ export default function Collaborators() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingId ? "Editar Colaborador" : "Nuevo Colaborador"}</DialogTitle>
             <DialogDescription>
@@ -269,36 +283,49 @@ export default function Collaborators() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="companyName">Nombre de empresa *</Label>
-              <Input
-                id="companyName"
-                value={form.companyName}
-                onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
-                placeholder="Ej: Fincas Reunidas SL"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="companyName">Nombre de empresa *</Label>
+                <Input
+                  id="companyName"
+                  value={form.companyName}
+                  onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
+                  placeholder="Ej: Fincas Reunidas SL"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="taxId">NIF / CIF</Label>
+                <Input
+                  id="taxId"
+                  value={form.taxId}
+                  onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))}
+                  placeholder="B12345678"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="category">Categoría</Label>
-              <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as CollaboratorCategory }))}>
-                <SelectTrigger id="category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="contactPerson">Persona de contacto</Label>
-              <Input
-                id="contactPerson"
-                value={form.contactPerson}
-                onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
-                placeholder="Ej: Antonio Pérez"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="category">Categoría</Label>
+                <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as CollaboratorCategory }))}>
+                  <SelectTrigger id="category">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactPerson">Persona de contacto</Label>
+                <Input
+                  id="contactPerson"
+                  value={form.contactPerson}
+                  onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
+                  placeholder="Ej: Antonio Pérez"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -320,6 +347,60 @@ export default function Collaborators() {
                   placeholder="912345678"
                 />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="address">Dirección</Label>
+              <Input
+                id="address"
+                value={form.address}
+                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder="Calle, número, piso..."
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="city">Ciudad</Label>
+                <Input
+                  id="city"
+                  value={form.city}
+                  onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="province">Provincia</Label>
+                <Input
+                  id="province"
+                  value={form.province}
+                  onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="postalCode">C.P.</Label>
+                <Input
+                  id="postalCode"
+                  value={form.postalCode}
+                  onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+                  placeholder="28001"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="website">Web</Label>
+              <Input
+                id="website"
+                value={form.website}
+                onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+                placeholder="www.empresa.es"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="notes">Notas</Label>
+              <Input
+                id="notes"
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                placeholder="Observaciones internas..."
+              />
             </div>
           </div>
           <DialogFooter>
