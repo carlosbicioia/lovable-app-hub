@@ -156,9 +156,11 @@ function DroppableCell({
 function ServiceChip({
   service,
   showTime = false,
+  spanHeight,
 }: {
   service: Service;
   showTime?: boolean;
+  spanHeight?: number;
 }) {
   const navigate = useNavigate();
   const colors = getOperatorColor(service.operatorId);
@@ -168,6 +170,8 @@ function ServiceChip({
       (service.scheduledEndAt ? "–" + format(new Date(service.scheduledEndAt), "HH:mm") : "")
     : "";
 
+  const isSpanning = spanHeight !== undefined && spanHeight > 30;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -175,7 +179,10 @@ function ServiceChip({
           draggable
           onDragStart={(e) => handleDragStart(e as any, service)}
           onClick={() => navigate(`/servicios/${service.id}`)}
-          className="w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate border transition-colors hover:ring-1 hover:ring-ring cursor-grab active:cursor-grabbing"
+          className={cn(
+            "w-full text-left px-2 py-1 rounded-md text-xs font-medium border transition-colors hover:ring-1 hover:ring-ring cursor-grab active:cursor-grabbing",
+            isSpanning ? "h-full flex flex-col overflow-hidden" : "truncate"
+          )}
           style={{
             backgroundColor: colors.bg,
             color: colors.text,
@@ -188,6 +195,9 @@ function ServiceChip({
               {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service.operatorName ?? "Sin asignar"}
             </span>
           </span>
+          {isSpanning && (
+            <span className="truncate text-[10px] opacity-80 mt-0.5">{service.clientName}</span>
+          )}
         </button>
       </TooltipTrigger>
       <TooltipContent side="right" className="max-w-xs">
@@ -358,20 +368,48 @@ function DayView({
                 (s) => s.operatorId === op.id && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
               );
               return (
-                <DroppableCell key={op.id} date={date} onDropService={onDropService} className="p-1 border-r border-border last:border-r-0 space-y-0.5">
-                  {opServices.map((s) => (
-                    <ServiceChip key={s.id} service={s} />
-                  ))}
+                <DroppableCell key={op.id} date={date} onDropService={onDropService} className="relative p-0 border-r border-border last:border-r-0" style={{ overflow: 'visible' }}>
+                  {opServices.map((s) => {
+                    const start = new Date(s.scheduledAt!);
+                    const end = s.scheduledEndAt ? new Date(s.scheduledEndAt) : null;
+                    const startTotalMin = getHours(start) * 60 + getMinutes(start);
+                    const endTotalMin = end
+                      ? Math.min(getHours(end) * 60 + getMinutes(end), 24 * 60)
+                      : startTotalMin + 60;
+                    const durationMin = Math.max(endTotalMin - startTotalMin, 15);
+                    const ROW_H = 56;
+                    const topPx = (getMinutes(start) / 60) * ROW_H;
+                    const heightPx = (durationMin / 60) * ROW_H;
+                    return (
+                      <div key={s.id} className="absolute z-10 left-1 right-1" style={{ top: topPx, height: Math.max(heightPx, 24) }} data-service-chip>
+                        <ServiceChip service={s} showTime spanHeight={heightPx} />
+                      </div>
+                    );
+                  })}
                 </DroppableCell>
               );
             })}
             {unassigned.length > 0 && (
-              <DroppableCell date={date} onDropService={onDropService} className="p-1 space-y-0.5">
+              <DroppableCell date={date} onDropService={onDropService} className="relative p-0" style={{ overflow: 'visible' }}>
                 {unassigned
                   .filter((s) => s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour)
-                  .map((s) => (
-                    <ServiceChip key={s.id} service={s} />
-                  ))}
+                  .map((s) => {
+                    const start = new Date(s.scheduledAt!);
+                    const end = s.scheduledEndAt ? new Date(s.scheduledEndAt) : null;
+                    const startTotalMin = getHours(start) * 60 + getMinutes(start);
+                    const endTotalMin = end
+                      ? Math.min(getHours(end) * 60 + getMinutes(end), 24 * 60)
+                      : startTotalMin + 60;
+                    const durationMin = Math.max(endTotalMin - startTotalMin, 15);
+                    const ROW_H = 56;
+                    const topPx = (getMinutes(start) / 60) * ROW_H;
+                    const heightPx = (durationMin / 60) * ROW_H;
+                    return (
+                      <div key={s.id} className="absolute z-10 left-1 right-1" style={{ top: topPx, height: Math.max(heightPx, 24) }} data-service-chip>
+                        <ServiceChip service={s} showTime spanHeight={heightPx} />
+                      </div>
+                    );
+                  })}
               </DroppableCell>
             )}
           </div>
@@ -579,9 +617,10 @@ function WeekView({
                   date={day}
                   onDropService={onDropService}
                   className={cn(
-                    "p-0.5 border-r border-border last:border-r-0 space-y-0.5 cursor-cell",
+                    "relative p-0 border-r border-border last:border-r-0 cursor-cell",
                     selected && "bg-primary/15 ring-1 ring-inset ring-primary/40"
                   )}
+                  style={{ overflow: 'visible' }}
                 >
                   <div
                     className="w-full h-full min-h-[44px]"
@@ -592,11 +631,23 @@ function WeekView({
                     }}
                     onMouseEnter={() => handleSelMouseEnter(dayIdx, hour)}
                   >
-                    {dayServices.map((s) => (
-                      <div key={s.id} data-service-chip>
-                        <ServiceChip service={s} />
-                      </div>
-                    ))}
+                    {dayServices.map((s) => {
+                      const start = new Date(s.scheduledAt!);
+                      const end = s.scheduledEndAt ? new Date(s.scheduledEndAt) : null;
+                      const startTotalMin = getHours(start) * 60 + getMinutes(start);
+                      const endTotalMin = end
+                        ? Math.min(getHours(end) * 60 + getMinutes(end), 24 * 60)
+                        : startTotalMin + 60;
+                      const durationMin = Math.max(endTotalMin - startTotalMin, 15);
+                      const ROW_H = 52;
+                      const topPx = (getMinutes(start) / 60) * ROW_H;
+                      const heightPx = (durationMin / 60) * ROW_H;
+                      return (
+                        <div key={s.id} className="absolute z-10 left-0.5 right-0.5" style={{ top: topPx, height: Math.max(heightPx, 24) }} data-service-chip>
+                          <ServiceChip service={s} showTime spanHeight={heightPx} />
+                        </div>
+                      );
+                    })}
                   </div>
                 </DroppableCell>
               );
