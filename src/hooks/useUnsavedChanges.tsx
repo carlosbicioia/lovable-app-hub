@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useState } from "react";
-import { useBlocker } from "react-router-dom";
+import { useEffect, useCallback, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,19 +12,60 @@ import {
 } from "@/components/ui/alert-dialog";
 
 /**
- * Hook that blocks navigation when there are unsaved changes.
- * Returns a <UnsavedChangesDialog /> component to render.
+ * Hook that warns users when they try to leave a page with unsaved changes.
+ * Works with the legacy <BrowserRouter> (no data router required).
  */
 export function useUnsavedChanges(isDirty: boolean) {
-  const blocker = useBlocker(
-    useCallback(
-      ({ currentLocation, nextLocation }) =>
-        isDirty && currentLocation.pathname !== nextLocation.pathname,
-      [isDirty]
-    )
-  );
+  const navigate = useNavigate();
+  const [showDialog, setShowDialog] = useState(false);
+  const pendingPath = useRef<string | null>(null);
+  const isConfirmed = useRef(false);
 
-  // Also warn on browser close / refresh
+  // Intercept link clicks inside the app to catch SPA navigation
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest("a[href]");
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:")) return;
+
+      // Internal link – block and show dialog
+      if (!isConfirmed.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingPath.current = href;
+        setShowDialog(true);
+      }
+    };
+
+    // Use capture phase to intercept before react-router processes the click
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [isDirty]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handlePopState = () => {
+      if (!isConfirmed.current) {
+        // Push current state back to prevent navigation
+        window.history.pushState(null, "", window.location.href);
+        pendingPath.current = "__back__";
+        setShowDialog(true);
+      }
+    };
+
+    // Push an extra history entry so we can catch the back button
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [isDirty]);
+
+  // Warn on browser close / refresh
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -36,9 +77,26 @@ export function useUnsavedChanges(isDirty: boolean) {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
+  const handleProceed = useCallback(() => {
+    isConfirmed.current = true;
+    setShowDialog(false);
+    const path = pendingPath.current;
+    pendingPath.current = null;
+    if (path === "__back__") {
+      window.history.back();
+    } else if (path) {
+      navigate(path);
+    }
+  }, [navigate]);
+
+  const handleCancel = useCallback(() => {
+    setShowDialog(false);
+    pendingPath.current = null;
+  }, []);
+
   const UnsavedChangesDialog = useCallback(
     () => (
-      <AlertDialog open={blocker.state === "blocked"}>
+      <AlertDialog open={showDialog} onOpenChange={(open) => !open && handleCancel()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Abandonar el proceso?</AlertDialogTitle>
@@ -47,18 +105,18 @@ export function useUnsavedChanges(isDirty: boolean) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => blocker.reset?.()}>
+            <AlertDialogCancel onClick={handleCancel}>
               Continuar editando
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => blocker.proceed?.()}>
+            <AlertDialogAction onClick={handleProceed}>
               Salir sin guardar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     ),
-    [blocker]
+    [showDialog, handleCancel, handleProceed]
   );
 
-  return { UnsavedChangesDialog, blocker };
+  return { UnsavedChangesDialog };
 }
