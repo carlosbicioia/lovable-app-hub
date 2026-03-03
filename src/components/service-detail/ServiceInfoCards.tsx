@@ -73,7 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+    <div className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", service.origin === "B2B" ? "lg:grid-cols-7" : "lg:grid-cols-6")}>
       {/* Cita */}
       <Card className="bg-card">
         <CardContent className="p-3">
@@ -197,7 +197,8 @@ export default function ServiceInfoCards({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Colaborador */}
+      {/* Colaborador — solo visible en origen B2B */}
+      {service.origin === "B2B" && (
       <Card className="bg-card">
         <CardContent className="p-3">
           <div className="flex items-center gap-2 mb-1">
@@ -224,6 +225,7 @@ export default function ServiceInfoCards({ service }: Props) {
           />
         </CardContent>
       </Card>
+      )}
 
       {/* Tipo de servicio */}
       <Card className="bg-card">
