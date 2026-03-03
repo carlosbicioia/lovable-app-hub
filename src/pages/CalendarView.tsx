@@ -954,6 +954,7 @@ export default function CalendarView() {
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | null>(null);
   const { services, refetch } = useServices();
   const { data: allOps = [] } = useOperators();
+  _operatorsCache = allOps;
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 
