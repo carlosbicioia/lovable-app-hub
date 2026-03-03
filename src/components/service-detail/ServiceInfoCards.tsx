@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Wrench, Zap, User, Users, Activity, CalendarClock, ClipboardList } from "lucide-react";
+import { Wrench, Zap, User, Users, Activity, CalendarClock, ClipboardList, ShieldAlert } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import SearchableSelect from "@/components/shared/SearchableSelect";
@@ -202,6 +202,29 @@ export default function ServiceInfoCards({ service }: Props) {
         </CardContent>
       </Card>
 
+      {/* Urgencia */}
+      <Card className="bg-card">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <ShieldAlert className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Urgencia</span>
+          </div>
+          <Select
+            value={service.urgency}
+            onValueChange={(v) => handleUpdate("urgency", v)}
+            disabled={saving === "urgency"}
+          >
+            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="Estándar">Estándar</SelectItem>
+              <SelectItem value="Urgente">Urgente</SelectItem>
+              <SelectItem value="Emergencia">Emergencia</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       {/* Estado */}
       <Card className="bg-card">
