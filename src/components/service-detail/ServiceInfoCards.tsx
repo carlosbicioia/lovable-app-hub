@@ -170,8 +170,37 @@ export default function ServiceInfoCards({ service }: Props) {
         </CardContent>
       </Card>
 
-
-
+      {/* Tipo de servicio */}
+      <Card className="bg-card">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <ClipboardList className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Tipo</span>
+          </div>
+          <Select
+            value={service.serviceType}
+            onValueChange={(v) => {
+              if (v === "Presupuesto" && !hasBudget) {
+                handleUpdate("service_type", v);
+                setShowBudgetPrompt(true);
+              } else if (v === "Reparación_Directa" && hasBudget) {
+                toast.error("No puedes cambiar a Reparación Directa mientras exista un presupuesto vinculado.");
+              } else {
+                handleUpdate("service_type", v);
+              }
+            }}
+            disabled={saving === "service_type"}
+          >
+            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+              <SelectValue>{service.serviceType === "Reparación_Directa" ? "Rep. Directa" : "Presupuesto"}</SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="Reparación_Directa">Reparación Directa</SelectItem>
+              <SelectItem value="Presupuesto">Presupuesto</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
 
       {/* Estado */}
