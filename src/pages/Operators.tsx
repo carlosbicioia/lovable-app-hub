@@ -9,6 +9,7 @@ import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import OperatorEditForm from "@/components/operators/OperatorEditForm";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -310,7 +311,11 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
 }
 
 // ─── OPERATOR DETAIL ───────────────────────────────────────
-function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () => void }) {
+function OperatorDetail({ operator: initialOperator, onBack }: { operator: Operator; onBack: () => void }) {
+  const { data: allOperators = [] } = useOperators();
+  // Use fresh data from query if available
+  const operator = allOperators.find((o) => o.id === initialOperator.id) ?? initialOperator;
+  const [activeTab, setActiveTab] = useState("info");
   const stCfg = statusConfig[operator.status];
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
@@ -410,9 +415,10 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
         </Card>
       </div>
 
-      <Tabs defaultValue="info" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="info">Información</TabsTrigger>
+          <TabsTrigger value="edit">Editar</TabsTrigger>
           <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           <TabsTrigger value="services">Servicios ({operatorServices.length})</TabsTrigger>
           <TabsTrigger value="time-records">Registro horario</TabsTrigger>
@@ -471,6 +477,11 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* ─── EDIT TAB ─── */}
+        <TabsContent value="edit">
+          <OperatorEditForm operator={operator as any} onSaved={() => setActiveTab("info")} />
         </TabsContent>
 
         {/* ─── PERFORMANCE TAB ─── */}
