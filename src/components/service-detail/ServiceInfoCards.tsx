@@ -73,7 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", service.origin === "B2B" ? "lg:grid-cols-7" : "lg:grid-cols-6")}>
+    <div className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", service.origin === "B2B" ? "lg:grid-cols-6" : "lg:grid-cols-5")}>
       {/* Cita */}
       <Card className="bg-card">
         <CardContent className="p-3">
@@ -227,37 +227,6 @@ export default function ServiceInfoCards({ service }: Props) {
       </Card>
       )}
 
-      {/* Tipo de servicio */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <ClipboardList className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Tipo</span>
-          </div>
-          <Select
-            value={service.serviceType}
-            onValueChange={(v) => {
-              if (v === "Reparación_Directa" && hasBudget) {
-                toast.error("No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina primero el presupuesto desde la pestaña Presupuesto.");
-                return;
-              }
-              handleUpdate("service_type", v);
-              if (v === "Presupuesto" && service.serviceType !== "Presupuesto") {
-                setShowBudgetPrompt(true);
-              }
-            }}
-            disabled={saving === "service_type"}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value="Reparación_Directa">Reparación Directa</SelectItem>
-              <SelectItem value="Presupuesto">Con Presupuesto</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
 
       {/* Estado */}
       <Card className="bg-card">
