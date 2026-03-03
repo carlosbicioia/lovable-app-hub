@@ -73,7 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
     : availableOperators;
 
   return (
-    <div className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", service.origin === "B2B" ? "lg:grid-cols-6" : "lg:grid-cols-5")}>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* Cita */}
       <Card className="bg-card">
         <CardContent className="p-3">
@@ -197,35 +197,6 @@ export default function ServiceInfoCards({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Colaborador — solo visible en origen B2B */}
-      {service.origin === "B2B" && (
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Colaborador</span>
-          </div>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin colaborador" },
-              ...collaborators.map((c) => ({
-                value: c.id,
-                label: c.companyName,
-                subtitle: c.contactPerson,
-                searchText: `${c.email} ${c.phone}`,
-              })),
-            ]}
-            value={service.collaboratorId ?? "none"}
-            onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar colaborador…"
-            searchPlaceholder="Buscar colaborador…"
-            emptyText="Sin colaboradores"
-            disabled={saving === "collaborator_id"}
-            className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent"
-          />
-        </CardContent>
-      </Card>
-      )}
 
 
       {/* Estado */}
