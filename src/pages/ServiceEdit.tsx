@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { ArrowLeft, Save, CalendarIcon, Upload, Image, Euro, Camera, File } from "lucide-react";
 import ServiceMediaUpload from "@/components/service-detail/ServiceMediaUpload";
 import { format } from "date-fns";
@@ -85,6 +86,9 @@ export default function ServiceEdit() {
   const [realHours, setRealHours] = useState<number | "">("");
   const [nps, setNps] = useState<number | "">("");
 
+  // Track initial values for dirty detection
+  const initialSnapshot = useRef<string>("");
+
   // Pre-fill from service
   useEffect(() => {
     if (!service) return;
@@ -115,7 +119,15 @@ export default function ServiceEdit() {
       setScheduledEndDate(d);
       setScheduledEndTime(format(d, "HH:mm"));
     }
+    // Capture initial snapshot after pre-fill
+    setTimeout(() => {
+      initialSnapshot.current = JSON.stringify({ clientId: service.clientId, origin: service.origin, collaboratorId: service.collaboratorId ?? "", status: service.status, specialty: service.specialty, urgency: service.urgency, serviceType: service.serviceType, serviceCategory: service.serviceCategory, claimStatus: service.claimStatus, description: service.description ?? "", address: service.address ?? "", operatorId: service.operatorId ?? "", diagnosisComplete: service.diagnosisComplete, budgetTotal: service.budgetTotal ?? "", budgetStatus: (service.budgetStatus ?? "") as string, realHours: service.realHours ?? "", nps: service.nps ?? "" });
+    }, 0);
   }, [service]);
+
+  const currentSnapshot = JSON.stringify({ clientId, origin, collaboratorId, status, specialty, urgency, serviceType, serviceCategory, claimStatus, description, address, operatorId, diagnosisComplete, budgetTotal, budgetStatus, realHours, nps });
+  const isDirty = useMemo(() => !saving && initialSnapshot.current !== "" && currentSnapshot !== initialSnapshot.current, [saving, currentSnapshot]);
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
 
   if (servicesLoading) {
     return (
@@ -227,6 +239,7 @@ export default function ServiceEdit() {
 
   return (
     <div className="space-y-6 max-w-5xl">
+      <UnsavedChangesDialog />
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(`/servicios/${service.id}`)}>

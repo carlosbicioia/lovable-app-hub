@@ -1,9 +1,14 @@
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface ClientFormData {
   clientType: "Particular" | "Empresa";
@@ -40,6 +45,25 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
   const activePlans = plans.filter((p) => p.active);
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
+  const initialSnapshot = useRef<string>("");
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      initialSnapshot.current = JSON.stringify(form);
+    }
+  }, [open]);
+
+  const isDirty = open && initialSnapshot.current !== "" && JSON.stringify(form) !== initialSnapshot.current;
+
+  const handleClose = useCallback((nextOpen: boolean) => {
+    if (!nextOpen && isDirty) {
+      setShowLeaveConfirm(true);
+    } else {
+      onOpenChange(nextOpen);
+    }
+  }, [isDirty, onOpenChange]);
+
   const handleCollaboratorChange = (value: string) => {
     if (value === "none") {
       setForm((prev) => ({ ...prev, collaboratorId: null, collaboratorName: null }));
@@ -50,7 +74,8 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -148,5 +173,20 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Abandonar el proceso?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tienes cambios sin guardar. Si sales ahora, perderás toda la información introducida.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setShowLeaveConfirm(false)}>Continuar editando</AlertDialogCancel>
+          <AlertDialogAction onClick={() => { setShowLeaveConfirm(false); onOpenChange(false); }}>Salir sin guardar</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
