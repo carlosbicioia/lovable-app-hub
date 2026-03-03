@@ -38,8 +38,9 @@ import {
   Save,
   Loader2,
   Trash2,
+  Palmtree,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -415,6 +416,7 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
           <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           <TabsTrigger value="services">Servicios ({operatorServices.length})</TabsTrigger>
           <TabsTrigger value="time-records">Registro horario</TabsTrigger>
+          <TabsTrigger value="vacations">Vacaciones</TabsTrigger>
         </TabsList>
 
         {/* ─── INFO TAB ─── */}
@@ -589,9 +591,9 @@ function OperatorDetail({ operator, onBack }: { operator: Operator; onBack: () =
           </Card>
         </TabsContent>
 
-        {/* ─── TIME RECORDS TAB ─── */}
-        <TabsContent value="time-records">
-          <TimeRecordsSection operatorId={operator.id} />
+        {/* ─── VACATIONS TAB ─── */}
+        <TabsContent value="vacations">
+          <VacationsSection operatorId={operator.id} />
         </TabsContent>
       </Tabs>
     </div>
@@ -792,6 +794,167 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
         <p className="text-sm text-foreground">{value}</p>
       </div>
     </div>
+  );
+}
+
+// ─── VACATIONS SECTION ─────────────────────────────────────
+function VacationsSection({ operatorId }: { operatorId: string }) {
+  const { toast } = useToast();
+  const [vacations, setVacations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formStart, setFormStart] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [formEnd, setFormEnd] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [formNotes, setFormNotes] = useState("");
+  const [yearFilter, setYearFilter] = useState(() => String(new Date().getFullYear()));
+
+  const fetchVacations = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("operator_vacations")
+      .select("*")
+      .eq("operator_id", operatorId)
+      .order("start_date", { ascending: false });
+    if (!error) setVacations(data ?? []);
+    setLoading(false);
+  };
+
+  // biome-ignore lint: fetch on mount
+  useState(() => { fetchVacations(); });
+
+  const filtered = vacations.filter((v) => v.start_date.startsWith(yearFilter));
+  const totalDays = filtered.reduce((sum: number, v: any) => sum + v.days, 0);
+
+  const handleAdd = async () => {
+    const start = parseISO(formStart);
+    const end = parseISO(formEnd);
+    const days = differenceInCalendarDays(end, start) + 1;
+    if (days < 1) {
+      toast({ title: "Fechas inválidas", description: "La fecha fin debe ser igual o posterior a la de inicio", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from("operator_vacations").insert({
+      operator_id: operatorId,
+      start_date: formStart,
+      end_date: formEnd,
+      days,
+      notes: formNotes.trim(),
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Vacaciones registradas" });
+      setShowForm(false);
+      setFormNotes("");
+      fetchVacations();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("operator_vacations").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Registro eliminado" });
+      fetchVacations();
+    }
+  };
+
+  const years = Array.from({ length: 5 }, (_, i) => String(new Date().getFullYear() - i));
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Palmtree className="w-4 h-4" /> Vacaciones disfrutadas
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Select value={yearFilter} onValueChange={setYearFilter}>
+              <SelectTrigger className="w-24 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((y) => (
+                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" className="gap-1 h-8" onClick={() => setShowForm(!showForm)}>
+              {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+              {showForm ? "Cancelar" : "Añadir"}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Summary */}
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">{totalDays}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Días en {yearFilter}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">{filtered.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Periodos</p>
+          </div>
+        </div>
+
+        {/* Add form */}
+        {showForm && (
+          <div className="p-3 rounded-lg border border-border bg-card space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Desde</label>
+                <Input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Hasta</label>
+                <Input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} className="h-8 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Notas (opcional)</label>
+              <Input value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Ej: Vacaciones de verano" className="h-8 text-sm" />
+            </div>
+            <Button size="sm" onClick={handleAdd} className="gap-1">
+              <Save className="w-3.5 h-3.5" /> Guardar
+            </Button>
+          </div>
+        )}
+
+        {/* List */}
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">Sin vacaciones registradas en {yearFilter}</p>
+        ) : (
+          <div className="space-y-1.5">
+            {filtered.map((v: any) => (
+              <div key={v.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Palmtree className="w-4 h-4 text-success" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {format(parseISO(v.start_date), "d MMM", { locale: es })} – {format(parseISO(v.end_date), "d MMM yyyy", { locale: es })}
+                    </p>
+                    {v.notes && <p className="text-xs text-muted-foreground">{v.notes}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-foreground">{v.days} día{v.days !== 1 ? "s" : ""}</span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(v.id)}>
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
