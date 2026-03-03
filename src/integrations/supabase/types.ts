@@ -619,6 +619,36 @@ export type Database = {
           },
         ]
       }
+      operator_vacations: {
+        Row: {
+          created_at: string
+          days: number
+          end_date: string
+          id: string
+          notes: string | null
+          operator_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          days?: number
+          end_date: string
+          id?: string
+          notes?: string | null
+          operator_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          end_date?: string
+          id?: string
+          notes?: string | null
+          operator_id?: string
+          start_date?: string
+        }
+        Relationships: []
+      }
       operators: {
         Row: {
           active_services: number
