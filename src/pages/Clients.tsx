@@ -13,7 +13,7 @@ import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const defaultPlanColor = "bg-muted text-muted-foreground border-border";
@@ -49,6 +49,21 @@ export default function Clients() {
   }, [plans]);
   const qc = useQueryClient();
   const { toast } = useToast();
+
+  // Count finalized services per client
+  const { data: finishedCounts = {} } = useQuery({
+    queryKey: ["client-finished-services"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("client_id")
+        .eq("status", "Finalizado");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((s) => { counts[s.client_id] = (counts[s.client_id] || 0) + 1; });
+      return counts;
+    },
+  });
 
   const filtered = clients.filter(
     (c) => {
@@ -151,6 +166,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Finalizados</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Últ. Servicio</th>
                 <th className="w-12"></th>
               </tr>
@@ -178,6 +194,11 @@ export default function Clients() {
                   <td className="px-5 py-3">
                     <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", planColorMap[c.planType] ?? defaultPlanColor)}>
                       {c.planType}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-center">
+                    <span className={cn("inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-semibold", (finishedCounts[c.id] ?? 0) > 0 ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>
+                      {finishedCounts[c.id] ?? 0}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-muted-foreground text-xs">
