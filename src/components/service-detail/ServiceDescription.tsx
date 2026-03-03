@@ -17,12 +17,13 @@ interface Props {
   onUpdate?: (updates: Record<string, any>) => Promise<{ error: any } | void>;
 }
 
-const claimStatusLabels: Record<string, string> = {
-  Abierto: "Abierto",
-  En_Valoración: "En Valoración",
-  Aceptado: "Aceptado",
-  Rechazado: "Rechazado",
-  Cerrado: "Cerrado",
+const statusLabels: Record<string, string> = {
+  Pendiente_Contacto: "Pte. Contacto",
+  Pte_Asignacion: "Pte. Asignación",
+  Agendado: "Agendado",
+  En_Curso: "En Curso",
+  Finalizado: "Finalizado",
+  Liquidado: "Liquidado",
 };
 
 export default function ServiceDescription({ service, onUpdate }: Props) {
@@ -202,10 +203,10 @@ export default function ServiceDescription({ service, onUpdate }: Props) {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground font-medium">Estado del siniestro</span>
+              <span className="text-xs text-muted-foreground font-medium">Estado del servicio</span>
             </div>
             <p className="text-sm font-medium text-card-foreground">
-              {claimStatusLabels[service.claimStatus] ?? service.claimStatus}
+              {statusLabels[service.status] ?? service.status}
             </p>
           </div>
           <div>
