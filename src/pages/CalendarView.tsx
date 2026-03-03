@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "react";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import {
   format,
   startOfWeek,
@@ -40,10 +41,24 @@ import {
   PlayCircle,
   CheckCircle2,
   Phone,
+  Filter,
+  X,
+  UserCheck,
+  Briefcase,
+  AlertTriangle,
+  Globe,
+  Building2,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -54,7 +69,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import type { Service, Operator, Specialty, ServiceStatus } from "@/types/urbango";
+import type { Service, Operator, Specialty, ServiceStatus, ServiceOrigin, UrgencyLevel } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -952,28 +967,42 @@ export default function CalendarView() {
   const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | null>(null);
+  const [selectedUrgency, setSelectedUrgency] = useState<UrgencyLevel | null>(null);
+  const [selectedOrigin, setSelectedOrigin] = useState<ServiceOrigin | null>(null);
+  const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
   const { services, refetch } = useServices();
   const { data: allOps = [] } = useOperators();
+  const { collaborators } = useCollaborators();
   _operatorsCache = allOps;
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 
+  const hasAnyFilter = !!(selectedOperatorId || selectedSpecialty || selectedStatus || selectedUrgency || selectedOrigin || selectedCollaboratorId);
+
+  const clearAllFilters = () => {
+    setSelectedOperatorId(null);
+    setSelectedSpecialty(null);
+    setSelectedStatus(null);
+    setSelectedUrgency(null);
+    setSelectedOrigin(null);
+    setSelectedCollaboratorId(null);
+  };
+
+  const activeFilterCount = [selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId].filter(Boolean).length;
+
   const filteredServices = useMemo(() => {
-    const hasOperator = !!selectedOperatorId;
-    const hasSpecialty = !!selectedSpecialty;
-    const hasStatus = !!selectedStatus;
-    if (!hasOperator && !hasSpecialty && !hasStatus) return undefined;
+    if (!hasAnyFilter) return undefined;
     return services.filter((s) => {
-      if (hasOperator && s.operatorId !== selectedOperatorId) return false;
-      if (hasSpecialty && s.specialty !== selectedSpecialty) return false;
-      if (hasStatus && s.status !== selectedStatus) return false;
+      if (selectedOperatorId && s.operatorId !== selectedOperatorId) return false;
+      if (selectedSpecialty && s.specialty !== selectedSpecialty) return false;
+      if (selectedStatus && s.status !== selectedStatus) return false;
+      if (selectedUrgency && s.urgency !== selectedUrgency) return false;
+      if (selectedOrigin && s.origin !== selectedOrigin) return false;
+      if (selectedCollaboratorId && s.collaboratorId !== selectedCollaboratorId) return false;
       return true;
     });
-  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus]);
+  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, hasAnyFilter]);
 
-  const selectedOperatorName = selectedOperatorId
-    ? allOps.find((o) => o.id === selectedOperatorId)?.name ?? null
-    : null;
 
   // ── Create-from-calendar dialog state ──
   const [createDialog, setCreateDialog] = useState<{
@@ -1078,76 +1107,150 @@ export default function CalendarView() {
         </div>
       </div>
 
-      {/* Collapsible panels */}
-      <div className="flex flex-wrap gap-3 shrink-0 mt-3">
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2 shrink-0 mt-3">
+        {/* Operario */}
+        <Select
+          value={selectedOperatorId ?? "__all__"}
+          onValueChange={(v) => setSelectedOperatorId(v === "__all__" ? null : v)}
+        >
+          <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedOperatorId && "border-primary text-primary")}>
+            <User className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Operario" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todos los operarios</SelectItem>
+            {allOps.map((op) => (
+              <SelectItem key={op.id} value={op.id}>
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: `hsl(${op.color})` }} />
+                  {op.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Especialidad */}
+        <Select
+          value={selectedSpecialty ?? "__all__"}
+          onValueChange={(v) => setSelectedSpecialty(v === "__all__" ? null : v as Specialty)}
+        >
+          <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedSpecialty && "border-primary text-primary")}>
+            <Droplets className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Especialidad" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todas las especialidades</SelectItem>
+            <SelectItem value="Fontanería/Agua">
+              <span className="flex items-center gap-1.5">{specialtyIcon["Fontanería/Agua"]} Fontanería</span>
+            </SelectItem>
+            <SelectItem value="Electricidad/Luz">
+              <span className="flex items-center gap-1.5">{specialtyIcon["Electricidad/Luz"]} Electricidad</span>
+            </SelectItem>
+            <SelectItem value="Clima">
+              <span className="flex items-center gap-1.5">{specialtyIcon["Clima"]} Clima</span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Estado */}
+        <Select
+          value={selectedStatus ?? "__all__"}
+          onValueChange={(v) => setSelectedStatus(v === "__all__" ? null : v as ServiceStatus)}
+        >
+          <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedStatus && "border-primary text-primary")}>
+            <PlayCircle className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todos los estados</SelectItem>
+            <SelectItem value="Pendiente_Contacto">Pendiente contacto</SelectItem>
+            <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
+            <SelectItem value="Asignado">Asignado</SelectItem>
+            <SelectItem value="Agendado">Agendado</SelectItem>
+            <SelectItem value="En_Curso">En curso</SelectItem>
+            <SelectItem value="Finalizado">Finalizado</SelectItem>
+            <SelectItem value="Liquidado">Liquidado</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Urgencia */}
+        <Select
+          value={selectedUrgency ?? "__all__"}
+          onValueChange={(v) => setSelectedUrgency(v === "__all__" ? null : v as UrgencyLevel)}
+        >
+          <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedUrgency && "border-primary text-primary")}>
+            <AlertTriangle className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Urgencia" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todas las urgencias</SelectItem>
+            <SelectItem value="Estándar">Estándar</SelectItem>
+            <SelectItem value="24h">24h</SelectItem>
+            <SelectItem value="Inmediato">Inmediato</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Origen */}
+        <Select
+          value={selectedOrigin ?? "__all__"}
+          onValueChange={(v) => setSelectedOrigin(v === "__all__" ? null : v as ServiceOrigin)}
+        >
+          <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedOrigin && "border-primary text-primary")}>
+            <Globe className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Origen" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todos los orígenes</SelectItem>
+            <SelectItem value="App">App</SelectItem>
+            <SelectItem value="B2B">B2B</SelectItem>
+            <SelectItem value="Directo">Directo</SelectItem>
+            <SelectItem value="API_Externa">API Externa</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Colaborador */}
+        <Select
+          value={selectedCollaboratorId ?? "__all__"}
+          onValueChange={(v) => setSelectedCollaboratorId(v === "__all__" ? null : v)}
+        >
+          <SelectTrigger className={cn("w-[180px] h-8 text-xs", selectedCollaboratorId && "border-primary text-primary")}>
+            <Building2 className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue placeholder="Colaborador" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todos los colaboradores</SelectItem>
+            {collaborators.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Clear all + active count */}
+        {hasAnyFilter && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs gap-1 text-destructive hover:text-destructive"
+            onClick={clearAllFilters}
+          >
+            <X className="w-3.5 h-3.5" />
+            Limpiar ({activeFilterCount})
+          </Button>
+        )}
+
+        {/* Spacer + Leyenda */}
+        <div className="flex-1" />
         <Collapsible>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className={cn("gap-1.5", selectedOperatorId && "border-primary text-primary")}>
-              <User className="w-4 h-4" />
-              {selectedOperatorName ?? "Operarios"}
-              {selectedOperatorId && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-              <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-50 mt-1 w-80 rounded-lg border border-border bg-popover p-3 shadow-lg">
-            <OperatorSummary date={currentDate} view={view} selectedOperatorId={selectedOperatorId} onSelectOperator={setSelectedOperatorId} />
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Specialty filter */}
-        <div className="flex items-center gap-1.5">
-          {(Object.entries(specialtyColor) as [Specialty, string][]).map(([key, cls]) => {
-            const isActive = selectedSpecialty === key;
-            return (
-              <Button
-                key={key}
-                variant={isActive ? "default" : "outline"}
-                size="sm"
-                className={cn("text-xs h-8 gap-1", !isActive && cls)}
-                onClick={() => setSelectedSpecialty(isActive ? null : key)}
-              >
-                {specialtyIcon[key]}
-                {key.split("/")[0]}
-              </Button>
-            );
-          })}
-        </div>
-
-        {/* Status filter */}
-        <div className="flex items-center gap-1.5">
-          {([
-            { key: "Pendiente_Contacto" as ServiceStatus, label: "Pendiente", icon: <Phone className="w-3 h-3" />, cls: "bg-warning/15 text-warning border-warning/30" },
-            { key: "Pte_Asignacion" as ServiceStatus, label: "Pte. Asignación", icon: <Clock className="w-3 h-3" />, cls: "bg-accent/15 text-accent-foreground border-accent/30" },
-            { key: "Asignado" as ServiceStatus, label: "Asignado", icon: <User className="w-3 h-3" />, cls: "bg-chart-4/15 text-chart-4 border-chart-4/30" },
-            { key: "Agendado" as ServiceStatus, label: "Agendado", icon: <Clock className="w-3 h-3" />, cls: "bg-info/15 text-info border-info/30" },
-            { key: "En_Curso" as ServiceStatus, label: "En curso", icon: <PlayCircle className="w-3 h-3" />, cls: "bg-primary/15 text-primary border-primary/30" },
-            { key: "Finalizado" as ServiceStatus, label: "Finalizado", icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-success/15 text-success border-success/30" },
-          ]).map(({ key, label, icon, cls }) => {
-            const isActive = selectedStatus === key;
-            return (
-              <Button
-                key={key}
-                variant={isActive ? "default" : "outline"}
-                size="sm"
-                className={cn("text-xs h-8 gap-1", !isActive && cls)}
-                onClick={() => setSelectedStatus(isActive ? null : key)}
-              >
-                {icon}
-                {label}
-              </Button>
-            );
-          })}
-        </div>
-
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <CalendarIcon className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
+              <CalendarIcon className="w-3.5 h-3.5" />
               Leyenda
               <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]>&]:rotate-180" />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-50 mt-1 w-72 rounded-lg border border-border bg-popover p-3 shadow-lg">
+          <CollapsibleContent className="absolute z-50 mt-1 right-0 w-72 rounded-lg border border-border bg-popover p-3 shadow-lg">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operarios</p>
             <div className="space-y-1.5">
               {allOps.map((op) => (
