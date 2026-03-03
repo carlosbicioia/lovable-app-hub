@@ -274,53 +274,74 @@ export type Database = {
         Row: {
           active_services: number
           additional_contacts: Json
+          address: string
           category: string
+          city: string
           company_name: string
           contact_person: string
           created_at: string
           email: string
           id: string
           logo_url: string | null
+          notes: string
           nps_mean: number
           phone: string
           portal_email: string
           portal_enabled: boolean
+          postal_code: string
+          province: string
+          tax_id: string
           total_clients: number
           updated_at: string
+          website: string
         }
         Insert: {
           active_services?: number
           additional_contacts?: Json
+          address?: string
           category?: string
+          city?: string
           company_name?: string
           contact_person?: string
           created_at?: string
           email?: string
           id: string
           logo_url?: string | null
+          notes?: string
           nps_mean?: number
           phone?: string
           portal_email?: string
           portal_enabled?: boolean
+          postal_code?: string
+          province?: string
+          tax_id?: string
           total_clients?: number
           updated_at?: string
+          website?: string
         }
         Update: {
           active_services?: number
           additional_contacts?: Json
+          address?: string
           category?: string
+          city?: string
           company_name?: string
           contact_person?: string
           created_at?: string
           email?: string
           id?: string
           logo_url?: string | null
+          notes?: string
           nps_mean?: number
           phone?: string
           portal_email?: string
           portal_enabled?: boolean
+          postal_code?: string
+          province?: string
+          tax_id?: string
           total_clients?: number
           updated_at?: string
+          website?: string
         }
         Relationships: []
       }

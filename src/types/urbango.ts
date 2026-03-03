@@ -34,6 +34,13 @@ export interface Collaborator {
   activeServices: number;
   totalClients: number;
   contactPerson: string;
+  taxId: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  website: string;
+  notes: string;
 }
 
 export type ClaimStatus = "Abierto" | "En_Valoración" | "Aceptado" | "Rechazado" | "Cerrado";
