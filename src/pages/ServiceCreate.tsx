@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -91,6 +92,12 @@ export default function ServiceCreate() {
   const [repairedStateImages, setRepairedStateImages] = useState<File[]>([]);
   const currentStateRef = useRef<HTMLInputElement>(null);
   const repairedStateRef = useRef<HTMLInputElement>(null);
+
+  const isDirty = useMemo(() =>
+    !saving && (!!clientId || !!description.trim() || !!address.trim() || !!operatorId),
+    [saving, clientId, description, address, operatorId]
+  );
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
 
   // ── Restore pending service from sessionStorage (returning from budget creation) ──
   useEffect(() => {
@@ -352,6 +359,8 @@ export default function ServiceCreate() {
   };
 
   return (
+    <>
+    <UnsavedChangesDialog />
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -844,5 +853,6 @@ export default function ServiceCreate() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

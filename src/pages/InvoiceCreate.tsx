@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useCreatePurchaseInvoice } from "@/hooks/usePurchaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useServices } from "@/hooks/useServices";
@@ -60,6 +61,9 @@ export default function InvoiceCreate() {
   const [taxRate, setTaxRate] = useState(21);
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<InvoiceLine[]>([{ ...emptyLine(), serviceId: preServiceId }]);
+
+  const isDirty = !createInvoice.isPending && (!!invoiceNumber || !!supplierName || lines.some(l => !!l.description || l.unitPrice > 0));
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
 
   const selectedOc = useMemo(() => orders.find((o) => o.id === selectedOcId), [orders, selectedOcId]);
 
@@ -241,6 +245,8 @@ export default function InvoiceCreate() {
   );
 
   return (
+    <>
+    <UnsavedChangesDialog />
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -520,5 +526,6 @@ export default function InvoiceCreate() {
         </Button>
       </div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { ArrowLeft, Plus, Trash2, Send, Save, PackageSearch, ChevronsUpDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,9 @@ export default function BudgetCreate() {
   ]);
   const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
   const [serviceSearchOpen, setServiceSearchOpen] = useState(false);
+
+  const isDirty = !!serviceId || lines.some(l => !!l.concept || l.costPrice > 0);
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
 
   // Load default terms from company settings
   useEffect(() => {
@@ -154,6 +158,8 @@ export default function BudgetCreate() {
   };
 
   return (
+    <>
+    <UnsavedChangesDialog />
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/presupuestos")}>
@@ -427,5 +433,6 @@ export default function BudgetCreate() {
         </Button>
       </div>
     </div>
+    </>
   );
 }

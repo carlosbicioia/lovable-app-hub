@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useCreatePurchaseOrder, useNextPurchaseOrderId } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
 import { useSuppliers } from "@/hooks/useSuppliers";
@@ -42,6 +43,9 @@ export default function PurchaseCreate() {
   const [lines, setLines] = useState<LineInput[]>([emptyLine()]);
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 
+  const isDirty = !createOrder.isPending && (!!serviceId || !!supplierName || lines.some(l => !!l.articleName || l.costPrice > 0));
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
+
   const { data: operators = [] } = useOperators();
   const selectedOp = operators.find((o) => o.id === operatorId);
   const subtotal = lines.reduce((s, l) => s + l.units * l.costPrice, 0);
@@ -73,6 +77,8 @@ export default function PurchaseCreate() {
   }
 
   return (
+    <>
+    <UnsavedChangesDialog />
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
@@ -212,5 +218,6 @@ export default function PurchaseCreate() {
         </Button>
       </div>
     </div>
+    </>
   );
 }
