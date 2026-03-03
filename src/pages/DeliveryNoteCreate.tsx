@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useCreateDeliveryNote } from "@/hooks/useDeliveryNotes";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useServices } from "@/hooks/useServices";
@@ -55,6 +56,9 @@ export default function DeliveryNoteCreate() {
   const [uploading, setUploading] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isDirty = !createNote.isPending && (!!supplierName || !!code || lines.some(l => !!l.articleName || l.costPrice > 0));
+  const { UnsavedChangesDialog } = useUnsavedChanges(isDirty);
 
   const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   const { data: allOperators = [] } = useOperators();
@@ -166,6 +170,8 @@ export default function DeliveryNoteCreate() {
   // Step 0: Mode selection
   if (mode === null || (mode === "oc" && !prefilled)) {
     return (
+      <>
+      <UnsavedChangesDialog />
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -240,11 +246,14 @@ export default function DeliveryNoteCreate() {
           </Card>
         )}
       </div>
+      </>
     );
   }
 
   // Step 1: Form
   return (
+    <>
+    <UnsavedChangesDialog />
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => { setPrefilled(false); setMode(null); }}>
@@ -430,5 +439,6 @@ export default function DeliveryNoteCreate() {
         </Button>
       </div>
     </div>
+    </>
   );
 }
