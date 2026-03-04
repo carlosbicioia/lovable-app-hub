@@ -14,6 +14,7 @@ type PresetKey =
   | "current_year"
   | "previous_year"
   | "last_12_months"
+  | "last_30_days"
   | "last_7_days"
   | "current_month"
   | "previous_month"
@@ -28,6 +29,7 @@ const presets: { value: PresetKey; label: string }[] = [
   { value: "current_year", label: "Año actual" },
   { value: "previous_year", label: "Año anterior" },
   { value: "last_12_months", label: "Últimos 12 meses" },
+  { value: "last_30_days", label: "Últimos 30 días" },
   { value: "last_7_days", label: "Últimos 7 días" },
   { value: "current_month", label: "Mes actual" },
   { value: "previous_month", label: "Mes anterior" },
@@ -53,6 +55,8 @@ function getPresetRange(key: PresetKey): { from: Date; to: Date } | null {
     }
     case "last_12_months":
       return { from: subMonths(now, 12), to: now };
+    case "last_30_days":
+      return { from: subDays(now, 30), to: now };
     case "last_7_days":
       return { from: subDays(now, 7), to: now };
     case "current_month":
