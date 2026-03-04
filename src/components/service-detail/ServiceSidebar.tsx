@@ -200,11 +200,20 @@ export default function ServiceSidebar({ service }: Props) {
               </div>
             </>
           ) : (
-            <div className="text-center py-3">
+          <div className="text-center py-3">
               <FileText className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
                 {service.serviceType === "Presupuesto" ? "Sin presupuesto vinculado" : "Reparación directa"}
               </p>
+              {service.serviceType === "Presupuesto" && (
+                <button
+                  onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Crear presupuesto
+                </button>
+              )}
             </div>
           )}
         </CardContent>
