@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useBranches } from "@/hooks/useBranches";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
