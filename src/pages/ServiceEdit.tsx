@@ -42,6 +42,8 @@ export default function ServiceEdit() {
   const { data: allOperators = [] } = useOperators();
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
+  const { data: dbOrigins = [] } = useServiceOrigins();
+  const activeOrigins = dbOrigins.filter(o => o.active);
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
