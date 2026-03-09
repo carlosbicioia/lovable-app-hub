@@ -171,6 +171,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Sede</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Finalizados</th>
