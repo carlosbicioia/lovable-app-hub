@@ -137,7 +137,7 @@ export default function Services() {
       list = list.filter((s) => s.clientName.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
     }
     return list;
-  }, [services, budgets, tab, search, statusFilter, urgencyFilter, filterCollaborator, filterSpecialty, filterService, dateFrom, dateTo]);
+  }, [services, budgets, tab, search, statusFilter, urgencyFilter, filterCollaborator, filterSpecialty, filterBranch, filterService, dateFrom, dateTo]);
 
   const bulk = useBulkSelect(filtered);
 
