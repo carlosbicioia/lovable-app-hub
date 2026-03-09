@@ -16,6 +16,8 @@ import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
 import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
 import ServicePurchases from "@/components/service-detail/ServicePurchases";
+import ServiceSalesOrders from "@/components/service-detail/ServiceSalesOrders";
+import { useSalesOrders } from "@/hooks/useSalesOrders";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
