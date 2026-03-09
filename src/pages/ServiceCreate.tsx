@@ -238,6 +238,7 @@ export default function ServiceCreate() {
       budget_total: null,
       budget_status: null,
       real_hours: null,
+      branch_id: findBranchForCluster(selectedClient?.clusterId ?? ""),
     };
   };
 
