@@ -118,8 +118,24 @@ export default function BudgetCreate() {
       toast.error("Selecciona un servicio");
       return;
     }
-    if (lines.some((l) => !l.concept)) {
+    if (lines.some((l) => !l.concept.trim())) {
       toast.error("Todos los conceptos deben tener nombre");
+      return;
+    }
+    if (lines.some((l) => l.units <= 0)) {
+      toast.error("Las unidades deben ser mayor que 0 en todas las líneas");
+      return;
+    }
+    if (lines.some((l) => l.costPrice <= 0)) {
+      toast.error("El precio de coste debe ser mayor que 0 en todas las líneas");
+      return;
+    }
+    if (total <= 0) {
+      toast.error("El total del presupuesto debe ser mayor que 0€");
+      return;
+    }
+    if (send && lines.length === 1 && !lines[0].concept.trim()) {
+      toast.error("Añade al menos una línea con contenido antes de enviar");
       return;
     }
 
