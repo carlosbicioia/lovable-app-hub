@@ -5,6 +5,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useServices } from "@/hooks/useServices";
+import { useBranches } from "@/hooks/useBranches";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ export default function ServiceSidebar({ service }: Props) {
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
   const { updateService } = useServices();
+  const { data: branches = [] } = useBranches();
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
@@ -154,6 +156,36 @@ export default function ServiceSidebar({ service }: Props) {
           />
         </CardContent>
       </Card>
+
+      {/* Branch */}
+      {branches.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" /> Sede
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SearchableSelect
+              options={[
+                { value: "none", label: "Sin sede asignada" },
+                ...branches.filter((b) => b.active).map((b) => ({
+                  value: b.id,
+                  label: b.name,
+                  subtitle: b.city ? `${b.city}, ${b.province}` : undefined,
+                  searchText: `${b.address} ${b.cluster_ids.join(" ")}`,
+                })),
+              ]}
+              value={service.branchId ?? "none"}
+              onValueChange={(v) => handleUpdate("branch_id", v === "none" ? null : v)}
+              placeholder="Seleccionar sede…"
+              searchPlaceholder="Buscar sede…"
+              emptyText="Sin sedes configuradas"
+              disabled={savingField === "branch_id"}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Service Type */}
       <Card>

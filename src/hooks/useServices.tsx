@@ -12,6 +12,7 @@ function mapDbToService(row: any): Service {
     collaboratorId: row.collaborator_id,
     collaboratorName: row.collaborator_name,
     clusterId: row.cluster_id,
+    branchId: row.branch_id ?? null,
     origin: row.origin as ServiceOrigin,
     status: row.status as ServiceStatus,
     urgency: row.urgency as UrgencyLevel,

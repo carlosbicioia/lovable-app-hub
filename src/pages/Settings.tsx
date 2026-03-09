@@ -13,7 +13,7 @@ import {
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat, GripVertical,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
   Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
-  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
+  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database, MapPin,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +35,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import TaxTypesConfigTab from "@/components/settings/TaxTypesConfigTab";
 import BulkImportTab from "@/components/settings/BulkImportTab";
 import SubscriptionPlansTab from "@/components/settings/SubscriptionPlansTab";
+import BranchesTab from "@/components/settings/BranchesTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -561,6 +562,7 @@ export default function Settings() {
       <Tabs defaultValue="company" className="w-full">
         <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap gap-1">
           <TabsTrigger value="company" className="text-sm gap-1.5"><Building2 className="w-3.5 h-3.5" /> Empresa</TabsTrigger>
+          <TabsTrigger value="branches" className="text-sm gap-1.5"><MapPin className="w-3.5 h-3.5" /> Sedes</TabsTrigger>
           <TabsTrigger value="users" className="text-sm gap-1.5"><Users className="w-3.5 h-3.5" /> Usuarios</TabsTrigger>
           <TabsTrigger value="roles" className="text-sm gap-1.5"><Shield className="w-3.5 h-3.5" /> Permisos</TabsTrigger>
           <TabsTrigger value="documents" className="text-sm gap-1.5"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
@@ -660,6 +662,11 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ===== SEDES ===== */}
+        <TabsContent value="branches" className="mt-4">
+          <BranchesTab />
         </TabsContent>
 
         {/* ===== USUARIOS ===== */}
