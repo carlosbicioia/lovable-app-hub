@@ -103,6 +103,10 @@ export default function ServiceCreate() {
   const [address, setAddress] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
+  const [servicePostalCode, setServicePostalCode] = useState("");
+  const [serviceContactName, setServiceContactName] = useState("");
+  const [servicePhone, setServicePhone] = useState("");
+  const [serviceEmail, setServiceEmail] = useState("");
 
   // ── Assignment ──
   const [operatorId, setOperatorId] = useState("");
@@ -181,9 +185,13 @@ export default function ServiceCreate() {
     setClientOpen(false);
     const client = clients.find((c) => c.id === id);
     if (client) {
-      setAddress(`${client.address}, ${client.city}`);
+      setAddress(client.address);
       setServiceCity(client.city);
       setServiceProvince(client.province);
+      setServicePostalCode(client.postalCode);
+      setServiceContactName(client.clientType === "Empresa" ? client.name : client.name);
+      setServicePhone(client.phone);
+      setServiceEmail(client.email);
       if (client.collaboratorId) {
         setCollaboratorId(client.collaboratorId);
       }
@@ -634,7 +642,7 @@ export default function ServiceCreate() {
       {/* ── SECTION 3: Description & Location ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">3. Descripción y Ubicación</CardTitle>
+          <CardTitle className="text-base">3. Descripción y Datos de Intervención</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -647,30 +655,38 @@ export default function ServiceCreate() {
               className="text-sm"
             />
           </div>
+
+          <Separator />
+          <p className="text-xs text-muted-foreground">Datos de la ubicación e intervención. Se pre-rellenan con los datos del cliente pero se pueden modificar.</p>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Persona de contacto</Label>
+              <Input value={serviceContactName} onChange={(e) => setServiceContactName(e.target.value)} placeholder="Nombre del contacto en la intervención" />
+            </div>
+            <div className="space-y-2">
+              <Label>Teléfono de contacto</Label>
+              <Input value={servicePhone} onChange={(e) => setServicePhone(e.target.value)} placeholder="612345678" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email de contacto</Label>
+              <Input type="email" value={serviceEmail} onChange={(e) => setServiceEmail(e.target.value)} placeholder="email@ejemplo.com" />
+            </div>
             <div className="space-y-2 md:col-span-3">
               <Label>Dirección de intervención</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Dirección completa donde se realizará el servicio"
-              />
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
             </div>
             <div className="space-y-2">
-              <Label>Ciudad del servicio</Label>
-              <Input
-                value={serviceCity}
-                onChange={(e) => setServiceCity(e.target.value)}
-                placeholder="Ciudad"
-              />
+              <Label>Ciudad</Label>
+              <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
             </div>
             <div className="space-y-2">
-              <Label>Provincia del servicio</Label>
-              <Input
-                value={serviceProvince}
-                onChange={(e) => setServiceProvince(e.target.value)}
-                placeholder="Provincia"
-              />
+              <Label>Provincia</Label>
+              <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
+            </div>
+            <div className="space-y-2">
+              <Label>Código postal</Label>
+              <Input value={servicePostalCode} onChange={(e) => setServicePostalCode(e.target.value)} placeholder="28001" />
             </div>
           </div>
         </CardContent>

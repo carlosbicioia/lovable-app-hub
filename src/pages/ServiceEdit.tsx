@@ -82,6 +82,10 @@ export default function ServiceEdit() {
   const [address, setAddress] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
+  const [servicePostalCode, setServicePostalCode] = useState("");
+  const [serviceContactName, setServiceContactName] = useState("");
+  const [servicePhone, setServicePhone] = useState("");
+  const [serviceEmail, setServiceEmail] = useState("");
   const [operatorId, setOperatorId] = useState("");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
   const [scheduledEndDate, setScheduledEndDate] = useState<Date | undefined>();
@@ -110,10 +114,13 @@ export default function ServiceEdit() {
     setClaimStatus(service.claimStatus);
     setDescription(service.description ?? "");
     setAddress(service.address ?? "");
-    // Parse service city/province from client if available
     const svcClient = clients.find(c => c.id === service.clientId);
     setServiceCity(svcClient?.city ?? "");
     setServiceProvince(svcClient?.province ?? "");
+    setServicePostalCode(svcClient?.postalCode ?? "");
+    setServiceContactName(svcClient?.name ?? "");
+    setServicePhone(svcClient?.phone ?? "");
+    setServiceEmail(svcClient?.email ?? "");
     setOperatorId(service.operatorId ?? "");
     setDiagnosisComplete(service.diagnosisComplete);
     setBudgetTotal(service.budgetTotal ?? "");
@@ -191,9 +198,13 @@ export default function ServiceEdit() {
     setClientOpen(false);
     const client = clients.find((c) => c.id === cid);
     if (client) {
-      setAddress(`${client.address}, ${client.city}`);
+      setAddress(client.address);
       setServiceCity(client.city);
       setServiceProvince(client.province);
+      setServicePostalCode(client.postalCode);
+      setServiceContactName(client.name);
+      setServicePhone(client.phone);
+      setServiceEmail(client.email);
       if (client.collaboratorId) setCollaboratorId(client.collaboratorId);
     }
   };
@@ -493,25 +504,45 @@ export default function ServiceEdit() {
       {/* ── SECTION 3: Description & Location ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">3. Descripción y Ubicación</CardTitle>
+          <CardTitle className="text-base">3. Descripción y Datos de Intervención</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Descripción del problema *</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describa el problema..." rows={4} className="text-sm" />
           </div>
+
+          <Separator />
+          <p className="text-xs text-muted-foreground">Datos de la ubicación e intervención. Se pre-rellenan con los datos del cliente pero se pueden modificar.</p>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2 md:col-span-3">
-              <Label>Dirección de intervención</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección completa" />
+            <div className="space-y-2">
+              <Label>Persona de contacto</Label>
+              <Input value={serviceContactName} onChange={(e) => setServiceContactName(e.target.value)} placeholder="Nombre del contacto" />
             </div>
             <div className="space-y-2">
-              <Label>Ciudad del servicio</Label>
+              <Label>Teléfono de contacto</Label>
+              <Input value={servicePhone} onChange={(e) => setServicePhone(e.target.value)} placeholder="612345678" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email de contacto</Label>
+              <Input type="email" value={serviceEmail} onChange={(e) => setServiceEmail(e.target.value)} placeholder="email@ejemplo.com" />
+            </div>
+            <div className="space-y-2 md:col-span-3">
+              <Label>Dirección de intervención</Label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad</Label>
               <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
             </div>
             <div className="space-y-2">
-              <Label>Provincia del servicio</Label>
+              <Label>Provincia</Label>
               <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
+            </div>
+            <div className="space-y-2">
+              <Label>Código postal</Label>
+              <Input value={servicePostalCode} onChange={(e) => setServicePostalCode(e.target.value)} placeholder="28001" />
             </div>
           </div>
         </CardContent>
