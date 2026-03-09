@@ -64,6 +64,7 @@ const emptyForm: CollaboratorInput = {
   postalCode: "",
   website: "",
   notes: "",
+  branchId: null,
 };
 
 export default function Collaborators() {
