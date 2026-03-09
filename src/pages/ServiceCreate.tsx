@@ -431,15 +431,14 @@ export default function ServiceCreate() {
               </Popover>
             </div>
 
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label>Origen</Label>
               <Select value={origin} onValueChange={(v) => setOrigin(v as ServiceOrigin)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Directo">Directo</SelectItem>
-                  <SelectItem value="B2B">B2B (Colaborador)</SelectItem>
-                  <SelectItem value="App">App</SelectItem>
-                  <SelectItem value="API_Externa">API Externa</SelectItem>
+                  {activeOrigins.map((o) => (
+                    <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
