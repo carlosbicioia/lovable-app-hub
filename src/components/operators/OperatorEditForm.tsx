@@ -129,6 +129,7 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           cluster_ids: clusterIds,
           certifications: form.certifications,
           photo: photoUrl,
+          branch_id: form.branch_id || null,
         })
         .eq("id", operator.id);
 
