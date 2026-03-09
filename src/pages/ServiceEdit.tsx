@@ -504,25 +504,45 @@ export default function ServiceEdit() {
       {/* ── SECTION 3: Description & Location ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">3. Descripción y Ubicación</CardTitle>
+          <CardTitle className="text-base">3. Descripción y Datos de Intervención</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Descripción del problema *</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describa el problema..." rows={4} className="text-sm" />
           </div>
+
+          <Separator />
+          <p className="text-xs text-muted-foreground">Datos de la ubicación e intervención. Se pre-rellenan con los datos del cliente pero se pueden modificar.</p>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2 md:col-span-3">
-              <Label>Dirección de intervención</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección completa" />
+            <div className="space-y-2">
+              <Label>Persona de contacto</Label>
+              <Input value={serviceContactName} onChange={(e) => setServiceContactName(e.target.value)} placeholder="Nombre del contacto" />
             </div>
             <div className="space-y-2">
-              <Label>Ciudad del servicio</Label>
+              <Label>Teléfono de contacto</Label>
+              <Input value={servicePhone} onChange={(e) => setServicePhone(e.target.value)} placeholder="612345678" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email de contacto</Label>
+              <Input type="email" value={serviceEmail} onChange={(e) => setServiceEmail(e.target.value)} placeholder="email@ejemplo.com" />
+            </div>
+            <div className="space-y-2 md:col-span-3">
+              <Label>Dirección de intervención</Label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad</Label>
               <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
             </div>
             <div className="space-y-2">
-              <Label>Provincia del servicio</Label>
+              <Label>Provincia</Label>
               <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
+            </div>
+            <div className="space-y-2">
+              <Label>Código postal</Label>
+              <Input value={servicePostalCode} onChange={(e) => setServicePostalCode(e.target.value)} placeholder="28001" />
             </div>
           </div>
         </CardContent>
