@@ -101,6 +101,8 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: allOperators = [] } = useOperators();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const qc = useQueryClient();
 
   // Build dynamic icon/color maps from DB specialties
