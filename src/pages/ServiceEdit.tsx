@@ -238,6 +238,7 @@ export default function ServiceEdit() {
       collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
       collaborator_name: selectedCollab?.companyName ?? null,
       cluster_id: selectedClient?.clusterId ?? service.clusterId,
+      branch_id: assignedBranchId,
       origin,
       status,
       urgency,
