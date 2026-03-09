@@ -43,6 +43,12 @@ export default function Clients() {
   const updateClient = useUpdateClient();
   const { collaborators } = useCollaborators();
   const { data: plans = [] } = useSubscriptionPlans();
+  const { data: branches = [] } = useBranches();
+  const branchByCluster = useMemo(() => {
+    const m: Record<string, string> = {};
+    branches.forEach((b) => { b.cluster_ids.forEach((cid) => { m[cid] = b.name; }); });
+    return m;
+  }, [branches]);
   const planColorMap = useMemo(() => {
     const m: Record<string, string> = { Ninguno: defaultPlanColor };
     plans.forEach((p) => { m[p.name] = p.color; });
