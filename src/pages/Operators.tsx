@@ -125,7 +125,8 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
       filterSpecialty === "all" ||
       op.specialty === filterSpecialty ||
       op.secondarySpecialty === filterSpecialty;
-    return matchSearch && matchSpecialty;
+    const matchBranch = filterBranch === "all" || op.branchId === filterBranch;
+    return matchSearch && matchSpecialty && matchBranch;
   });
 
   const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
