@@ -278,6 +278,11 @@ export default function ServiceDetail() {
             <ServicePurchases serviceId={service.id} />
           </TabsContent>
 
+          {/* Tab: Órdenes de Venta */}
+          <TabsContent value="sales-orders" className="space-y-6 mt-4">
+            <ServiceSalesOrders serviceId={service.id} />
+          </TabsContent>
+
           {/* Tab: Presupuesto */}
           <TabsContent value="budget" className="space-y-6 mt-4">
             {service.serviceType === "Presupuesto" ? (
