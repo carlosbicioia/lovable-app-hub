@@ -407,6 +407,7 @@ export default function Services() {
                       })()}
                     </td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
+                    <td className="px-5 py-3 text-xs text-muted-foreground">{(() => { const br = activeBranches.find(b => b.id === s.branchId); return br ? br.name : "—"; })()}</td>
                     <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                       <TooltipProvider delayDuration={200}>
                         <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />
