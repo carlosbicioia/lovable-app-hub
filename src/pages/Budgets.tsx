@@ -1,4 +1,4 @@
-import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter } from "lucide-react";
+import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMemo, useState } from "react";
