@@ -252,7 +252,10 @@ export default function Collaborators() {
                   />
                   <div className="min-w-0">
                     <h3 className="font-semibold text-card-foreground truncate">{c.companyName}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.contactPerson} · {c.email}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {c.contactPerson} · {c.email}
+                      {(() => { const br = activeBranches.find(b => b.id === c.branchId); return br ? ` · ${br.name}` : ''; })()}
+                    </p>
                     <p className="text-xs text-muted-foreground truncate">{c.phone}</p>
                   </div>
                 </div>
