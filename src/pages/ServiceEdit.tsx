@@ -198,9 +198,13 @@ export default function ServiceEdit() {
     setClientOpen(false);
     const client = clients.find((c) => c.id === cid);
     if (client) {
-      setAddress(`${client.address}, ${client.city}`);
+      setAddress(client.address);
       setServiceCity(client.city);
       setServiceProvince(client.province);
+      setServicePostalCode(client.postalCode);
+      setServiceContactName(client.name);
+      setServicePhone(client.phone);
+      setServiceEmail(client.email);
       if (client.collaboratorId) setCollaboratorId(client.collaboratorId);
     }
   };
