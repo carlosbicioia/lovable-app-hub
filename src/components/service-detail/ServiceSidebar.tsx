@@ -155,6 +155,35 @@ export default function ServiceSidebar({ service }: Props) {
         </CardContent>
       </Card>
 
+      {/* Service Type */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-muted-foreground" /> Tipo de servicio
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={service.serviceType}
+            onValueChange={(v) => handleUpdate("service_type", v)}
+            disabled={savingField === "service_type" || !!linkedBudget}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Reparación_Directa">Reparación Directa</SelectItem>
+              <SelectItem value="Presupuesto">Con Presupuesto</SelectItem>
+            </SelectContent>
+          </Select>
+          {!!linkedBudget && (
+            <p className="text-[11px] text-muted-foreground mt-2">
+              No se puede cambiar el tipo mientras haya un presupuesto vinculado.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Budget & Liquidation */}
       <Card>
         <CardHeader>
