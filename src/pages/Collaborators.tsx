@@ -111,6 +111,7 @@ export default function Collaborators() {
       postalCode: c.postalCode,
       website: c.website,
       notes: c.notes,
+      branchId: c.branchId ?? null,
     });
     setDialogOpen(true);
   };
