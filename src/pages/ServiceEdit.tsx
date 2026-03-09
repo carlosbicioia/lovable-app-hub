@@ -115,11 +115,12 @@ export default function ServiceEdit() {
     setDescription(service.description ?? "");
     setAddress(service.address ?? "");
     const svcClient = clients.find(c => c.id === service.clientId);
+    // Use persisted service fields if available, fallback to client data
     setServiceCity(svcClient?.city ?? "");
     setServiceProvince(svcClient?.province ?? "");
-    setServicePostalCode(svcClient?.postalCode ?? "");
-    setServiceContactName(svcClient?.name ?? "");
-    setServicePhone(svcClient?.phone ?? "");
+    setServicePostalCode(service.postalCode || svcClient?.postalCode || "");
+    setServiceContactName(service.contactName || svcClient?.name || "");
+    setServicePhone(service.contactPhone || svcClient?.phone || "");
     setServiceEmail(svcClient?.email ?? "");
     setOperatorId(service.operatorId ?? "");
     setDiagnosisComplete(service.diagnosisComplete);
