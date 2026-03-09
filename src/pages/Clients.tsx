@@ -1,6 +1,7 @@
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { useBranches } from "@/hooks/useBranches";
 import { Search, Plus, Filter, Loader2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,12 @@ export default function Clients() {
   const updateClient = useUpdateClient();
   const { collaborators } = useCollaborators();
   const { data: plans = [] } = useSubscriptionPlans();
+  const { data: branches = [] } = useBranches();
+  const branchByCluster = useMemo(() => {
+    const m: Record<string, string> = {};
+    branches.forEach((b) => { b.cluster_ids.forEach((cid) => { m[cid] = b.name; }); });
+    return m;
+  }, [branches]);
   const planColorMap = useMemo(() => {
     const m: Record<string, string> = { Ninguno: defaultPlanColor };
     plans.forEach((p) => { m[p.name] = p.color; });
@@ -164,6 +171,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Sede</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Colaborador</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Plan</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Finalizados</th>
@@ -190,6 +198,11 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>
                   <td className="px-5 py-3 text-muted-foreground">{c.city}</td>
+                  <td className="px-5 py-3">
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", branchByCluster[c.clusterId] ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground")}>
+                      {branchByCluster[c.clusterId] ?? "—"}
+                    </span>
+                  </td>
                   <td className="px-5 py-3 text-muted-foreground">{c.collaboratorName ?? <span className="italic">Directo</span>}</td>
                   <td className="px-5 py-3">
                     <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", planColorMap[c.planType] ?? defaultPlanColor)}>
