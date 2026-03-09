@@ -3,7 +3,7 @@ import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon } from "lucide-react";
+import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon, ClipboardList, MessageSquare, Image, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -110,69 +110,26 @@ export default function ServiceDetail() {
     }
   };
 
+  // Financial counters
+  const financialCount = (linkedBudget ? 1 : 0) + linkedOrders.length + salesOrders.length;
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Header */}
+        {/* Header — simplified */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/servicios")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-display font-bold text-foreground">{service.id}</h1>
               <StatusBadge status={service.status} />
               <StatusBadge urgency={service.urgency} />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-help", claimCfg.className)}>
-                    {claimCfg.label}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent><p className="text-xs">{claimCfg.tooltip}</p></TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className={cn(
-                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-help",
-                    service.serviceType === "Presupuesto"
-                      ? "bg-primary/15 text-primary border-primary/30"
-                      : "bg-accent text-accent-foreground border-accent-foreground/20"
-                  )}>
-                    {service.serviceType === "Presupuesto" ? "📋 Con Presupuesto" : "🔧 Reparación Directa"}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {service.serviceType === "Presupuesto"
-                      ? "Requiere presupuesto previo aprobado por el cliente"
-                      : "El técnico repara directamente sin presupuesto previo"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className={cn(
-                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-help",
-                    service.serviceCategory === "Plan_Preventivo"
-                      ? "bg-info/15 text-info border-info/30"
-                      : "bg-muted text-muted-foreground border-border"
-                  )}>
-                    {service.serviceCategory === "Plan_Preventivo" ? "🛡 Plan Preventivo" : "🔨 Correctivo"}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {service.serviceCategory === "Plan_Preventivo"
-                      ? "Servicio programado dentro del plan de mantenimiento del cliente"
-                      : "Servicio reactivo por avería o incidencia reportada"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
               {sla === "expired" && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft px-2.5 py-0.5 rounded-full border border-destructive/30 bg-destructive/15 cursor-help">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft px-2 py-0.5 rounded-full border border-destructive/30 bg-destructive/15 cursor-help">
                       ⏰ SLA Vencido
                     </span>
                   </TooltipTrigger>
@@ -182,7 +139,7 @@ export default function ServiceDetail() {
               {sla === "warning" && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-warning px-2.5 py-0.5 rounded-full border border-warning/30 bg-warning/15 cursor-help">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-warning px-2 py-0.5 rounded-full border border-warning/30 bg-warning/15 cursor-help">
                       ⚠ SLA Próximo
                     </span>
                   </TooltipTrigger>
@@ -190,7 +147,10 @@ export default function ServiceDetail() {
                 </Tooltip>
               )}
             </div>
-            <p className="text-muted-foreground text-sm mt-1">{service.specialty} · {service.origin} · Cluster {service.clusterId}</p>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              {service.clientName} · {service.specialty} · {service.origin}
+              {service.serviceType === "Presupuesto" ? " · 📋 Con Presupuesto" : " · 🔧 Rep. Directa"}
+            </p>
           </div>
           {/* Actions dropdown */}
           <DropdownMenu>
@@ -224,36 +184,120 @@ export default function ServiceDetail() {
           </DropdownMenu>
         </div>
 
-        {/* Tabs */}
+        {/* Secondary badges row */}
+        <div className="flex items-center gap-2 flex-wrap -mt-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border cursor-help", claimCfg.className)}>
+                Siniestro: {claimCfg.label}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent><p className="text-xs">{claimCfg.tooltip}</p></TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border cursor-help",
+                service.serviceCategory === "Plan_Preventivo"
+                  ? "bg-info/15 text-info border-info/30"
+                  : "bg-muted text-muted-foreground border-border"
+              )}>
+                {service.serviceCategory === "Plan_Preventivo" ? "🛡 Plan Preventivo" : "🔨 Correctivo"}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">
+                {service.serviceCategory === "Plan_Preventivo"
+                  ? "Servicio programado dentro del plan de mantenimiento"
+                  : "Servicio reactivo por avería o incidencia"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <span className="text-[11px] text-muted-foreground">Cluster {service.clusterId}</span>
+        </div>
+
+        {/* Tabs — reorganized */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap">
-            <TabsTrigger value="overview" className="text-sm">Visión general</TabsTrigger>
-            <TabsTrigger value="details" className="text-sm">Detalles del servicio</TabsTrigger>
-            <TabsTrigger value="budget" className="text-sm">Presupuesto</TabsTrigger>
-            <TabsTrigger value="purchases" className="text-sm">
-              Compras {linkedOrders.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{linkedOrders.length}</span>}
+          <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap gap-0.5">
+            <TabsTrigger value="overview" className="text-sm gap-1.5">
+              <BarChart3 className="w-3.5 h-3.5" /> Resumen
             </TabsTrigger>
-            <TabsTrigger value="sales-orders" className="text-sm">
-              Órdenes de venta {salesOrders.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>}
+            <TabsTrigger value="operations" className="text-sm gap-1.5">
+              <ClipboardList className="w-3.5 h-3.5" /> Operativa
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="text-sm gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" /> Notas
+            </TabsTrigger>
+            <TabsTrigger value="financial" className="text-sm gap-1.5">
+              <Euro className="w-3.5 h-3.5" /> Económico
+              {financialCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{financialCount}</span>
+              )}
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Visión general */}
+          {/* ═══════════ Tab 1: RESUMEN ═══════════ */}
           <TabsContent value="overview" className="space-y-6 mt-4">
             <ServiceInfoCards service={service} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <ServiceDescription service={service} onUpdate={(updates) => updateService(service.id, updates)} />
-                <ServiceProtocolChecklist service={service} />
 
-                <ServiceTimeline service={service} />
+                {/* Quick economic summary */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <Card>
+                    <CardContent className="p-3">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                      <p className="text-lg font-bold text-card-foreground">
+                        {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-3">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
+                      <p className="text-lg font-bold text-card-foreground">
+                        {service.realHours != null ? `${service.realHours}h` : "—"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-3">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Materiales</p>
+                      <p className="text-lg font-bold text-card-foreground">
+                        {(service.materials?.length ?? 0) > 0 ? service.materials!.length : "—"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  {service.nps !== null && (
+                    <Card>
+                      <CardContent className="p-3">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
+                        <p className={cn(
+                          "text-lg font-bold",
+                          service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
+                        )}>
+                          {service.nps}/10
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </div>
               <ServiceSidebar service={service} />
             </div>
           </TabsContent>
 
-          {/* Tab: Detalles */}
-          <TabsContent value="details" className="space-y-6 mt-4">
+          {/* ═══════════ Tab 2: OPERATIVA ═══════════ */}
+          <TabsContent value="operations" className="space-y-6 mt-4">
+            <ServiceProtocolChecklist service={service} />
+            <ServiceTimeline service={service} />
+            <ServiceMedia service={service} />
+            <ServiceMaterials service={service} />
+          </TabsContent>
+
+          {/* ═══════════ Tab 3: NOTAS ═══════════ */}
+          <TabsContent value="notes" className="space-y-6 mt-4">
             <ServiceComments
               title="Comentarios internos"
               description="Solo visibles para el equipo interno"
@@ -270,29 +314,21 @@ export default function ServiceDetail() {
               initialText={service.collaboratorNotes ?? ""}
               onTextChange={(text) => updateService(service.id, { collaborator_notes: text })}
             />
-            <ServiceMedia service={service} />
           </TabsContent>
 
-          {/* Tab: Compras */}
-          <TabsContent value="purchases" className="space-y-6 mt-4">
-            <ServicePurchases serviceId={service.id} />
-          </TabsContent>
-
-          {/* Tab: Órdenes de Venta */}
-          <TabsContent value="sales-orders" className="space-y-6 mt-4">
-            <ServiceSalesOrders serviceId={service.id} />
-          </TabsContent>
-
-          {/* Tab: Presupuesto */}
-          <TabsContent value="budget" className="space-y-6 mt-4">
-            {service.serviceType === "Presupuesto" ? (
-              <>
-                {linkedBudget ? (
+          {/* ═══════════ Tab 4: ECONÓMICO ═══════════ */}
+          <TabsContent value="financial" className="space-y-6 mt-4">
+            {/* Budget section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" /> Presupuesto
+              </h3>
+              {service.serviceType === "Presupuesto" ? (
+                linkedBudget ? (
                   <Card>
                     <CardHeader className="flex-row items-center justify-between space-y-0">
                       <div>
                         <CardTitle className="text-base flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-muted-foreground" />
                           Presupuesto {linkedBudget.id}
                         </CardTitle>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -300,11 +336,11 @@ export default function ServiceDetail() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
-                          <Pencil className="w-4 h-4 mr-2" /> Editar presupuesto
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
+                          <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar
                         </Button>
-                        <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
-                          <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
+                          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Eliminar
                         </Button>
                       </div>
                     </CardHeader>
@@ -355,142 +391,94 @@ export default function ServiceDetail() {
                   </Card>
                 ) : (
                   <Card>
-                    <CardContent className="py-12 text-center">
-                      <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                    <CardContent className="py-8 text-center">
+                      <FileText className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
                       <p className="text-sm font-medium text-foreground">Sin presupuesto vinculado</p>
                       <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto pero aún no se ha creado uno.</p>
-                      <Button className="mt-4" onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
-                        <FileText className="w-4 h-4 mr-2" /> Crear Presupuesto
+                      <Button className="mt-3" size="sm" onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+                        <FileText className="w-3.5 h-3.5 mr-1.5" /> Crear Presupuesto
                       </Button>
                     </CardContent>
                   </Card>
-                )}
+                )
+              ) : (
+                <Card>
+                  <CardContent className="py-6 text-center">
+                    <p className="text-sm text-muted-foreground">Servicio de reparación directa — sin presupuesto requerido</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
-                {/* Summary KPIs */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            {/* Economic summary */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Euro className="w-4 h-4 text-muted-foreground" /> Resumen económico
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                    <p className="text-lg font-bold text-card-foreground">
+                      {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
+                    <p className="text-lg font-bold text-card-foreground">
+                      {service.realHours != null ? `${service.realHours}h` : "—"}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
+                    <p className="text-lg font-bold text-card-foreground">
+                      {service.budgetTotal && service.realHours
+                        ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                        : "—"}
+                    </p>
+                  </CardContent>
+                </Card>
+                {service.nps !== null && (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estado</p>
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
                       <p className={cn(
-                        "text-sm font-semibold",
-                        linkedBudget?.status === "Aprobado" ? "text-success" :
-                        linkedBudget?.status === "Borrador" || linkedBudget?.status === "Enviado" ? "text-warning" :
-                        linkedBudget?.status === "Rechazado" ? "text-destructive" :
-                        linkedBudget?.status === "Pte_Facturación" ? "text-info" : "text-muted-foreground"
+                        "text-lg font-bold",
+                        service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
                       )}>
-                        {linkedBudget ? (linkedBudget.status === "Pte_Facturación" ? "En proceso" : linkedBudget.status) : "—"}
+                        {service.nps}/10
                       </p>
                     </CardContent>
                   </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe total</p>
-                      <p className="text-lg font-bold text-card-foreground">
-                        {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
-                      <p className="text-lg font-bold text-card-foreground">
-                        {service.realHours != null ? `${service.realHours}h` : "—"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  {service.nps !== null && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
-                        <p className={cn(
-                          "text-lg font-bold",
-                          service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
-                        )}>
-                          {service.nps}/10
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Reparación directa — Hours, materials and economic summary */
-              <>
-                {/* Hours worked by the technician */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" /> Horas del industrial
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas registradas</p>
-                        <p className="text-lg font-bold text-card-foreground">
-                          {service.realHours != null ? `${service.realHours}h` : "Sin registrar"}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Técnico</p>
-                        <p className="text-sm font-medium text-card-foreground">
-                          {service.operatorName ?? "Sin asignar"}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Materiales usados</p>
-                        <p className="text-sm font-medium text-card-foreground">
-                          {(service.materials?.length ?? 0) > 0 ? `${service.materials!.length} artículo(s)` : "Ninguno"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                )}
+              </div>
+            </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Euro className="w-4 h-4 text-muted-foreground" /> Resumen económico
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
-                        <p className="text-lg font-bold text-card-foreground">
-                          {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
-                        <p className="text-lg font-bold text-card-foreground">
-                          {service.realHours != null ? `${service.realHours}h` : "—"}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
-                        <p className="text-lg font-bold text-card-foreground">
-                          {service.budgetTotal && service.realHours
-                            ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
-                            : "—"}
-                        </p>
-                      </div>
-                      {service.nps !== null && (
-                        <div className="rounded-lg border border-border p-4">
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
-                          <p className={cn(
-                            "text-lg font-bold",
-                            service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
-                          )}>
-                            {service.nps}/10
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+            {/* Purchase orders */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
+                {linkedOrders.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{linkedOrders.length}</span>
+                )}
+              </h3>
+              <ServicePurchases serviceId={service.id} />
+            </div>
+
+            {/* Sales orders */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-muted-foreground" /> Órdenes de venta
+                {salesOrders.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>
+                )}
+              </h3>
+              <ServiceSalesOrders serviceId={service.id} />
+            </div>
           </TabsContent>
         </Tabs>
 
