@@ -33,6 +33,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useCollaborators, type CollaboratorInput } from "@/hooks/useCollaborators";
+import { useBranches } from "@/hooks/useBranches";
 import type { Collaborator, CollaboratorCategory } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
