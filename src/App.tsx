@@ -25,6 +25,7 @@ import Purchases from "@/pages/Purchases";
 import PurchaseCreate from "@/pages/PurchaseCreate";
 import PurchaseDetail from "@/pages/PurchaseDetail";
 import DeliveryNoteCreate from "@/pages/DeliveryNoteCreate";
+import SalesOrders from "@/pages/SalesOrders";
 import Suppliers from "@/pages/Suppliers";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
