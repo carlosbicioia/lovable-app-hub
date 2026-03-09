@@ -97,6 +97,7 @@ export default function CollaboratorDetail() {
       taxId: row.tax_id ?? "", address: row.address ?? "", city: row.city ?? "",
       province: row.province ?? "", postalCode: row.postal_code ?? "",
       website: row.website ?? "", notes: row.notes ?? "",
+      branchId: row.branch_id ?? null,
     };
     setCollaborator(c);
     setForm({
