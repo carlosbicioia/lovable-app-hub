@@ -273,6 +273,9 @@ export default function ServiceEdit() {
       budget_status: budgetStatus && (budgetStatus as string) !== "none" ? budgetStatus : null,
       description,
       address,
+      contact_name: serviceContactName,
+      contact_phone: servicePhone,
+      postal_code: servicePostalCode,
       real_hours: realHours !== "" ? Number(realHours) : null,
     });
 

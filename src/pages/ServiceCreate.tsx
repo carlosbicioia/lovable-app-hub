@@ -262,6 +262,7 @@ export default function ServiceCreate() {
       contact_name: serviceContactName,
       contact_phone: servicePhone,
       postal_code: servicePostalCode,
+      diagnosis_complete: diagnosisComplete,
       scheduled_at: scheduledAtIso,
       scheduled_end_at: scheduledEndAtIso,
       contacted_at: null as string | null,
