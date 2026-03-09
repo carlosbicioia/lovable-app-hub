@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText } from "lucide-react";
+import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText, Wrench } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useServices } from "@/hooks/useServices";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -151,6 +152,35 @@ export default function ServiceSidebar({ service }: Props) {
             emptyText="Sin técnicos disponibles"
             disabled={savingField === "operator_id"}
           />
+        </CardContent>
+      </Card>
+
+      {/* Service Type */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-muted-foreground" /> Tipo de servicio
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={service.serviceType}
+            onValueChange={(v) => handleUpdate("service_type", v)}
+            disabled={savingField === "service_type" || !!linkedBudget}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Reparación_Directa">Reparación Directa</SelectItem>
+              <SelectItem value="Presupuesto">Con Presupuesto</SelectItem>
+            </SelectContent>
+          </Select>
+          {!!linkedBudget && (
+            <p className="text-[11px] text-muted-foreground mt-2">
+              No se puede cambiar el tipo mientras haya un presupuesto vinculado.
+            </p>
+          )}
         </CardContent>
       </Card>
 
