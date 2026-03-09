@@ -1210,6 +1210,11 @@ export default function Settings() {
           <SubscriptionPlansTab />
         </TabsContent>
 
+        {/* ===== ORÍGENES ===== */}
+        <TabsContent value="origins" className="space-y-6 mt-4">
+          <ServiceOriginsTab />
+        </TabsContent>
+
         {/* ===== IMPORTAR DATOS ===== */}
         <TabsContent value="import" className="space-y-6 mt-4">
           <BulkImportTab />
