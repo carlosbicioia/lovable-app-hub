@@ -1202,6 +1202,33 @@ export type Database = {
           },
         ]
       }
+      service_origins: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          show_collaborator: boolean
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          show_collaborator?: boolean
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          show_collaborator?: boolean
+          sort_order?: number
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           address: string | null
