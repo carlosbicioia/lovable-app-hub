@@ -138,8 +138,7 @@ export default function Budgets() {
     if (!budget) return;
     setCreatingSalesOrder(true);
     try {
-      const prefix = companySettings?.purchase_order_prefix ? "OV-" : "OV-";
-      const orderId = `${prefix}${budget.id}`;
+      const orderId = `OV-${budget.id}`;
       const { total } = calcBudgetTotals(budget.lines);
       await createSalesOrder.mutateAsync({
         id: orderId,
