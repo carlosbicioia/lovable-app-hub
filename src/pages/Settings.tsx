@@ -1271,6 +1271,8 @@ export default function Settings() {
         <TabsContent value="import" className="space-y-6 mt-4">
           <BulkImportTab />
         </TabsContent>
+          </div>
+        </div>
       </Tabs>
 
       {/* New User Dialog */}
