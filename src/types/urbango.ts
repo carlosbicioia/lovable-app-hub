@@ -105,6 +105,9 @@ export interface Service {
   budgetStatus: "Pendiente" | "Enviado" | "Aprobado" | "Rechazado" | null;
   description?: string;
   address?: string;
+  contactName?: string;
+  contactPhone?: string;
+  postalCode?: string;
   media?: ServiceMedia[];
   internalComments?: ServiceComment[];
   managerComments?: ServiceComment[];
