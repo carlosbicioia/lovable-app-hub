@@ -29,6 +29,7 @@ export interface DbOperator {
   certifications: string[];
   avgResponseTime: number;
   lastServiceDate: string | null;
+  branchId: string | null;
   monthlyRevenue: { month: string; revenue: number; services: number }[];
 }
 
