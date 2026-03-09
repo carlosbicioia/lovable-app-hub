@@ -185,6 +185,18 @@ export default function Collaborators() {
             </Button>
           ))}
         </div>
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Sede:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {activeBranches.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Bulk actions */}
