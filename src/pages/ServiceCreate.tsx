@@ -478,7 +478,7 @@ export default function ServiceCreate() {
 
           {/* Assigned branch */}
           {(() => {
-            const assignedBranchId = findBranchForClient(selectedClient?.clusterId ?? "", selectedClient?.city, selectedClient?.province);
+            const assignedBranchId = findBranchForService(selectedClient?.clusterId ?? "", serviceCity, serviceProvince);
             const assignedBranch = branches.find(b => b.id === assignedBranchId);
             return (
               <div className="flex items-center gap-2 pt-1">
