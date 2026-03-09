@@ -121,8 +121,51 @@ export default function Budgets() {
   });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
+    if (newStatus === "Finalizado") {
+      // First update the status, then prompt for sales order
+      updateBudgetStatus(budgetId, newStatus);
+      toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+      setSalesOrderPromptBudgetId(budgetId);
+      return;
+    }
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const handleCreateSalesOrder = async () => {
+    if (!salesOrderPromptBudgetId) return;
+    const budget = budgets.find((b) => b.id === salesOrderPromptBudgetId);
+    if (!budget) return;
+    setCreatingSalesOrder(true);
+    try {
+      const prefix = companySettings?.purchase_order_prefix ? "OV-" : "OV-";
+      const orderId = `${prefix}${budget.id}`;
+      const { total } = calcBudgetTotals(budget.lines);
+      await createSalesOrder.mutateAsync({
+        id: orderId,
+        budgetId: budget.id,
+        serviceId: budget.serviceId,
+        clientName: budget.clientName,
+        clientAddress: budget.clientAddress,
+        collaboratorName: budget.collaboratorName,
+        total,
+        lines: budget.lines.map((l, i) => ({
+          concept: l.concept,
+          description: l.description || null,
+          units: l.units,
+          costPrice: l.costPrice,
+          margin: l.margin,
+          taxRate: l.taxRate,
+          sortOrder: i,
+        })),
+      });
+      toast.success(`Orden de venta ${orderId} creada`);
+    } catch (err: any) {
+      toast.error(err.message || "Error al crear la orden de venta");
+    } finally {
+      setCreatingSalesOrder(false);
+      setSalesOrderPromptBudgetId(null);
+    }
   };
 
   const handleMarkProformaPaid = async (budgetId: string) => {
