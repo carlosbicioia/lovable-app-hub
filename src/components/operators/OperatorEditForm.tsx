@@ -25,6 +25,8 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: dbSpecialties } = useSpecialties();
   const { data: dbCertifications } = useCertifications();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const activeSpecs = (dbSpecialties ?? []).filter((s) => s.active);
   const activeCerts = (dbCertifications ?? []).filter((c) => c.active);
 
