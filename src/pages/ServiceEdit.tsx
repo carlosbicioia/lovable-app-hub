@@ -80,6 +80,8 @@ export default function ServiceEdit() {
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [serviceCity, setServiceCity] = useState("");
+  const [serviceProvince, setServiceProvince] = useState("");
   const [operatorId, setOperatorId] = useState("");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
   const [scheduledEndDate, setScheduledEndDate] = useState<Date | undefined>();
@@ -108,6 +110,10 @@ export default function ServiceEdit() {
     setClaimStatus(service.claimStatus);
     setDescription(service.description ?? "");
     setAddress(service.address ?? "");
+    // Parse service city/province from client if available
+    const svcClient = clients.find(c => c.id === service.clientId);
+    setServiceCity(svcClient?.city ?? "");
+    setServiceProvince(svcClient?.province ?? "");
     setOperatorId(service.operatorId ?? "");
     setDiagnosisComplete(service.diagnosisComplete);
     setBudgetTotal(service.budgetTotal ?? "");
@@ -157,26 +163,26 @@ export default function ServiceEdit() {
   const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
-  // Auto-assign branch: first by cluster_id, then by client city/province proximity
-  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+  // Auto-assign branch: service location takes priority
+  const findBranchForService = (clusterId: string, svcCity?: string, svcProvince?: string) => {
     if (clusterId) {
       const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
       if (match) return match.id;
     }
-    if (clientCity) {
-      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+    if (svcCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === svcCity.toLowerCase());
       if (cityMatch) return cityMatch.id;
     }
-    if (clientProvince) {
-      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+    if (svcProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === svcProvince.toLowerCase());
       if (provMatch) return provMatch.id;
     }
     return null;
   };
 
-  // Compute assigned branch dynamically based on selected client
+  // Compute assigned branch dynamically based on service location
   const assignedBranchId = selectedClient
-    ? findBranchForClient(selectedClient.clusterId, selectedClient.city, selectedClient.province)
+    ? findBranchForService(selectedClient.clusterId, serviceCity, serviceProvince)
     : service?.branchId ?? null;
   const assignedBranch = branches.find(b => b.id === assignedBranchId);
 
@@ -186,6 +192,8 @@ export default function ServiceEdit() {
     const client = clients.find((c) => c.id === cid);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
+      setServiceCity(client.city);
+      setServiceProvince(client.province);
       if (client.collaboratorId) setCollaboratorId(client.collaboratorId);
     }
   };
@@ -492,9 +500,19 @@ export default function ServiceEdit() {
             <Label>Descripción del problema *</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describa el problema..." rows={4} className="text-sm" />
           </div>
-          <div className="space-y-2">
-            <Label>Dirección de intervención</Label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección completa" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2 md:col-span-3">
+              <Label>Dirección de intervención</Label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección completa" />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad del servicio</Label>
+              <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
+            </div>
+            <div className="space-y-2">
+              <Label>Provincia del servicio</Label>
+              <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -53,21 +53,21 @@ export default function ServiceCreate() {
   const { data: dbOrigins = [] } = useServiceOrigins();
   const activeOrigins = dbOrigins.filter(o => o.active);
 
-  // Auto-assign branch: first by cluster_id, then by client city/province proximity
-  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+  // Auto-assign branch: first by cluster_id, then by service city/province
+  const findBranchForService = (clusterId: string, svcCity?: string, svcProvince?: string) => {
     // 1. Try cluster match
     if (clusterId) {
       const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
       if (match) return match.id;
     }
-    // 2. Try exact city match
-    if (clientCity) {
-      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+    // 2. Try exact city match (service location)
+    if (svcCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === svcCity.toLowerCase());
       if (cityMatch) return cityMatch.id;
     }
-    // 3. Try province match
-    if (clientProvince) {
-      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+    // 3. Try province match (service location)
+    if (svcProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === svcProvince.toLowerCase());
       if (provMatch) return provMatch.id;
     }
     return null;
@@ -98,9 +98,11 @@ export default function ServiceCreate() {
   const [serviceCategory, setServiceCategory] = useState<"Correctivo" | "Plan_Preventivo">("Correctivo");
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
 
-  // ── Description ──
+  // ── Description & Location ──
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [serviceCity, setServiceCity] = useState("");
+  const [serviceProvince, setServiceProvince] = useState("");
 
   // ── Assignment ──
   const [operatorId, setOperatorId] = useState("");
@@ -180,6 +182,8 @@ export default function ServiceCreate() {
     const client = clients.find((c) => c.id === id);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
+      setServiceCity(client.city);
+      setServiceProvince(client.province);
       if (client.collaboratorId) {
         setCollaboratorId(client.collaboratorId);
       }
@@ -254,7 +258,7 @@ export default function ServiceCreate() {
       budget_total: null,
       budget_status: null,
       real_hours: null,
-      branch_id: findBranchForClient(selectedClient?.clusterId ?? "", selectedClient?.city, selectedClient?.province),
+      branch_id: findBranchForService(selectedClient?.clusterId ?? "", serviceCity, serviceProvince),
     };
   };
 
@@ -474,7 +478,7 @@ export default function ServiceCreate() {
 
           {/* Assigned branch */}
           {(() => {
-            const assignedBranchId = findBranchForClient(selectedClient?.clusterId ?? "", selectedClient?.city, selectedClient?.province);
+            const assignedBranchId = findBranchForService(selectedClient?.clusterId ?? "", serviceCity, serviceProvince);
             const assignedBranch = branches.find(b => b.id === assignedBranchId);
             return (
               <div className="flex items-center gap-2 pt-1">
@@ -643,13 +647,31 @@ export default function ServiceCreate() {
               className="text-sm"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Dirección de intervención</Label>
-            <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Dirección completa donde se realizará el servicio"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2 md:col-span-3">
+              <Label>Dirección de intervención</Label>
+              <Input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Dirección completa donde se realizará el servicio"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad del servicio</Label>
+              <Input
+                value={serviceCity}
+                onChange={(e) => setServiceCity(e.target.value)}
+                placeholder="Ciudad"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Provincia del servicio</Label>
+              <Input
+                value={serviceProvince}
+                onChange={(e) => setServiceProvince(e.target.value)}
+                placeholder="Provincia"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
