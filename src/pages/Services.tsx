@@ -129,6 +129,7 @@ export default function Services() {
     }
     if (filterCollaborator !== "all") list = list.filter((s) => s.collaboratorName === filterCollaborator);
     if (filterSpecialty !== "all") list = list.filter((s) => s.specialty === filterSpecialty);
+    if (filterBranch !== "all") list = list.filter((s) => s.branchId === filterBranch);
     if (filterService !== "all") list = list.filter((s) => s.id === filterService);
     if (dateFrom) list = list.filter((s) => new Date(s.receivedAt) >= dateFrom);
     if (dateTo) list = list.filter((s) => new Date(s.receivedAt) <= new Date(dateTo.getTime() + 86400000 - 1));
