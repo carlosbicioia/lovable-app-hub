@@ -98,9 +98,11 @@ export default function ServiceCreate() {
   const [serviceCategory, setServiceCategory] = useState<"Correctivo" | "Plan_Preventivo">("Correctivo");
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
 
-  // ── Description ──
+  // ── Description & Location ──
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [serviceCity, setServiceCity] = useState("");
+  const [serviceProvince, setServiceProvince] = useState("");
 
   // ── Assignment ──
   const [operatorId, setOperatorId] = useState("");
