@@ -114,10 +114,13 @@ export default function ServiceEdit() {
     setClaimStatus(service.claimStatus);
     setDescription(service.description ?? "");
     setAddress(service.address ?? "");
-    // Parse service city/province from client if available
     const svcClient = clients.find(c => c.id === service.clientId);
     setServiceCity(svcClient?.city ?? "");
     setServiceProvince(svcClient?.province ?? "");
+    setServicePostalCode(svcClient?.postalCode ?? "");
+    setServiceContactName(svcClient?.name ?? "");
+    setServicePhone(svcClient?.phone ?? "");
+    setServiceEmail(svcClient?.email ?? "");
     setOperatorId(service.operatorId ?? "");
     setDiagnosisComplete(service.diagnosisComplete);
     setBudgetTotal(service.budgetTotal ?? "");
