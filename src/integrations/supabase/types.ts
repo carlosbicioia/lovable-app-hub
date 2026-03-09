@@ -1241,6 +1241,8 @@ export type Database = {
           cluster_id: string
           collaborator_id: string | null
           collaborator_name: string | null
+          contact_name: string
+          contact_phone: string
           contacted_at: string | null
           created_at: string
           description: string | null
@@ -1250,6 +1252,7 @@ export type Database = {
           operator_id: string | null
           operator_name: string | null
           origin: string
+          postal_code: string
           real_hours: number | null
           received_at: string
           scheduled_at: string | null
@@ -1275,6 +1278,8 @@ export type Database = {
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          contact_name?: string
+          contact_phone?: string
           contacted_at?: string | null
           created_at?: string
           description?: string | null
@@ -1284,6 +1289,7 @@ export type Database = {
           operator_id?: string | null
           operator_name?: string | null
           origin?: string
+          postal_code?: string
           real_hours?: number | null
           received_at?: string
           scheduled_at?: string | null
@@ -1309,6 +1315,8 @@ export type Database = {
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          contact_name?: string
+          contact_phone?: string
           contacted_at?: string | null
           created_at?: string
           description?: string | null
@@ -1318,6 +1326,7 @@ export type Database = {
           operator_id?: string | null
           operator_name?: string | null
           origin?: string
+          postal_code?: string
           real_hours?: number | null
           received_at?: string
           scheduled_at?: string | null
