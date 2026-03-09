@@ -1,10 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { useBranches } from "@/hooks/useBranches";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -42,7 +43,17 @@ interface Props {
 
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
+  const { data: branches = [] } = useBranches();
   const activePlans = plans.filter((p) => p.active);
+  const activeBranches = branches.filter((b) => b.active);
+
+  // Resolve current branch from clusterId
+  const currentBranchId = useMemo(() => {
+    if (!form.clusterId) return "none";
+    const found = branches.find((b) => b.cluster_ids.includes(form.clusterId));
+    return found?.id ?? "none";
+  }, [form.clusterId, branches]);
+
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const initialSnapshot = useRef<string>("");
@@ -141,6 +152,27 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
           <div className="space-y-1.5">
             <Label>Código postal</Label>
             <Input value={form.postalCode} onChange={(e) => upd("postalCode", e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Sede</Label>
+            <Select value={currentBranchId} onValueChange={(v) => {
+              if (v === "none") {
+                setForm((prev) => ({ ...prev, clusterId: "" }));
+              } else {
+                const branch = activeBranches.find((b) => b.id === v);
+                if (branch && branch.cluster_ids.length > 0) {
+                  setForm((prev) => ({ ...prev, clusterId: branch.cluster_ids[0] }));
+                }
+              }
+            }}>
+              <SelectTrigger><SelectValue placeholder="Sin sede" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin sede</SelectItem>
+                {activeBranches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Plan</Label>
