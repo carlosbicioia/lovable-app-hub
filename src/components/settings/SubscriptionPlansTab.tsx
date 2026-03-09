@@ -123,95 +123,96 @@ export default function SubscriptionPlansTab() {
             </div>
           ) : (
             (plans ?? []).map((plan) => (
-              <div key={plan.id} className="rounded-xl border border-border p-5 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={cn("inline-flex items-center justify-center w-10 h-10 rounded-xl border text-lg font-bold", plan.color)}>
-                      <ShieldCheck className="w-5 h-5" />
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-card-foreground">{plan.name}</h3>
-                        {!plan.active && <Badge variant="outline" className="text-[10px]">Inactivo</Badge>}
+              <div key={plan.id} className="rounded-xl border border-border overflow-hidden">
+                {/* Header with color accent */}
+                <div className={cn("px-5 py-4 border-b border-border", plan.active ? "bg-primary/5" : "bg-muted/30")}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className={cn("inline-flex items-center justify-center w-10 h-10 rounded-xl border text-lg font-bold", plan.color)}>
+                        <ShieldCheck className="w-5 h-5" />
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-semibold text-card-foreground">{plan.name}</h3>
+                          {!plan.active && <Badge variant="outline" className="text-[10px]">Inactivo</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{plan.description}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{plan.description}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Switch
-                      checked={plan.active}
-                      onCheckedChange={(checked) => updatePlan.mutate({ id: plan.id, active: checked })}
-                    />
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(plan)}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar plan "{plan.name}"?</AlertDialogTitle>
-                          <AlertDialogDescription>Los clientes con este plan asignado mantendrán la referencia pero el plan ya no estará disponible.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deletePlan.mutate(plan.id)}>Eliminar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Switch
+                        checked={plan.active}
+                        onCheckedChange={(checked) => updatePlan.mutate({ id: plan.id, active: checked })}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(plan)}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar plan "{plan.name}"?</AlertDialogTitle>
+                            <AlertDialogDescription>Los clientes con este plan asignado mantendrán la referencia pero el plan ya no estará disponible.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deletePlan.mutate(plan.id)}>Eliminar</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </div>
 
-                {/* Pricing info */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                    <Euro className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-[11px] text-muted-foreground">Mensual</p>
-                      <p className="text-sm font-semibold text-card-foreground">{plan.monthlyPrice} €/mes</p>
+                {/* Body */}
+                <div className="px-5 py-4 space-y-4">
+                  {/* Pricing cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="text-center p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Mensual</p>
+                      <p className="text-lg font-bold text-card-foreground mt-1">{plan.monthlyPrice} €</p>
+                      <p className="text-[10px] text-muted-foreground">/mes</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-[11px] text-muted-foreground">Anual</p>
-                      <p className="text-sm font-semibold text-card-foreground">{plan.annualPrice} €/año</p>
+                    <div className="text-center p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Anual</p>
+                      <p className="text-lg font-bold text-card-foreground mt-1">{plan.annualPrice} €</p>
+                      <p className="text-[10px] text-muted-foreground">/año</p>
                     </div>
-                  </div>
-                  {plan.founderPrice != null && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                      <Users className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-[11px] text-muted-foreground">Fundadores</p>
-                        <p className="text-sm font-semibold text-card-foreground">{plan.founderPrice} €/mes ({plan.founderSlots} plazas)</p>
+                    {plan.founderPrice != null && (
+                      <div className="text-center p-3 rounded-lg bg-success/5 border border-success/20">
+                        <p className="text-[11px] font-medium text-success uppercase tracking-wide">Fundadores</p>
+                        <p className="text-lg font-bold text-card-foreground mt-1">{plan.founderPrice} €</p>
+                        <p className="text-[10px] text-muted-foreground">/mes · {plan.founderSlots} plazas</p>
                       </div>
-                    </div>
-                  )}
-                  {plan.maxHomes != null && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                      <Home className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-[11px] text-muted-foreground">Límite</p>
-                        <p className="text-sm font-semibold text-card-foreground">{plan.maxHomes} hogares</p>
+                    )}
+                    {plan.maxHomes != null && (
+                      <div className="text-center p-3 rounded-lg bg-muted/40 border border-border/50">
+                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Límite</p>
+                        <p className="text-lg font-bold text-card-foreground mt-1">{plan.maxHomes}</p>
+                        <p className="text-[10px] text-muted-foreground">hogares</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Features as two-column grid */}
+                  {plan.features.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Incluye</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                        {plan.features.map((f, i) => (
+                          <div key={i} className="flex items-start gap-2 text-sm">
+                            <span className="text-success mt-0.5 shrink-0">✓</span>
+                            <span className="text-card-foreground">{f}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
-
-                {/* Features */}
-                {plan.features.length > 0 && (
-                  <ul className="space-y-1 list-none">
-                    {plan.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="text-success mt-0.5 shrink-0">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
             ))
           )}
