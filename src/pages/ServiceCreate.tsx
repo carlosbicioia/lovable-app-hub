@@ -647,13 +647,31 @@ export default function ServiceCreate() {
               className="text-sm"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Dirección de intervención</Label>
-            <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Dirección completa donde se realizará el servicio"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2 md:col-span-3">
+              <Label>Dirección de intervención</Label>
+              <Input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Dirección completa donde se realizará el servicio"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad del servicio</Label>
+              <Input
+                value={serviceCity}
+                onChange={(e) => setServiceCity(e.target.value)}
+                placeholder="Ciudad"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Provincia del servicio</Label>
+              <Input
+                value={serviceProvince}
+                onChange={(e) => setServiceProvince(e.target.value)}
+                placeholder="Provincia"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
