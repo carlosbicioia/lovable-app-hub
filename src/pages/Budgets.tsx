@@ -120,9 +120,34 @@ export default function Budgets() {
     return matchSearch && matchCollaborator && matchSpecialty && matchStatus && matchService && matchDateFrom && matchDateTo;
   });
 
+  // Valid budget status transitions
+  const BUDGET_TRANSITIONS: Record<BudgetStatus, BudgetStatus[]> = {
+    Borrador: ["Enviado", "Rechazado"],
+    Enviado: ["Aprobado", "Rechazado", "Borrador"],
+    Aprobado: ["Pte_Facturación", "Finalizado", "Rechazado"],
+    Rechazado: ["Borrador"],
+    Pte_Facturación: ["Finalizado"],
+    Finalizado: [], // Cannot change from Finalizado
+  };
+
+  const [pendingReject, setPendingReject] = useState<string | null>(null);
+
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
+    const budget = budgets.find((b) => b.id === budgetId);
+    if (!budget) return;
+
+    const allowed = BUDGET_TRANSITIONS[budget.status] || [];
+    if (!allowed.includes(newStatus)) {
+      toast.error(`No se puede cambiar de "${statusConfig[budget.status].label}" a "${statusConfig[newStatus].label}"`);
+      return;
+    }
+
+    if (newStatus === "Rechazado") {
+      setPendingReject(budgetId);
+      return;
+    }
+
     if (newStatus === "Finalizado") {
-      // First update the status, then prompt for sales order
       updateBudgetStatus(budgetId, newStatus);
       toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
       setSalesOrderPromptBudgetId(budgetId);
@@ -130,6 +155,14 @@ export default function Budgets() {
     }
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const confirmReject = () => {
+    if (pendingReject) {
+      updateBudgetStatus(pendingReject, "Rechazado");
+      toast.success("Presupuesto rechazado");
+      setPendingReject(null);
+    }
   };
 
   const handleCreateSalesOrder = async () => {
