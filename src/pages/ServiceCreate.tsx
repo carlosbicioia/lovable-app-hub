@@ -904,8 +904,8 @@ export default function ServiceCreate() {
             <Textarea value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder="Añade notas relevantes para la gestión interna del servicio..." rows={2} className="text-sm" />
           </div>
           <div className="space-y-2">
-            <Label>Notas para el operario (visibles desde la app)</Label>
-            <Textarea value={collaboratorNotes} onChange={(e) => setCollaboratorNotes(e.target.value)} placeholder="Instrucciones o notas para el operario..." rows={2} className="text-sm" />
+            <Label>Notas para el colaborador (visibles desde el backoffice)</Label>
+            <Textarea value={collaboratorNotes} onChange={(e) => setCollaboratorNotes(e.target.value)} placeholder="Información para compartir con el colaborador..." rows={2} className="text-sm" />
           </div>
         </CardContent>
       </Card>
