@@ -1048,12 +1048,11 @@ export default function Operators() {
         completedServices: freshOps.completed_services,
         activeServices: freshOps.active_services,
         color: freshOps.color,
-        hireDate: freshOps.hire_date,
+        hireDate: freshOps.hire_date ?? "",
         vehiclePlate: freshOps.vehicle_plate,
         certifications: freshOps.certifications ?? [],
         avgResponseTime: Number(freshOps.avg_response_time),
         lastServiceDate: freshOps.last_service_date,
-        branchId: freshOps.branch_id,
         monthlyRevenue: [],
       };
       setSelected(mapped);
