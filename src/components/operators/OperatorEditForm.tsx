@@ -314,6 +314,19 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
             </div>
 
             <div className="space-y-1">
+              <Label className="text-xs">Sede</Label>
+              <Select value={form.branch_id || "none"} onValueChange={(v) => set("branch_id", v === "none" ? "" : v)}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin sede</SelectItem>
+                  {activeBranches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
               <Label className="text-xs">Color identificativo (HSL)</Label>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg border border-border" style={{ backgroundColor: `hsl(${form.color})` }} />
