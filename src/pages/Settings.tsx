@@ -664,6 +664,11 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        {/* ===== SEDES ===== */}
+        <TabsContent value="branches" className="mt-4">
+          <BranchesTab />
+        </TabsContent>
+
         {/* ===== USUARIOS ===== */}
         <TabsContent value="users" className="space-y-6 mt-4">
           <Card>
