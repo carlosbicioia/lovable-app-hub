@@ -413,6 +413,18 @@ export default function Collaborators() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="branchId">Sede</Label>
+              <Select value={form.branchId ?? "none"} onValueChange={(v) => setForm((f) => ({ ...f, branchId: v === "none" ? null : v }))}>
+                <SelectTrigger id="branchId"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin sede</SelectItem>
+                  {activeBranches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="notes">Notas</Label>
               <Input
                 id="notes"
