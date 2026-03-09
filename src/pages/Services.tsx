@@ -62,6 +62,8 @@ export default function Services() {
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const { services, loading, updateService, refetch } = useServices();
   const { toast } = useToast();
   const { data: appUsers = [] } = useAppUsers();
