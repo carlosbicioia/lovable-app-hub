@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 
 interface LineInput {
   articleName: string;
