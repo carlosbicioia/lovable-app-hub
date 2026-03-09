@@ -177,7 +177,12 @@ export default function SubscriptionPlansTab() {
                       <p className="text-lg font-bold text-card-foreground mt-1">{plan.monthlyPrice} €</p>
                       <p className="text-[10px] text-muted-foreground">/mes</p>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-muted/40 border border-border/50">
+                    <div className="text-center p-3 rounded-lg bg-muted/40 border border-border/50 relative">
+                      {plan.monthlyPrice > 0 && plan.annualPrice > 0 && plan.annualPrice < plan.monthlyPrice * 12 && (
+                        <span className="absolute -top-2 -right-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-success text-success-foreground shadow-sm">
+                          -{Math.round((1 - plan.annualPrice / (plan.monthlyPrice * 12)) * 100)}%
+                        </span>
+                      )}
                       <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Anual</p>
                       <p className="text-lg font-bold text-card-foreground mt-1">{plan.annualPrice} €</p>
                       <p className="text-[10px] text-muted-foreground">/año</p>
