@@ -185,9 +185,13 @@ export default function ServiceCreate() {
     setClientOpen(false);
     const client = clients.find((c) => c.id === id);
     if (client) {
-      setAddress(`${client.address}, ${client.city}`);
+      setAddress(client.address);
       setServiceCity(client.city);
       setServiceProvince(client.province);
+      setServicePostalCode(client.postalCode);
+      setServiceContactName(client.clientType === "Empresa" ? client.name : client.name);
+      setServicePhone(client.phone);
+      setServiceEmail(client.email);
       if (client.collaboratorId) {
         setCollaboratorId(client.collaboratorId);
       }
