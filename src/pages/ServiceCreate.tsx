@@ -37,6 +37,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
 import { useBranches } from "@/hooks/useBranches";
+import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 
 const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
@@ -49,6 +50,8 @@ export default function ServiceCreate() {
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
   const { data: branches = [] } = useBranches();
+  const { data: dbOrigins = [] } = useServiceOrigins();
+  const activeOrigins = dbOrigins.filter(o => o.active);
 
   // Auto-assign branch based on client cluster_id
   const findBranchForCluster = (clusterId: string) => {
@@ -428,20 +431,19 @@ export default function ServiceCreate() {
               </Popover>
             </div>
 
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label>Origen</Label>
               <Select value={origin} onValueChange={(v) => setOrigin(v as ServiceOrigin)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Directo">Directo</SelectItem>
-                  <SelectItem value="B2B">B2B (Colaborador)</SelectItem>
-                  <SelectItem value="App">App</SelectItem>
-                  <SelectItem value="API_Externa">API Externa</SelectItem>
+                  {activeOrigins.map((o) => (
+                    <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {origin === "B2B" && (
+            {activeOrigins.find(o => o.name === origin)?.show_collaborator && (
               <div className="space-y-2">
                 <Label>Colaborador</Label>
                 <Select value={collaboratorId} onValueChange={setCollaboratorId}>

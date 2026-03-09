@@ -27,6 +27,7 @@ import { useCollaborators } from "@/hooks/useCollaborators";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
+import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -41,6 +42,8 @@ export default function ServiceEdit() {
   const { data: allOperators = [] } = useOperators();
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
+  const { data: dbOrigins = [] } = useServiceOrigins();
+  const activeOrigins = dbOrigins.filter(o => o.active);
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
@@ -292,15 +295,18 @@ export default function ServiceEdit() {
               <Select value={origin} onValueChange={(v) => setOrigin(v as ServiceOrigin)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Directo">Directo</SelectItem>
-                  <SelectItem value="B2B">B2B (Colaborador)</SelectItem>
-                  <SelectItem value="App">App</SelectItem>
-                  <SelectItem value="API_Externa">API Externa</SelectItem>
+                  {activeOrigins.map((o) => (
+                    <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
+                  ))}
+                  {/* Keep current value if not in active origins */}
+                  {origin && !activeOrigins.find(o => o.name === origin) && (
+                    <SelectItem value={origin}>{origin}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
-            {origin === "B2B" && (
+            {activeOrigins.find(o => o.name === origin)?.show_collaborator && (
               <div className="space-y-2">
                 <Label>Colaborador</Label>
                 <Select value={collaboratorId} onValueChange={setCollaboratorId}>
