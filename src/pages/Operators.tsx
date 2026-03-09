@@ -137,9 +137,14 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Operarios</h1>
-        <p className="text-sm text-muted-foreground">Gestión del equipo técnico y rendimiento</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Operarios</h1>
+          <p className="text-sm text-muted-foreground">Gestión del equipo técnico y rendimiento</p>
+        </div>
+        <Button onClick={onCreateNew}>
+          <Plus className="w-4 h-4 mr-2" /> Nuevo operario
+        </Button>
       </div>
 
       {/* KPIs */}
