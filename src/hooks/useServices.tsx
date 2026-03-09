@@ -37,6 +37,8 @@ function mapDbToService(row: any): Service {
     signatureUrl: row.signature_url ?? null,
     signedAt: row.signed_at ?? null,
     signedBy: row.signed_by ?? null,
+    internalNotes: row.internal_notes ?? "",
+    collaboratorNotes: row.collaborator_notes ?? "",
     media: [],
     internalComments: [],
     managerComments: [],

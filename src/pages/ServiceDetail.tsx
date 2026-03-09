@@ -253,14 +253,16 @@ export default function ServiceDetail() {
               description="Solo visibles para el equipo interno"
               comments={service.internalComments ?? []}
               variant="internal"
-              onAddComment={(text) => console.log("Internal comment:", text)}
+              initialText={service.internalNotes ?? ""}
+              onTextChange={(text) => updateService(service.id, { internal_notes: text })}
             />
             <ServiceComments
               title="Comentarios del gestor"
               description="Visibles para el colaborador"
               comments={service.managerComments ?? []}
               variant="manager"
-              onAddComment={(text) => console.log("Manager comment:", text)}
+              initialText={service.collaboratorNotes ?? ""}
+              onTextChange={(text) => updateService(service.id, { collaborator_notes: text })}
             />
             <ServiceMedia service={service} />
           </TabsContent>

@@ -109,6 +109,8 @@ export interface Service {
   contactPhone?: string;
   postalCode?: string;
   media?: ServiceMedia[];
+  internalNotes?: string;
+  collaboratorNotes?: string;
   internalComments?: ServiceComment[];
   managerComments?: ServiceComment[];
   timelineEvents?: TimelineEvent[];
