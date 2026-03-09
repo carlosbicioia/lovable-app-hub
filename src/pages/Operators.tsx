@@ -289,7 +289,10 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
                         {stCfg.label}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{op.id} · {op.city}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {op.id} · {op.city}
+                      {(() => { const br = activeBranches.find(b => b.id === op.branchId); return br ? ` · ${br.name}` : ''; })()}
+                    </p>
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border", getSpecColor(op.specialty))}>
                         {getSpecIcon(op.specialty)}
