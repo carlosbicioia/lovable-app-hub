@@ -94,7 +94,7 @@ function NpsIndicator({ value }: { value: number }) {
 }
 
 // ─── OPERATOR LIST ─────────────────────────────────────────
-function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
+function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; onCreateNew: () => void }) {
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [filterBranch, setFilterBranch] = useState<string>("all");
