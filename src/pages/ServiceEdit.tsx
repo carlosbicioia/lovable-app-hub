@@ -306,7 +306,7 @@ export default function ServiceEdit() {
               </Select>
             </div>
 
-            {origin === "B2B" && (
+            {activeOrigins.find(o => o.name === origin)?.show_collaborator && (
               <div className="space-y-2">
                 <Label>Colaborador</Label>
                 <Select value={collaboratorId} onValueChange={setCollaboratorId}>
