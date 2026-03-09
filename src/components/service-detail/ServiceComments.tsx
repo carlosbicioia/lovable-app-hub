@@ -44,7 +44,7 @@ export default function ServiceComments({ title, description, variant, initialTe
         <Textarea
           value={text}
           onChange={(e) => handleChange(e.target.value)}
-          placeholder={variant === "internal" ? "Añadir comentario interno..." : "Instrucciones o notas para el operario..."}
+          placeholder={variant === "internal" ? "Añadir comentario interno..." : "Información para compartir con el colaborador..."}
           rows={3}
           className={cn(
             "resize-none text-sm",
