@@ -157,6 +157,29 @@ export default function ServiceEdit() {
   const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
+  // Auto-assign branch: first by cluster_id, then by client city/province proximity
+  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+    if (clusterId) {
+      const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
+      if (match) return match.id;
+    }
+    if (clientCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+      if (cityMatch) return cityMatch.id;
+    }
+    if (clientProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+      if (provMatch) return provMatch.id;
+    }
+    return null;
+  };
+
+  // Compute assigned branch dynamically based on selected client
+  const assignedBranchId = selectedClient
+    ? findBranchForClient(selectedClient.clusterId, selectedClient.city, selectedClient.province)
+    : service?.branchId ?? null;
+  const assignedBranch = branches.find(b => b.id === assignedBranchId);
+
   const handleClientChange = (cid: string) => {
     setClientId(cid);
     setClientOpen(false);
@@ -215,6 +238,7 @@ export default function ServiceEdit() {
       collaborator_id: collaboratorId && collaboratorId !== "none" ? collaboratorId : null,
       collaborator_name: selectedCollab?.companyName ?? null,
       cluster_id: selectedClient?.clusterId ?? service.clusterId,
+      branch_id: assignedBranchId,
       origin,
       status,
       urgency,
@@ -325,20 +349,15 @@ export default function ServiceEdit() {
           </div>
 
           {/* Assigned branch */}
-          {(() => {
-            const assignedBranch = branches.find(b => b.id === service?.branchId);
-            return (
-              <div className="flex items-center gap-2 pt-1">
-                <Label className="text-xs text-muted-foreground">Sede asignada:</Label>
-                <span className={cn(
-                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                  assignedBranch ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                )}>
-                  {assignedBranch?.name ?? "Sin sede"}
-                </span>
-              </div>
-            );
-          })()}
+          <div className="flex items-center gap-2 pt-1">
+            <Label className="text-xs text-muted-foreground">Sede asignada:</Label>
+            <span className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+              assignedBranch ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+            )}>
+              {assignedBranch?.name ?? "Sin sede"}
+            </span>
+          </div>
 
           {selectedClient && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 bg-muted/30 rounded-lg p-3 border border-border">
