@@ -163,26 +163,26 @@ export default function ServiceEdit() {
   const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
-  // Auto-assign branch: first by cluster_id, then by client city/province proximity
-  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+  // Auto-assign branch: service location takes priority
+  const findBranchForService = (clusterId: string, svcCity?: string, svcProvince?: string) => {
     if (clusterId) {
       const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
       if (match) return match.id;
     }
-    if (clientCity) {
-      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+    if (svcCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === svcCity.toLowerCase());
       if (cityMatch) return cityMatch.id;
     }
-    if (clientProvince) {
-      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+    if (svcProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === svcProvince.toLowerCase());
       if (provMatch) return provMatch.id;
     }
     return null;
   };
 
-  // Compute assigned branch dynamically based on selected client
+  // Compute assigned branch dynamically based on service location
   const assignedBranchId = selectedClient
-    ? findBranchForClient(selectedClient.clusterId, selectedClient.city, selectedClient.province)
+    ? findBranchForService(selectedClient.clusterId, serviceCity, serviceProvince)
     : service?.branchId ?? null;
   const assignedBranch = branches.find(b => b.id === assignedBranchId);
 
@@ -192,6 +192,8 @@ export default function ServiceEdit() {
     const client = clients.find((c) => c.id === cid);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
+      setServiceCity(client.city);
+      setServiceProvince(client.province);
       if (client.collaboratorId) setCollaboratorId(client.collaboratorId);
     }
   };
