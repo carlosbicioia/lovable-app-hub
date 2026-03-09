@@ -80,6 +80,8 @@ export default function ServiceEdit() {
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [serviceCity, setServiceCity] = useState("");
+  const [serviceProvince, setServiceProvince] = useState("");
   const [operatorId, setOperatorId] = useState("");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
   const [scheduledEndDate, setScheduledEndDate] = useState<Date | undefined>();
