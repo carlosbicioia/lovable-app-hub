@@ -646,6 +646,24 @@ export type Database = {
           },
         ]
       }
+      municipalities: {
+        Row: {
+          id: string
+          name: string
+          province: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          province: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          province?: string
+        }
+        Relationships: []
+      }
       notification_dismissals: {
         Row: {
           dismissed_at: string
