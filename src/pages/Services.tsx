@@ -347,12 +347,13 @@ export default function Services() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Urgencia</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Presupuesto</th>
                 <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Sede</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Protocolo</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={13} className="text-center py-12 text-muted-foreground">{isBillingTab ? "No hay servicios pendientes de facturación" : "No se encontraron servicios"}</td></tr>
+                <tr><td colSpan={14} className="text-center py-12 text-muted-foreground">{isBillingTab ? "No hay servicios pendientes de facturación" : "No se encontraron servicios"}</td></tr>
               ) : filtered.map((s) => {
                 const sla = getSlaStatus(s.receivedAt, s.contactedAt);
                 return (
