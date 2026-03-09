@@ -71,9 +71,12 @@ const emptyForm: CollaboratorInput = {
 export default function Collaborators() {
   const navigate = useNavigate();
   const { collaborators, loading, create, update, remove } = useCollaborators();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [branchFilter, setBranchFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CollaboratorInput>(emptyForm);
