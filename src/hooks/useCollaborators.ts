@@ -82,6 +82,7 @@ export function useCollaborators() {
       postal_code: input.postalCode,
       website: input.website,
       notes: input.notes,
+      branch_id: input.branchId,
     } as any);
     if (!error) await fetch();
     return { error };
