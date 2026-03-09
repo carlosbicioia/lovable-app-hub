@@ -998,7 +998,7 @@ function VacationsSection({ operatorId }: { operatorId: string }) {
 export default function Operators() {
   const [selected, setSelected] = useState<Operator | null>(null);
   const qc = useQueryClient();
-
+  const { toast } = useToast();
   const handleCreateNew = async () => {
     // Generate next ID
     const { data: lastOps } = await supabase
