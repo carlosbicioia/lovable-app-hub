@@ -120,9 +120,34 @@ export default function Budgets() {
     return matchSearch && matchCollaborator && matchSpecialty && matchStatus && matchService && matchDateFrom && matchDateTo;
   });
 
+  // Valid budget status transitions
+  const BUDGET_TRANSITIONS: Record<BudgetStatus, BudgetStatus[]> = {
+    Borrador: ["Enviado", "Rechazado"],
+    Enviado: ["Aprobado", "Rechazado", "Borrador"],
+    Aprobado: ["Pte_Facturación", "Finalizado", "Rechazado"],
+    Rechazado: ["Borrador"],
+    Pte_Facturación: ["Finalizado"],
+    Finalizado: [], // Cannot change from Finalizado
+  };
+
+  const [pendingReject, setPendingReject] = useState<string | null>(null);
+
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
+    const budget = budgets.find((b) => b.id === budgetId);
+    if (!budget) return;
+
+    const allowed = BUDGET_TRANSITIONS[budget.status] || [];
+    if (!allowed.includes(newStatus)) {
+      toast.error(`No se puede cambiar de "${statusConfig[budget.status].label}" a "${statusConfig[newStatus].label}"`);
+      return;
+    }
+
+    if (newStatus === "Rechazado") {
+      setPendingReject(budgetId);
+      return;
+    }
+
     if (newStatus === "Finalizado") {
-      // First update the status, then prompt for sales order
       updateBudgetStatus(budgetId, newStatus);
       toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
       setSalesOrderPromptBudgetId(budgetId);
@@ -130,6 +155,14 @@ export default function Budgets() {
     }
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const confirmReject = () => {
+    if (pendingReject) {
+      updateBudgetStatus(pendingReject, "Rechazado");
+      toast.success("Presupuesto rechazado");
+      setPendingReject(null);
+    }
   };
 
   const handleCreateSalesOrder = async () => {
@@ -332,18 +365,29 @@ export default function Budgets() {
                           {format(new Date(b.createdAt), "dd MMM yyyy", { locale: es })}
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                          <Select value={b.status} onValueChange={(v) => handleStatusChange(b.id, v as BudgetStatus)}>
-                            <SelectTrigger className={cn("h-7 w-[140px] text-xs font-medium border-0", cfg.className)}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allStatuses.map((s) => (
-                                <SelectItem key={s} value={s} className="text-xs">
-                                  {statusConfig[s].label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {(() => {
+                            const allowedTransitions = BUDGET_TRANSITIONS[b.status] || [];
+                            return (
+                              <Select value={b.status} onValueChange={(v) => handleStatusChange(b.id, v as BudgetStatus)}>
+                                <SelectTrigger className={cn("h-7 w-[140px] text-xs font-medium border-0", cfg.className)}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allStatuses.map((s) => (
+                                    <SelectItem
+                                      key={s}
+                                      value={s}
+                                      className="text-xs"
+                                      disabled={s !== b.status && !allowedTransitions.includes(s)}
+                                    >
+                                      {statusConfig[s].label}
+                                      {s === b.status && " ✓"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            );
+                          })()}
                         </td>
                         <td className="px-5 py-3 text-right text-card-foreground">{subtotal.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
@@ -461,6 +505,27 @@ export default function Budgets() {
             <AlertDialogAction onClick={handleCreateSalesOrder} disabled={creatingSalesOrder}>
               {creatingSalesOrder ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
               Crear orden de venta
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject confirmation */}
+      <AlertDialog open={!!pendingReject} onOpenChange={(open) => { if (!open) setPendingReject(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Rechazar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a rechazar el presupuesto <span className="font-semibold">{pendingReject}</span>. Esta acción cambiará el estado a "Rechazado".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmReject}
+            >
+              Rechazar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

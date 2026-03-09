@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Wrench, Zap, User, Users, Activity, CalendarClock, ClipboardList, ShieldAlert } from "lucide-react";
+import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
-import SearchableSelect from "@/components/shared/SearchableSelect";
-import type { Service, ServiceOrigin, Specialty, ServiceStatus } from "@/types/urbango";
+import type { Service } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isSameDay } from "date-fns";
@@ -19,6 +18,19 @@ interface Props {
   service: Service;
 }
 
+// Define valid forward transitions
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado", "En_Curso"],
+  Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado", "En_Curso"],
+  Asignado: ["Pte_Asignacion", "Agendado", "En_Curso"],
+  Agendado: ["Asignado", "En_Curso", "Finalizado"],
+  En_Curso: ["Agendado", "Finalizado"],
+  Finalizado: ["En_Curso", "Liquidado"],
+  Liquidado: [],
+};
+
+const CONFIRM_STATUSES = ["Finalizado", "Liquidado"];
+
 export default function ServiceInfoCards({ service }: Props) {
   const navigate = useNavigate();
   const { updateService } = useServices();
@@ -27,6 +39,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("budgets").select("id").eq("service_id", service.id).limit(1)
@@ -37,7 +50,6 @@ export default function ServiceInfoCards({ service }: Props) {
     setSaving(field);
     const updates: Record<string, any> = { [field]: value };
 
-    // Sync related name fields
     if (field === "operator_id") {
       const op = operators.find((o) => o.id === value);
       updates.operator_name = op?.name ?? null;
@@ -49,6 +61,28 @@ export default function ServiceInfoCards({ service }: Props) {
 
     await updateService(service.id, updates);
     setSaving(null);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    const allowed = VALID_TRANSITIONS[service.status] || [];
+    if (!allowed.includes(newStatus)) {
+      toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
+      return;
+    }
+
+    if (CONFIRM_STATUSES.includes(newStatus)) {
+      setPendingStatusChange(newStatus);
+      return;
+    }
+
+    handleUpdate("status", newStatus);
+  };
+
+  const confirmStatusChange = () => {
+    if (pendingStatusChange) {
+      handleUpdate("status", pendingStatusChange);
+      setPendingStatusChange(null);
+    }
   };
 
   const statusLabel = (s: string) => {
@@ -67,11 +101,14 @@ export default function ServiceInfoCards({ service }: Props) {
   const availableOperators = operators.filter(
     (o) => o.status === "Activo" && o.available
   );
-  // Include current operator
   const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
   const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
     ? [currentOp, ...availableOperators]
     : availableOperators;
+
+  const allowedStatuses = VALID_TRANSITIONS[service.status] || [];
+  const allStatuses = ["Pendiente_Contacto", "Pte_Asignacion", "Asignado", "Agendado", "En_Curso", "Finalizado", "Liquidado"];
+  const isLocked = service.status === "Liquidado";
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -131,7 +168,7 @@ export default function ServiceInfoCards({ service }: Props) {
           <Select
             value={service.specialty}
             onValueChange={(v) => handleUpdate("specialty", v)}
-            disabled={saving === "specialty"}
+            disabled={saving === "specialty" || isLocked}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
@@ -155,7 +192,7 @@ export default function ServiceInfoCards({ service }: Props) {
           <Select
             value={service.origin}
             onValueChange={(v) => handleUpdate("origin", v)}
-            disabled={saving === "origin"}
+            disabled={saving === "origin" || isLocked}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
@@ -189,7 +226,7 @@ export default function ServiceInfoCards({ service }: Props) {
                 handleUpdate("service_type", v);
               }
             }}
-            disabled={saving === "service_type"}
+            disabled={saving === "service_type" || isLocked}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue>{service.serviceType === "Reparación_Directa" ? "Rep. Directa" : "Presupuesto"}</SelectValue>
@@ -212,7 +249,7 @@ export default function ServiceInfoCards({ service }: Props) {
           <Select
             value={service.urgency}
             onValueChange={(v) => handleUpdate("urgency", v)}
-            disabled={saving === "urgency"}
+            disabled={saving === "urgency" || isLocked}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
@@ -235,24 +272,35 @@ export default function ServiceInfoCards({ service }: Props) {
           </div>
           <Select
             value={service.status}
-            onValueChange={(v) => handleUpdate("status", v)}
-            disabled={saving === "status"}
+            onValueChange={handleStatusChange}
+            disabled={saving === "status" || isLocked}
           >
             <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue>{statusLabel(service.status)}</SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
-              <SelectItem value="Pendiente_Contacto">Pte. Contacto</SelectItem>
-              <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
-              <SelectItem value="Asignado">Asignado</SelectItem>
-              <SelectItem value="Agendado">Agendado</SelectItem>
-              <SelectItem value="En_Curso">En Curso</SelectItem>
-              <SelectItem value="Finalizado">Finalizado</SelectItem>
-              <SelectItem value="Liquidado">Liquidado</SelectItem>
+              {allStatuses.map((s) => (
+                <SelectItem
+                  key={s}
+                  value={s}
+                  disabled={s !== service.status && !allowedStatuses.includes(s)}
+                  className={cn(
+                    s !== service.status && !allowedStatuses.includes(s) && "opacity-40"
+                  )}
+                >
+                  {statusLabel(s)}
+                  {s === service.status && " ✓"}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          {isLocked && (
+            <p className="text-[10px] text-muted-foreground mt-1">🔒 Estado bloqueado</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Budget prompt */}
       <AlertDialog open={showBudgetPrompt} onOpenChange={setShowBudgetPrompt}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -265,6 +313,43 @@ export default function ServiceInfoCards({ service }: Props) {
             <AlertDialogCancel>Más tarde</AlertDialogCancel>
             <AlertDialogAction onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
               Crear presupuesto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Status confirmation dialog */}
+      <AlertDialog open={!!pendingStatusChange} onOpenChange={(open) => { if (!open) setPendingStatusChange(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Confirmar cambio de estado
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Vas a cambiar el servicio <strong>{service.id}</strong> de{" "}
+                  <strong>{statusLabel(service.status)}</strong> a{" "}
+                  <strong>{statusLabel(pendingStatusChange ?? "")}</strong>.
+                </p>
+                {pendingStatusChange === "Liquidado" && (
+                  <p className="text-destructive font-medium">
+                    ⚠️ Esta acción es irreversible. Una vez liquidado, el servicio quedará bloqueado y no se podrá modificar.
+                  </p>
+                )}
+                {pendingStatusChange === "Finalizado" && !hasBudget && service.serviceType === "Presupuesto" && (
+                  <p className="text-warning font-medium">
+                    ⚠️ Este servicio requiere presupuesto pero no tiene uno vinculado.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>
+              Confirmar cambio
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

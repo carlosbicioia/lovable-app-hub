@@ -361,6 +361,41 @@ export default function ServiceCreate() {
       return;
     }
 
+    // Prevent scheduling in the past
+    if (scheduledDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (scheduledDate < today) {
+        toast({ title: "Fecha inválida", description: "No se puede agendar en una fecha pasada", variant: "destructive" });
+        return;
+      }
+    }
+
+    // Validate end date >= start date
+    if (scheduledDate && scheduledEndDate) {
+      const startDt = new Date(scheduledDate);
+      const [sh, sm] = scheduledTime.split(":").map(Number);
+      startDt.setHours(sh, sm);
+      const endDt = new Date(scheduledEndDate);
+      const [eh, em] = scheduledEndTime.split(":").map(Number);
+      endDt.setHours(eh, em);
+      if (endDt <= startDt) {
+        toast({ title: "Fecha inválida", description: "La fecha/hora de fin debe ser posterior a la de inicio", variant: "destructive" });
+        return;
+      }
+    }
+
+    // Validate phone format if provided
+    if (servicePhone && !/^[+\d\s()-]{6,20}$/.test(servicePhone)) {
+      toast({ title: "Teléfono inválido", description: "Introduce un número de teléfono válido", variant: "destructive" });
+      return;
+    }
+
+    // Warn if date set but no operator
+    if (scheduledDate && (!operatorId || operatorId === "none") && !andSchedule) {
+      toast({ title: "Aviso", description: "Has indicado una fecha pero no hay operario asignado. El servicio se creará como Pte. Contacto.", variant: "default" });
+    }
+
     setSaving(true);
     try {
       const serviceId = pendingServiceId ?? await generateServiceId();
@@ -850,7 +885,7 @@ export default function ServiceCreate() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={scheduledDate} onSelect={setScheduledDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  <Calendar mode="single" selected={scheduledDate} onSelect={setScheduledDate} initialFocus disabled={(date) => { const today = new Date(); today.setHours(0,0,0,0); return date < today; }} className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -868,7 +903,7 @@ export default function ServiceCreate() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={scheduledEndDate} onSelect={setScheduledEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  <Calendar mode="single" selected={scheduledEndDate} onSelect={(d) => { if (d && scheduledDate && d < scheduledDate) { toast({ title: "Fecha inválida", description: "La fecha fin no puede ser anterior a la fecha inicio", variant: "destructive" }); return; } setScheduledEndDate(d); }} initialFocus disabled={(date) => { const minDate = scheduledDate ?? new Date(); const min = new Date(minDate); min.setHours(0,0,0,0); return date < min; }} className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>

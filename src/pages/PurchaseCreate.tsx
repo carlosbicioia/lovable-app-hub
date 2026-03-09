@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 
 interface LineInput {
   articleName: string;
@@ -57,7 +58,26 @@ export default function PurchaseCreate() {
   };
 
   const handleSubmit = () => {
-    if (!nextId || !serviceId || !supplierName) return;
+    if (!nextId || !serviceId) {
+      toast.error("Selecciona un servicio");
+      return;
+    }
+    if (!supplierName) {
+      toast.error("Selecciona un proveedor");
+      return;
+    }
+    if (lines.some((l) => !l.articleName.trim())) {
+      toast.error("Todos los artículos deben tener nombre");
+      return;
+    }
+    if (lines.some((l) => l.units <= 0)) {
+      toast.error("Las unidades deben ser mayor que 0");
+      return;
+    }
+    if (lines.some((l) => l.costPrice <= 0)) {
+      toast.error("El coste debe ser mayor que 0 en todas las líneas");
+      return;
+    }
     createOrder.mutate(
       {
         id: nextId,
