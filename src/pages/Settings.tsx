@@ -562,6 +562,7 @@ export default function Settings() {
       <Tabs defaultValue="company" className="w-full">
         <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap gap-1">
           <TabsTrigger value="company" className="text-sm gap-1.5"><Building2 className="w-3.5 h-3.5" /> Empresa</TabsTrigger>
+          <TabsTrigger value="branches" className="text-sm gap-1.5"><MapPin className="w-3.5 h-3.5" /> Sedes</TabsTrigger>
           <TabsTrigger value="users" className="text-sm gap-1.5"><Users className="w-3.5 h-3.5" /> Usuarios</TabsTrigger>
           <TabsTrigger value="roles" className="text-sm gap-1.5"><Shield className="w-3.5 h-3.5" /> Permisos</TabsTrigger>
           <TabsTrigger value="documents" className="text-sm gap-1.5"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
