@@ -459,6 +459,23 @@ export default function ServiceCreate() {
             )}
           </div>
 
+          {/* Assigned branch */}
+          {(() => {
+            const assignedBranchId = findBranchForCluster(selectedClient?.clusterId ?? "");
+            const assignedBranch = branches.find(b => b.id === assignedBranchId);
+            return (
+              <div className="flex items-center gap-2 pt-1">
+                <Label className="text-xs text-muted-foreground">Sede asignada:</Label>
+                <span className={cn(
+                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                  assignedBranch ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  {assignedBranch?.name ?? "Sin sede (selecciona cliente)"}
+                </span>
+              </div>
+            );
+          })()}
+
           {selectedClient && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 bg-muted/30 rounded-lg p-3 border border-border">
               <div className="space-y-1">
