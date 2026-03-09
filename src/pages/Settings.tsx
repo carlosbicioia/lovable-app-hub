@@ -13,7 +13,7 @@ import {
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat, GripVertical,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
   Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
-  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database,
+  ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database, MapPin,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
