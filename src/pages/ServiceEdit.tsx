@@ -28,6 +28,7 @@ import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
+import { useBranches } from "@/hooks/useBranches";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
