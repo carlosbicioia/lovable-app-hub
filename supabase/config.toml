@@ -1,5 +1,8 @@
 project_id = "oaevszkqyzfewazfioyy"
 
+[functions.register-nps]
+verify_jwt = false
+
 [functions.voice-assistant]
 verify_jwt = false
 
