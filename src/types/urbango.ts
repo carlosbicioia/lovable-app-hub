@@ -86,7 +86,7 @@ export interface Service {
   collaboratorId: string | null;
   collaboratorName: string | null;
   clusterId: string;
-  branchId: string | null;
+  branchId?: string | null;
   origin: ServiceOrigin;
   status: ServiceStatus;
   urgency: UrgencyLevel;
