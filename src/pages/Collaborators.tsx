@@ -89,7 +89,8 @@ export default function Collaborators() {
       c.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || c.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesBranch = branchFilter === "all" || c.branchId === branchFilter;
+    return matchesSearch && matchesCategory && matchesBranch;
   });
 
   const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
