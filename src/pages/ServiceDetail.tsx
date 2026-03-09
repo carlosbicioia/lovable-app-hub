@@ -44,6 +44,7 @@ export default function ServiceDetail() {
   const { data: allPurchaseOrders = [] } = usePurchaseOrders(id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
+  const { data: salesOrders = [] } = useSalesOrders(id);
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
