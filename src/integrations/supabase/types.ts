@@ -1259,6 +1259,7 @@ export type Database = {
           cluster_id: string
           collaborator_id: string | null
           collaborator_name: string | null
+          collaborator_notes: string
           contact_name: string
           contact_phone: string
           contacted_at: string | null
@@ -1266,6 +1267,7 @@ export type Database = {
           description: string | null
           diagnosis_complete: boolean
           id: string
+          internal_notes: string
           nps: number | null
           operator_id: string | null
           operator_name: string | null
@@ -1296,6 +1298,7 @@ export type Database = {
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          collaborator_notes?: string
           contact_name?: string
           contact_phone?: string
           contacted_at?: string | null
@@ -1303,6 +1306,7 @@ export type Database = {
           description?: string | null
           diagnosis_complete?: boolean
           id: string
+          internal_notes?: string
           nps?: number | null
           operator_id?: string | null
           operator_name?: string | null
@@ -1333,6 +1337,7 @@ export type Database = {
           cluster_id?: string
           collaborator_id?: string | null
           collaborator_name?: string | null
+          collaborator_notes?: string
           contact_name?: string
           contact_phone?: string
           contacted_at?: string | null
@@ -1340,6 +1345,7 @@ export type Database = {
           description?: string | null
           diagnosis_complete?: boolean
           id?: string
+          internal_notes?: string
           nps?: number | null
           operator_id?: string | null
           operator_name?: string | null
