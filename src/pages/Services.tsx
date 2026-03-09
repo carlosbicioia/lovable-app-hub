@@ -55,6 +55,7 @@ export default function Services() {
   );
   const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
+  const [filterBranch, setFilterBranch] = useState<string>("all");
   const [filterService, setFilterService] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
