@@ -33,6 +33,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useCollaborators, type CollaboratorInput } from "@/hooks/useCollaborators";
+import { useBranches } from "@/hooks/useBranches";
 import type { Collaborator, CollaboratorCategory } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,14 +65,18 @@ const emptyForm: CollaboratorInput = {
   postalCode: "",
   website: "",
   notes: "",
+  branchId: null,
 };
 
 export default function Collaborators() {
   const navigate = useNavigate();
   const { collaborators, loading, create, update, remove } = useCollaborators();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [branchFilter, setBranchFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CollaboratorInput>(emptyForm);
@@ -84,7 +89,8 @@ export default function Collaborators() {
       c.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || c.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesBranch = branchFilter === "all" || c.branchId === branchFilter;
+    return matchesSearch && matchesCategory && matchesBranch;
   });
 
   const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
@@ -110,6 +116,7 @@ export default function Collaborators() {
       postalCode: c.postalCode,
       website: c.website,
       notes: c.notes,
+      branchId: c.branchId ?? null,
     });
     setDialogOpen(true);
   };
@@ -178,6 +185,18 @@ export default function Collaborators() {
             </Button>
           ))}
         </div>
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Sede:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {activeBranches.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Bulk actions */}
@@ -392,6 +411,18 @@ export default function Collaborators() {
                 onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
                 placeholder="www.empresa.es"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="branchId">Sede</Label>
+              <Select value={form.branchId ?? "none"} onValueChange={(v) => setForm((f) => ({ ...f, branchId: v === "none" ? null : v }))}>
+                <SelectTrigger id="branchId"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin sede</SelectItem>
+                  {activeBranches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="notes">Notas</Label>

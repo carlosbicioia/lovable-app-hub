@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
+import { useBranches } from "@/hooks/useBranches";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord } from "@/hooks/useTimeRecords";
 import { useToast } from "@/hooks/use-toast";
@@ -96,9 +97,12 @@ function NpsIndicator({ value }: { value: number }) {
 function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
+  const [filterBranch, setFilterBranch] = useState<string>("all");
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: allOperators = [] } = useOperators();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const qc = useQueryClient();
 
   // Build dynamic icon/color maps from DB specialties
@@ -121,7 +125,8 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
       filterSpecialty === "all" ||
       op.specialty === filterSpecialty ||
       op.secondarySpecialty === filterSpecialty;
-    return matchSearch && matchSpecialty;
+    const matchBranch = filterBranch === "all" || op.branchId === filterBranch;
+    return matchSearch && matchSpecialty && matchBranch;
   });
 
   const { selectedIds, toggle, toggleAll, clear, allSelected, someSelected, count } = useBulkSelect(filtered);
@@ -208,6 +213,18 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
             </Button>
           ))}
         </div>
+        <Select value={filterBranch} onValueChange={setFilterBranch}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Sede:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {activeBranches.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Bulk actions */}

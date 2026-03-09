@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useBranches } from "@/hooks/useBranches";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,12 +55,15 @@ export default function Services() {
   );
   const [filterCollaborator, setFilterCollaborator] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
+  const [filterBranch, setFilterBranch] = useState<string>("all");
   const [filterService, setFilterService] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const { budgets } = useBudgets();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const { services, loading, updateService, refetch } = useServices();
   const { toast } = useToast();
   const { data: appUsers = [] } = useAppUsers();
@@ -125,6 +129,7 @@ export default function Services() {
     }
     if (filterCollaborator !== "all") list = list.filter((s) => s.collaboratorName === filterCollaborator);
     if (filterSpecialty !== "all") list = list.filter((s) => s.specialty === filterSpecialty);
+    if (filterBranch !== "all") list = list.filter((s) => s.branchId === filterBranch);
     if (filterService !== "all") list = list.filter((s) => s.id === filterService);
     if (dateFrom) list = list.filter((s) => new Date(s.receivedAt) >= dateFrom);
     if (dateTo) list = list.filter((s) => new Date(s.receivedAt) <= new Date(dateTo.getTime() + 86400000 - 1));
@@ -132,7 +137,7 @@ export default function Services() {
       list = list.filter((s) => s.clientName.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
     }
     return list;
-  }, [services, budgets, tab, search, statusFilter, urgencyFilter, filterCollaborator, filterSpecialty, filterService, dateFrom, dateTo]);
+  }, [services, budgets, tab, search, statusFilter, urgencyFilter, filterCollaborator, filterSpecialty, filterBranch, filterService, dateFrom, dateTo]);
 
   const bulk = useBulkSelect(filtered);
 
@@ -288,6 +293,18 @@ export default function Services() {
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="no_estandar">⚠ No estándar</SelectItem>
             {urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterBranch} onValueChange={setFilterBranch}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <span className="text-muted-foreground mr-1">Sede:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {activeBranches.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <SearchableSelect

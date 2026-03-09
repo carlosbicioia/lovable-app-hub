@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
+import { useBranches } from "@/hooks/useBranches";
 import type { DbOperator } from "@/hooks/useOperators";
 import type { OperatorStatus } from "@/types/urbango";
 
@@ -24,6 +25,8 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: dbSpecialties } = useSpecialties();
   const { data: dbCertifications } = useCertifications();
+  const { data: branches = [] } = useBranches();
+  const activeBranches = branches.filter((b) => b.active);
   const activeSpecs = (dbSpecialties ?? []).filter((s) => s.active);
   const activeCerts = (dbCertifications ?? []).filter((c) => c.active);
 
@@ -51,6 +54,7 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
     cluster_id: operator.clusterId,
     cluster_ids: operator.clusterIds.join(", "),
     certifications: operator.certifications,
+    branch_id: operator.branchId ?? "",
   });
 
   const set = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
@@ -125,6 +129,7 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           cluster_ids: clusterIds,
           certifications: form.certifications,
           photo: photoUrl,
+          branch_id: form.branch_id || null,
         })
         .eq("id", operator.id);
 
@@ -306,6 +311,19 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
             <div className="space-y-1">
               <Label className="text-xs">Clústeres (separados por coma)</Label>
               <Input value={form.cluster_ids} onChange={(e) => set("cluster_ids", e.target.value)} placeholder="CLU-01, CLU-02" className="h-8 text-sm" />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Sede</Label>
+              <Select value={form.branch_id || "none"} onValueChange={(v) => set("branch_id", v === "none" ? "" : v)}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin sede</SelectItem>
+                  {activeBranches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1">

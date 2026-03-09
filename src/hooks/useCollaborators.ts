@@ -20,6 +20,7 @@ function mapRow(row: any): Collaborator {
     postalCode: row.postal_code ?? "",
     website: row.website ?? "",
     notes: row.notes ?? "",
+    branchId: row.branch_id ?? null,
   };
 }
 
@@ -36,6 +37,7 @@ export type CollaboratorInput = {
   postalCode: string;
   website: string;
   notes: string;
+  branchId: string | null;
 };
 
 export function useCollaborators() {
@@ -80,6 +82,7 @@ export function useCollaborators() {
       postal_code: input.postalCode,
       website: input.website,
       notes: input.notes,
+      branch_id: input.branchId,
     } as any);
     if (!error) await fetch();
     return { error };
@@ -101,6 +104,7 @@ export function useCollaborators() {
         postal_code: input.postalCode,
         website: input.website,
         notes: input.notes,
+        branch_id: input.branchId,
       } as any)
       .eq("id", id);
     if (!error) await fetch();

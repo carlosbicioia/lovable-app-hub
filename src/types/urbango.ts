@@ -41,6 +41,7 @@ export interface Collaborator {
   postalCode: string;
   website: string;
   notes: string;
+  branchId: string | null;
 }
 
 export type ClaimStatus = "Abierto" | "En_Valoración" | "Aceptado" | "Rechazado" | "Cerrado";
