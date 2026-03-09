@@ -118,6 +118,8 @@ export default function ServiceCreate() {
 
   // ── Flags ──
   const [diagnosisComplete, setDiagnosisComplete] = useState(false);
+  const [internalNotes, setInternalNotes] = useState("");
+  const [collaboratorNotes, setCollaboratorNotes] = useState("");
 
   // ── Media ──
   const [currentStateImages, setCurrentStateImages] = useState<File[]>([]);
