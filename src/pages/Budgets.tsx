@@ -55,9 +55,13 @@ export default function Budgets() {
   const [filterService, setFilterService] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [salesOrderPromptBudgetId, setSalesOrderPromptBudgetId] = useState<string | null>(null);
+  const [creatingSalesOrder, setCreatingSalesOrder] = useState(false);
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
+  const createSalesOrder = useCreateSalesOrder();
+  const { data: companySettings } = useCompanySettings();
 
   // Protocol steps from DB
   const { data: enabledSteps = [] } = useEnabledProtocolSteps();
