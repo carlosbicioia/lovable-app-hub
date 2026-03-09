@@ -1179,6 +1179,104 @@ export type Database = {
           },
         ]
       }
+      sales_order_lines: {
+        Row: {
+          concept: string
+          cost_price: number
+          created_at: string
+          description: string | null
+          id: string
+          margin: number
+          sales_order_id: string
+          sort_order: number
+          tax_rate: number
+          units: number
+        }
+        Insert: {
+          concept?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          margin?: number
+          sales_order_id: string
+          sort_order?: number
+          tax_rate?: number
+          units?: number
+        }
+        Update: {
+          concept?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          margin?: number
+          sales_order_id?: string
+          sort_order?: number
+          tax_rate?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_lines_sales_order_id_fkey"
+            columns: ["sales_order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_orders: {
+        Row: {
+          budget_id: string
+          client_address: string
+          client_name: string
+          collaborator_name: string | null
+          created_at: string
+          holded_doc_id: string | null
+          id: string
+          notes: string
+          sent_to_holded: boolean
+          sent_to_holded_at: string | null
+          service_id: string
+          status: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          budget_id: string
+          client_address?: string
+          client_name?: string
+          collaborator_name?: string | null
+          created_at?: string
+          holded_doc_id?: string | null
+          id: string
+          notes?: string
+          sent_to_holded?: boolean
+          sent_to_holded_at?: string | null
+          service_id: string
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          budget_id?: string
+          client_address?: string
+          client_name?: string
+          collaborator_name?: string | null
+          created_at?: string
+          holded_doc_id?: string | null
+          id?: string
+          notes?: string
+          sent_to_holded?: boolean
+          sent_to_holded_at?: string | null
+          service_id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_media: {
         Row: {
           caption: string | null
