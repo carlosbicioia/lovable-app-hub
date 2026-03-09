@@ -203,13 +203,14 @@ export default function SubscriptionPlansTab() {
 
                 {/* Features */}
                 {plan.features.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
+                  <ul className="space-y-1 list-none">
                     {plan.features.map((f, i) => (
-                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground border border-border">
-                        ✓ {f}
-                      </span>
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span className="text-success mt-0.5 shrink-0">•</span>
+                        <span>{f}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </div>
             ))
