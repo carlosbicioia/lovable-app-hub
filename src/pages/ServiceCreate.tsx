@@ -182,6 +182,8 @@ export default function ServiceCreate() {
     const client = clients.find((c) => c.id === id);
     if (client) {
       setAddress(`${client.address}, ${client.city}`);
+      setServiceCity(client.city);
+      setServiceProvince(client.province);
       if (client.collaboratorId) {
         setCollaboratorId(client.collaboratorId);
       }
