@@ -94,7 +94,7 @@ function NpsIndicator({ value }: { value: number }) {
 }
 
 // ─── OPERATOR LIST ─────────────────────────────────────────
-function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
+function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; onCreateNew: () => void }) {
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [filterBranch, setFilterBranch] = useState<string>("all");
@@ -137,9 +137,14 @@ function OperatorList({ onSelect }: { onSelect: (op: any) => void }) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Operarios</h1>
-        <p className="text-sm text-muted-foreground">Gestión del equipo técnico y rendimiento</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Operarios</h1>
+          <p className="text-sm text-muted-foreground">Gestión del equipo técnico y rendimiento</p>
+        </div>
+        <Button onClick={onCreateNew}>
+          <Plus className="w-4 h-4 mr-2" /> Nuevo operario
+        </Button>
       </div>
 
       {/* KPIs */}
@@ -992,10 +997,71 @@ function VacationsSection({ operatorId }: { operatorId: string }) {
 // ─── MAIN ──────────────────────────────────────────────────
 export default function Operators() {
   const [selected, setSelected] = useState<Operator | null>(null);
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const handleCreateNew = async () => {
+    // Generate next ID
+    const { data: lastOps } = await supabase
+      .from("operators")
+      .select("id")
+      .ilike("id", "OP-%")
+      .order("id", { ascending: false })
+      .limit(1);
+    const lastNum = lastOps?.[0] ? parseInt(lastOps[0].id.replace(/\D/g, ""), 10) || 0 : 0;
+    const newId = `OP-${String(lastNum + 1).padStart(3, "0")}`;
+
+    const { error } = await supabase.from("operators").insert({
+      id: newId,
+      first_name: "",
+      last_name: "",
+      name: "Nuevo operario",
+      status: "Activo",
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["operators"] });
+    // Fetch fresh and navigate to detail
+    const { data: freshOps } = await supabase.from("operators").select("*").eq("id", newId).single();
+    if (freshOps) {
+      const mapped: Operator = {
+        id: freshOps.id,
+        firstName: freshOps.first_name,
+        lastName: freshOps.last_name,
+        name: freshOps.name,
+        dni: freshOps.dni,
+        email: freshOps.email,
+        phone: freshOps.phone,
+        address: freshOps.address,
+        city: freshOps.city,
+        province: freshOps.province,
+        photo: freshOps.photo,
+        specialty: freshOps.specialty as Specialty,
+        secondarySpecialty: freshOps.secondary_specialty as Specialty | null,
+        clusterId: freshOps.cluster_id,
+        clusterIds: freshOps.cluster_ids ?? [],
+        status: freshOps.status as any,
+        available: freshOps.available,
+        npsMean: Number(freshOps.nps_mean),
+        totalRevenue: Number(freshOps.total_revenue),
+        completedServices: freshOps.completed_services,
+        activeServices: freshOps.active_services,
+        color: freshOps.color,
+        hireDate: freshOps.hire_date ?? "",
+        vehiclePlate: freshOps.vehicle_plate,
+        certifications: freshOps.certifications ?? [],
+        avgResponseTime: Number(freshOps.avg_response_time),
+        lastServiceDate: freshOps.last_service_date,
+        monthlyRevenue: [],
+      };
+      setSelected(mapped);
+    }
+  };
 
   if (selected) {
     return <OperatorDetail operator={selected} onBack={() => setSelected(null)} />;
   }
 
-  return <OperatorList onSelect={setSelected} />;
+  return <OperatorList onSelect={setSelected} onCreateNew={handleCreateNew} />;
 }
