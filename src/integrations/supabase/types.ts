@@ -44,6 +44,57 @@ export type Database = {
         }
         Relationships: []
       }
+      branches: {
+        Row: {
+          active: boolean
+          address: string
+          city: string
+          cluster_ids: string[]
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          manager_name: string
+          name: string
+          phone: string
+          postal_code: string
+          province: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string
+          city?: string
+          cluster_ids?: string[]
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          manager_name?: string
+          name?: string
+          phone?: string
+          postal_code?: string
+          province?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string
+          city?: string
+          cluster_ids?: string[]
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          manager_name?: string
+          name?: string
+          phone?: string
+          postal_code?: string
+          province?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       budget_lines: {
         Row: {
           budget_id: string
@@ -275,6 +326,7 @@ export type Database = {
           active_services: number
           additional_contacts: Json
           address: string
+          branch_id: string | null
           category: string
           city: string
           company_name: string
@@ -299,6 +351,7 @@ export type Database = {
           active_services?: number
           additional_contacts?: Json
           address?: string
+          branch_id?: string | null
           category?: string
           city?: string
           company_name?: string
@@ -323,6 +376,7 @@ export type Database = {
           active_services?: number
           additional_contacts?: Json
           address?: string
+          branch_id?: string | null
           category?: string
           city?: string
           company_name?: string
@@ -343,7 +397,15 @@ export type Database = {
           updated_at?: string
           website?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "collaborators_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_settings: {
         Row: {
@@ -676,6 +738,7 @@ export type Database = {
           address: string
           available: boolean
           avg_response_time: number
+          branch_id: string | null
           certifications: string[]
           city: string
           cluster_id: string
@@ -707,6 +770,7 @@ export type Database = {
           address?: string
           available?: boolean
           avg_response_time?: number
+          branch_id?: string | null
           certifications?: string[]
           city?: string
           cluster_id?: string
@@ -738,6 +802,7 @@ export type Database = {
           address?: string
           available?: boolean
           avg_response_time?: number
+          branch_id?: string | null
           certifications?: string[]
           city?: string
           cluster_id?: string
@@ -764,7 +829,15 @@ export type Database = {
           updated_at?: string
           vehicle_plate?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "operators_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1132,6 +1205,7 @@ export type Database = {
       services: {
         Row: {
           address: string | null
+          branch_id: string | null
           budget_status: string | null
           budget_total: number | null
           claim_status: string
@@ -1165,6 +1239,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null
           claim_status?: string
@@ -1198,6 +1273,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null
           claim_status?: string
@@ -1229,7 +1305,15 @@ export type Database = {
           updated_at?: string
           urgency?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       specialties: {
         Row: {
