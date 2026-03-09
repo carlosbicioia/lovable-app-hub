@@ -104,6 +104,7 @@ export function useCollaborators() {
         postal_code: input.postalCode,
         website: input.website,
         notes: input.notes,
+        branch_id: input.branchId,
       } as any)
       .eq("id", id);
     if (!error) await fetch();
