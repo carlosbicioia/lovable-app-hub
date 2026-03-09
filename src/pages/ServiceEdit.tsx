@@ -157,6 +157,29 @@ export default function ServiceEdit() {
   const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
+  // Auto-assign branch: first by cluster_id, then by client city/province proximity
+  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+    if (clusterId) {
+      const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
+      if (match) return match.id;
+    }
+    if (clientCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+      if (cityMatch) return cityMatch.id;
+    }
+    if (clientProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+      if (provMatch) return provMatch.id;
+    }
+    return null;
+  };
+
+  // Compute assigned branch dynamically based on selected client
+  const assignedBranchId = selectedClient
+    ? findBranchForClient(selectedClient.clusterId, selectedClient.city, selectedClient.province)
+    : service?.branchId ?? null;
+  const assignedBranch = branches.find(b => b.id === assignedBranchId);
+
   const handleClientChange = (cid: string) => {
     setClientId(cid);
     setClientOpen(false);
