@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Pencil, Save, X, Users } from "lucide-react";
+import { Plus, Trash2, Pencil, Save, X, Users, GripVertical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useServiceOrigins,
@@ -75,10 +75,46 @@ export default function ServiceOriginsTab() {
 
         {/* List */}
         <div className="divide-y divide-border rounded-md border border-border">
-          {origins.map((o) => (
-            <div key={o.id} className="flex items-center gap-3 px-4 py-3">
+          {origins.map((o, idx) => (
+            <div
+              key={o.id}
+              draggable={editingId !== o.id}
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", String(idx));
+                (e.currentTarget as HTMLElement).classList.add("opacity-40");
+              }}
+              onDragEnd={(e) => {
+                (e.currentTarget as HTMLElement).classList.remove("opacity-40");
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                (e.currentTarget as HTMLElement).classList.add("ring-2", "ring-primary/40");
+              }}
+              onDragLeave={(e) => {
+                (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+                const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                const toIdx = idx;
+                if (fromIdx === toIdx || isNaN(fromIdx)) return;
+                const reordered = [...origins];
+                const [moved] = reordered.splice(fromIdx, 1);
+                reordered.splice(toIdx, 0, moved);
+                reordered.forEach((origin, i) => {
+                  if (origin.sort_order !== i) {
+                    updateOrigin.mutate({ id: origin.id, sort_order: i });
+                  }
+                });
+              }}
+              className="flex items-center gap-3 px-4 py-3 transition-all cursor-grab active:cursor-grabbing"
+            >
               {editingId === o.id ? (
                 <>
+                  <GripVertical className="w-4 h-4 text-muted-foreground/30 shrink-0" />
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="flex-1 h-8" onKeyDown={(e) => e.key === "Enter" && saveEdit()} />
                   <div className="flex items-center gap-2">
                     <Switch checked={editShowCollab} onCheckedChange={setEditShowCollab} />
@@ -89,6 +125,7 @@ export default function ServiceOriginsTab() {
                 </>
               ) : (
                 <>
+                  <GripVertical className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                   <span className="flex-1 font-medium text-sm">{o.name}</span>
                   {o.show_collaborator && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full"><Users className="w-3 h-3 inline mr-1" />Colaborador</span>}
                   <Switch checked={o.active} onCheckedChange={(v) => updateOrigin.mutate({ id: o.id, active: v })} />
