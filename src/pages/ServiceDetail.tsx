@@ -257,8 +257,8 @@ export default function ServiceDetail() {
               onTextChange={(text) => updateService(service.id, { internal_notes: text })}
             />
             <ServiceComments
-              title="Comentarios del gestor"
-              description="Visibles para el colaborador"
+              title="Notas para el operario"
+              description="Visibles para el operario desde la app"
               comments={service.managerComments ?? []}
               variant="manager"
               initialText={service.collaboratorNotes ?? ""}
