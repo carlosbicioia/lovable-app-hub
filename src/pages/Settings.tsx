@@ -573,6 +573,7 @@ export default function Settings() {
           <TabsTrigger value="industrial" className="text-sm gap-1.5"><HardHat className="w-3.5 h-3.5" /> Industriales</TabsTrigger>
           <TabsTrigger value="fiscal" className="text-sm gap-1.5"><Percent className="w-3.5 h-3.5" /> Fiscal</TabsTrigger>
           <TabsTrigger value="plans" className="text-sm gap-1.5"><ShieldCheckIcon className="w-3.5 h-3.5" /> Planes</TabsTrigger>
+          <TabsTrigger value="origins" className="text-sm gap-1.5"><Cog className="w-3.5 h-3.5" /> Orígenes</TabsTrigger>
           <TabsTrigger value="import" className="text-sm gap-1.5"><Database className="w-3.5 h-3.5" /> Importar datos</TabsTrigger>
         </TabsList>
 
