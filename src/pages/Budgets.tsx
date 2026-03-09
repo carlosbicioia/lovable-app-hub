@@ -509,6 +509,27 @@ export default function Budgets() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reject confirmation */}
+      <AlertDialog open={!!pendingReject} onOpenChange={(open) => { if (!open) setPendingReject(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Rechazar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a rechazar el presupuesto <span className="font-semibold">{pendingReject}</span>. Esta acción cambiará el estado a "Rechazado".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmReject}
+            >
+              Rechazar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
