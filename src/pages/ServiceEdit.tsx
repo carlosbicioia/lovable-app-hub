@@ -536,18 +536,14 @@ export default function ServiceEdit() {
               <Label>Dirección de intervención</Label>
               <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
             </div>
-            <div className="space-y-2">
-              <Label>Ciudad</Label>
-              <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
-            </div>
-            <div className="space-y-2">
-              <Label>Provincia</Label>
-              <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
-            </div>
-            <div className="space-y-2">
-              <Label>Código postal</Label>
-              <Input value={servicePostalCode} onChange={(e) => setServicePostalCode(e.target.value)} placeholder="28001" />
-            </div>
+            <PostalCodeFields
+              postalCode={servicePostalCode}
+              onPostalCodeChange={setServicePostalCode}
+              province={serviceProvince}
+              onProvinceChange={(v) => { setServiceProvince(v); }}
+              city={serviceCity}
+              onCityChange={setServiceCity}
+            />
           </div>
         </CardContent>
       </Card>
