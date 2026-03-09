@@ -82,6 +82,10 @@ export default function ServiceEdit() {
   const [address, setAddress] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
+  const [servicePostalCode, setServicePostalCode] = useState("");
+  const [serviceContactName, setServiceContactName] = useState("");
+  const [servicePhone, setServicePhone] = useState("");
+  const [serviceEmail, setServiceEmail] = useState("");
   const [operatorId, setOperatorId] = useState("");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
   const [scheduledEndDate, setScheduledEndDate] = useState<Date | undefined>();
