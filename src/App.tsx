@@ -94,6 +94,7 @@ function AppRoutes() {
         <Route path="/compras/factura/nueva" element={<InvoiceCreate />} />
         <Route path="/compras/:id" element={<PurchaseDetail />} />
         <Route path="/proveedores" element={<Suppliers />} />
+        <Route path="/ordenes-venta" element={<SalesOrders />} />
         <Route path="/calendario" element={<CalendarView />} />
         {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
