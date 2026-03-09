@@ -903,7 +903,7 @@ export default function ServiceCreate() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={scheduledEndDate} onSelect={setScheduledEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  <Calendar mode="single" selected={scheduledEndDate} onSelect={(d) => { if (d && scheduledDate && d < scheduledDate) { toast({ title: "Fecha inválida", description: "La fecha fin no puede ser anterior a la fecha inicio", variant: "destructive" }); return; } setScheduledEndDate(d); }} initialFocus disabled={(date) => { const minDate = scheduledDate ?? new Date(); const min = new Date(minDate); min.setHours(0,0,0,0); return date < min; }} className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
