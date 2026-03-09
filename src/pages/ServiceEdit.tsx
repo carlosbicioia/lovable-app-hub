@@ -28,6 +28,7 @@ import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
+import { useBranches } from "@/hooks/useBranches";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -44,6 +45,7 @@ export default function ServiceEdit() {
   const activeSpecialties = dbSpecialties.filter(s => s.active);
   const { data: dbOrigins = [] } = useServiceOrigins();
   const activeOrigins = dbOrigins.filter(o => o.active);
+  const { data: branches = [] } = useBranches();
   const service = services.find((s) => s.id === id);
   const [saving, setSaving] = useState(false);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
@@ -321,6 +323,22 @@ export default function ServiceEdit() {
               </div>
             )}
           </div>
+
+          {/* Assigned branch */}
+          {(() => {
+            const assignedBranch = branches.find(b => b.id === service?.branchId);
+            return (
+              <div className="flex items-center gap-2 pt-1">
+                <Label className="text-xs text-muted-foreground">Sede asignada:</Label>
+                <span className={cn(
+                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                  assignedBranch ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  {assignedBranch?.name ?? "Sin sede"}
+                </span>
+              </div>
+            );
+          })()}
 
           {selectedClient && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 bg-muted/30 rounded-lg p-3 border border-border">
