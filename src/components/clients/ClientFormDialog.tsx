@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { useBranches } from "@/hooks/useBranches";
+import PostalCodeFields from "@/components/shared/PostalCodeFields";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -141,18 +142,14 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             <Label>Dirección</Label>
             <Input value={form.address} onChange={(e) => upd("address", e.target.value)} placeholder="Calle, número, piso" />
           </div>
-          <div className="space-y-1.5">
-            <Label>Ciudad</Label>
-            <Input value={form.city} onChange={(e) => upd("city", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Provincia</Label>
-            <Input value={form.province} onChange={(e) => upd("province", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Código postal</Label>
-            <Input value={form.postalCode} onChange={(e) => upd("postalCode", e.target.value)} />
-          </div>
+          <PostalCodeFields
+            postalCode={form.postalCode}
+            onPostalCodeChange={(v) => upd("postalCode", v)}
+            province={form.province}
+            onProvinceChange={(v) => upd("province", v)}
+            city={form.city}
+            onCityChange={(v) => upd("city", v)}
+          />
           <div className="space-y-1.5">
             <Label>Sede</Label>
             <Select value={currentBranchId} onValueChange={(v) => {

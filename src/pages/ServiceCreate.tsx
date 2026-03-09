@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import PostalCodeFields from "@/components/shared/PostalCodeFields";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -679,18 +680,14 @@ export default function ServiceCreate() {
               <Label>Dirección de intervención</Label>
               <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
             </div>
-            <div className="space-y-2">
-              <Label>Ciudad</Label>
-              <Input value={serviceCity} onChange={(e) => setServiceCity(e.target.value)} placeholder="Ciudad" />
-            </div>
-            <div className="space-y-2">
-              <Label>Provincia</Label>
-              <Input value={serviceProvince} onChange={(e) => setServiceProvince(e.target.value)} placeholder="Provincia" />
-            </div>
-            <div className="space-y-2">
-              <Label>Código postal</Label>
-              <Input value={servicePostalCode} onChange={(e) => setServicePostalCode(e.target.value)} placeholder="28001" />
-            </div>
+            <PostalCodeFields
+              postalCode={servicePostalCode}
+              onPostalCodeChange={setServicePostalCode}
+              province={serviceProvince}
+              onProvinceChange={(v) => { setServiceProvince(v); }}
+              city={serviceCity}
+              onCityChange={setServiceCity}
+            />
           </div>
         </CardContent>
       </Card>
