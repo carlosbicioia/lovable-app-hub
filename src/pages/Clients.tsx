@@ -198,6 +198,11 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>
                   <td className="px-5 py-3 text-muted-foreground">{c.city}</td>
+                  <td className="px-5 py-3">
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium", branchByCluster[c.clusterId] ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground")}>
+                      {branchByCluster[c.clusterId] ?? "—"}
+                    </span>
+                  </td>
                   <td className="px-5 py-3 text-muted-foreground">{c.collaboratorName ?? <span className="italic">Directo</span>}</td>
                   <td className="px-5 py-3">
                     <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", planColorMap[c.planType] ?? defaultPlanColor)}>
