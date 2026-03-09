@@ -154,6 +154,27 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             <Input value={form.postalCode} onChange={(e) => upd("postalCode", e.target.value)} />
           </div>
           <div className="space-y-1.5">
+            <Label>Sede</Label>
+            <Select value={currentBranchId} onValueChange={(v) => {
+              if (v === "none") {
+                setForm((prev) => ({ ...prev, clusterId: "" }));
+              } else {
+                const branch = activeBranches.find((b) => b.id === v);
+                if (branch && branch.cluster_ids.length > 0) {
+                  setForm((prev) => ({ ...prev, clusterId: branch.cluster_ids[0] }));
+                }
+              }
+            }}>
+              <SelectTrigger><SelectValue placeholder="Sin sede" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin sede</SelectItem>
+                {activeBranches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Plan</Label>
             <Select value={form.planType} onValueChange={(v) => upd("planType", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
