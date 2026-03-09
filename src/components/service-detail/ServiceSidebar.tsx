@@ -157,6 +157,36 @@ export default function ServiceSidebar({ service }: Props) {
         </CardContent>
       </Card>
 
+      {/* Branch */}
+      {branches.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" /> Sede
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SearchableSelect
+              options={[
+                { value: "none", label: "Sin sede asignada" },
+                ...branches.filter((b) => b.active).map((b) => ({
+                  value: b.id,
+                  label: b.name,
+                  subtitle: b.city ? `${b.city}, ${b.province}` : undefined,
+                  searchText: `${b.address} ${b.cluster_ids.join(" ")}`,
+                })),
+              ]}
+              value={service.branchId ?? "none"}
+              onValueChange={(v) => handleUpdate("branch_id", v === "none" ? null : v)}
+              placeholder="Seleccionar sede…"
+              searchPlaceholder="Buscar sede…"
+              emptyText="Sin sedes configuradas"
+              disabled={savingField === "branch_id"}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Service Type */}
       <Card>
         <CardHeader>
