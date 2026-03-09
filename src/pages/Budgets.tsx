@@ -444,6 +444,27 @@ export default function Budgets() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Sales order prompt */}
+      <AlertDialog open={!!salesOrderPromptBudgetId} onOpenChange={(open) => { if (!open) setSalesOrderPromptBudgetId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> ¿Emitir orden de venta?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              El presupuesto ha sido finalizado. ¿Quieres generar la orden de venta correspondiente? Las líneas se copiarán automáticamente del presupuesto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={creatingSalesOrder}>Más tarde</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateSalesOrder} disabled={creatingSalesOrder}>
+              {creatingSalesOrder ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+              Crear orden de venta
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
