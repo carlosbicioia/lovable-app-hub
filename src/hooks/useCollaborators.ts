@@ -20,6 +20,7 @@ function mapRow(row: any): Collaborator {
     postalCode: row.postal_code ?? "",
     website: row.website ?? "",
     notes: row.notes ?? "",
+    branchId: row.branch_id ?? null,
   };
 }
 
