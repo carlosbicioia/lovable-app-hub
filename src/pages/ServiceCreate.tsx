@@ -36,6 +36,7 @@ import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
+import { useBranches } from "@/hooks/useBranches";
 
 const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
