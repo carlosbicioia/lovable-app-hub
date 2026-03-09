@@ -553,6 +553,47 @@ export default function Settings() {
     );
   }
 
+  const settingsNav = [
+    {
+      group: "General",
+      items: [
+        { value: "company", label: "Empresa", icon: Building2 },
+        { value: "branches", label: "Sedes", icon: MapPin },
+        { value: "appearance", label: "Apariencia", icon: Palette },
+      ],
+    },
+    {
+      group: "Acceso",
+      items: [
+        { value: "users", label: "Usuarios", icon: Users },
+        { value: "roles", label: "Permisos", icon: Shield },
+      ],
+    },
+    {
+      group: "Operaciones",
+      items: [
+        { value: "protocol", label: "Protocolo", icon: Wrench },
+        { value: "industrial", label: "Especialidades", icon: HardHat },
+        { value: "origins", label: "Orígenes", icon: Cog },
+      ],
+    },
+    {
+      group: "Documentos",
+      items: [
+        { value: "documents", label: "Plantillas", icon: FileText },
+        { value: "fiscal", label: "Fiscal", icon: Percent },
+        { value: "plans", label: "Planes", icon: ShieldCheckIcon },
+      ],
+    },
+    {
+      group: "Sistema",
+      items: [
+        { value: "notifications", label: "Notificaciones", icon: Bell },
+        { value: "import", label: "Importar datos", icon: Database },
+      ],
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -561,21 +602,32 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap gap-1">
-          <TabsTrigger value="company" className="text-sm gap-1.5"><Building2 className="w-3.5 h-3.5" /> Empresa</TabsTrigger>
-          <TabsTrigger value="branches" className="text-sm gap-1.5"><MapPin className="w-3.5 h-3.5" /> Sedes</TabsTrigger>
-          <TabsTrigger value="users" className="text-sm gap-1.5"><Users className="w-3.5 h-3.5" /> Usuarios</TabsTrigger>
-          <TabsTrigger value="roles" className="text-sm gap-1.5"><Shield className="w-3.5 h-3.5" /> Permisos</TabsTrigger>
-          <TabsTrigger value="documents" className="text-sm gap-1.5"><FileText className="w-3.5 h-3.5" /> Documentos</TabsTrigger>
-          <TabsTrigger value="notifications" className="text-sm gap-1.5"><Bell className="w-3.5 h-3.5" /> Notificaciones</TabsTrigger>
-          <TabsTrigger value="appearance" className="text-sm gap-1.5"><Palette className="w-3.5 h-3.5" /> Apariencia</TabsTrigger>
-          <TabsTrigger value="protocol" className="text-sm gap-1.5"><Wrench className="w-3.5 h-3.5" /> Protocolo</TabsTrigger>
-          <TabsTrigger value="industrial" className="text-sm gap-1.5"><HardHat className="w-3.5 h-3.5" /> Industriales</TabsTrigger>
-          <TabsTrigger value="fiscal" className="text-sm gap-1.5"><Percent className="w-3.5 h-3.5" /> Fiscal</TabsTrigger>
-          <TabsTrigger value="plans" className="text-sm gap-1.5"><ShieldCheckIcon className="w-3.5 h-3.5" /> Planes</TabsTrigger>
-          <TabsTrigger value="origins" className="text-sm gap-1.5"><Cog className="w-3.5 h-3.5" /> Orígenes</TabsTrigger>
-          <TabsTrigger value="import" className="text-sm gap-1.5"><Database className="w-3.5 h-3.5" /> Importar datos</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar Navigation */}
+          <nav className="lg:w-56 shrink-0">
+            <div className="lg:sticky lg:top-4 space-y-4">
+              {settingsNav.map((section) => (
+                <div key={section.group}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-2">{section.group}</p>
+                  <TabsList className="flex flex-row lg:flex-col w-full bg-transparent h-auto p-0 gap-0.5">
+                    {section.items.map((item) => (
+                      <TabsTrigger
+                        key={item.value}
+                        value={item.value}
+                        className="w-full justify-start text-sm gap-2 px-3 py-2 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none rounded-lg"
+                      >
+                        <item.icon className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+              ))}
+            </div>
+          </nav>
+
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
 
         {/* ===== EMPRESA ===== */}
         <TabsContent value="company" className="space-y-6 mt-4">
@@ -1219,6 +1271,8 @@ export default function Settings() {
         <TabsContent value="import" className="space-y-6 mt-4">
           <BulkImportTab />
         </TabsContent>
+          </div>
+        </div>
       </Tabs>
 
       {/* New User Dialog */}
