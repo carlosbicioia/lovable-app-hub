@@ -376,8 +376,16 @@ export default function Services() {
                     <td className="px-5 py-3">
                       {(() => {
                         const bStatus = getBudgetStatusForService(s.id);
-                        if (!bStatus) return "—";
-                        return <span className={cn("text-xs font-medium", bStatus === "Aprobado" ? "text-success" : bStatus === "Borrador" || bStatus === "Enviado" ? "text-warning" : bStatus === "Rechazado" ? "text-destructive" : bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground")}>{bStatus === "Pte_Facturación" ? "En proceso" : bStatus}</span>;
+                        if (bStatus) {
+                          return <span className={cn("inline-flex items-center gap-1 text-xs font-medium", bStatus === "Aprobado" || bStatus === "Finalizado" ? "text-success" : bStatus === "Borrador" || bStatus === "Enviado" ? "text-warning" : bStatus === "Rechazado" ? "text-destructive" : bStatus === "Pte_Facturación" ? "text-info" : "text-muted-foreground")}>
+                            <span className={cn("w-1.5 h-1.5 rounded-full", bStatus === "Aprobado" || bStatus === "Finalizado" ? "bg-success" : bStatus === "Borrador" || bStatus === "Enviado" ? "bg-warning" : bStatus === "Rechazado" ? "bg-destructive" : bStatus === "Pte_Facturación" ? "bg-info" : "bg-muted-foreground")} />
+                            {bStatus === "Pte_Facturación" ? "Pte. Fact." : bStatus}
+                          </span>;
+                        }
+                        if (s.serviceType === "Presupuesto") {
+                          return <span className="inline-flex items-center gap-1 text-xs text-warning font-medium"><span className="w-1.5 h-1.5 rounded-full bg-warning/60" />Pendiente</span>;
+                        }
+                        return <span className="text-xs text-muted-foreground">Rep. directa</span>;
                       })()}
                     </td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
