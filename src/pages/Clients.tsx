@@ -1,6 +1,7 @@
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { useBranches } from "@/hooks/useBranches";
 import { Search, Plus, Filter, Loader2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
