@@ -365,18 +365,29 @@ export default function Budgets() {
                           {format(new Date(b.createdAt), "dd MMM yyyy", { locale: es })}
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                          <Select value={b.status} onValueChange={(v) => handleStatusChange(b.id, v as BudgetStatus)}>
-                            <SelectTrigger className={cn("h-7 w-[140px] text-xs font-medium border-0", cfg.className)}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allStatuses.map((s) => (
-                                <SelectItem key={s} value={s} className="text-xs">
-                                  {statusConfig[s].label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {(() => {
+                            const allowedTransitions = BUDGET_TRANSITIONS[b.status] || [];
+                            return (
+                              <Select value={b.status} onValueChange={(v) => handleStatusChange(b.id, v as BudgetStatus)}>
+                                <SelectTrigger className={cn("h-7 w-[140px] text-xs font-medium border-0", cfg.className)}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allStatuses.map((s) => (
+                                    <SelectItem
+                                      key={s}
+                                      value={s}
+                                      className="text-xs"
+                                      disabled={s !== b.status && !allowedTransitions.includes(s)}
+                                    >
+                                      {statusConfig[s].label}
+                                      {s === b.status && " ✓"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            );
+                          })()}
                         </td>
                         <td className="px-5 py-3 text-right text-card-foreground">{subtotal.toFixed(2)} €</td>
                         <td className="px-5 py-3 text-right text-muted-foreground">{totalTax.toFixed(2)} €</td>
