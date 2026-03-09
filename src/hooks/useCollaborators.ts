@@ -37,6 +37,7 @@ export type CollaboratorInput = {
   postalCode: string;
   website: string;
   notes: string;
+  branchId: string | null;
 };
 
 export function useCollaborators() {
