@@ -36,6 +36,7 @@ import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
 import { useSpecialties } from "@/hooks/useIndustrialConfig";
+import { useBranches } from "@/hooks/useBranches";
 
 const PENDING_SERVICE_KEY = "pendingServiceCreate";
 
@@ -47,6 +48,14 @@ export default function ServiceCreate() {
   const { data: allOperators = [] } = useOperators();
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
+  const { data: branches = [] } = useBranches();
+
+  // Auto-assign branch based on client cluster_id
+  const findBranchForCluster = (clusterId: string) => {
+    if (!clusterId) return null;
+    const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
+    return match?.id ?? null;
+  };
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
@@ -229,6 +238,7 @@ export default function ServiceCreate() {
       budget_total: null,
       budget_status: null,
       real_hours: null,
+      branch_id: findBranchForCluster(selectedClient?.clusterId ?? ""),
     };
   };
 
