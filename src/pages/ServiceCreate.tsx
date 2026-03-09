@@ -53,21 +53,21 @@ export default function ServiceCreate() {
   const { data: dbOrigins = [] } = useServiceOrigins();
   const activeOrigins = dbOrigins.filter(o => o.active);
 
-  // Auto-assign branch: first by cluster_id, then by client city/province proximity
-  const findBranchForClient = (clusterId: string, clientCity?: string, clientProvince?: string) => {
+  // Auto-assign branch: first by cluster_id, then by service city/province
+  const findBranchForService = (clusterId: string, svcCity?: string, svcProvince?: string) => {
     // 1. Try cluster match
     if (clusterId) {
       const match = branches.find(b => b.active && b.cluster_ids.includes(clusterId));
       if (match) return match.id;
     }
-    // 2. Try exact city match
-    if (clientCity) {
-      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === clientCity.toLowerCase());
+    // 2. Try exact city match (service location)
+    if (svcCity) {
+      const cityMatch = branches.find(b => b.active && b.city.toLowerCase() === svcCity.toLowerCase());
       if (cityMatch) return cityMatch.id;
     }
-    // 3. Try province match
-    if (clientProvince) {
-      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === clientProvince.toLowerCase());
+    // 3. Try province match (service location)
+    if (svcProvince) {
+      const provMatch = branches.find(b => b.active && b.province.toLowerCase() === svcProvince.toLowerCase());
       if (provMatch) return provMatch.id;
     }
     return null;
