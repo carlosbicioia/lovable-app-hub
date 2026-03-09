@@ -43,7 +43,17 @@ interface Props {
 
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
+  const { data: branches = [] } = useBranches();
   const activePlans = plans.filter((p) => p.active);
+  const activeBranches = branches.filter((b) => b.active);
+
+  // Resolve current branch from clusterId
+  const currentBranchId = useMemo(() => {
+    if (!form.clusterId) return "none";
+    const found = branches.find((b) => b.cluster_ids.includes(form.clusterId));
+    return found?.id ?? "none";
+  }, [form.clusterId, branches]);
+
   const upd = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const initialSnapshot = useRef<string>("");
