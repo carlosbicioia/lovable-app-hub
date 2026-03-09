@@ -1,4 +1,4 @@
-import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter } from "lucide-react";
+import { Search, Plus, Receipt, Loader2, CheckCircle2, List, Columns3, Trash2, Filter, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMemo, useState } from "react";
@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import type { BudgetStatus } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useServices } from "@/hooks/useServices";
+import { useCreateSalesOrder } from "@/hooks/useSalesOrders";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import ProtocolDots, { type ProtocolStep } from "@/components/shared/ProtocolDots";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
@@ -53,9 +55,13 @@ export default function Budgets() {
   const [filterService, setFilterService] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [salesOrderPromptBudgetId, setSalesOrderPromptBudgetId] = useState<string | null>(null);
+  const [creatingSalesOrder, setCreatingSalesOrder] = useState(false);
   const navigate = useNavigate();
   const { budgets, updateBudgetStatus } = useBudgets();
   const { services } = useServices();
+  const createSalesOrder = useCreateSalesOrder();
+  const { data: companySettings } = useCompanySettings();
 
   // Protocol steps from DB
   const { data: enabledSteps = [] } = useEnabledProtocolSteps();
@@ -115,8 +121,50 @@ export default function Budgets() {
   });
 
   const handleStatusChange = (budgetId: string, newStatus: BudgetStatus) => {
+    if (newStatus === "Finalizado") {
+      // First update the status, then prompt for sales order
+      updateBudgetStatus(budgetId, newStatus);
+      toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+      setSalesOrderPromptBudgetId(budgetId);
+      return;
+    }
     updateBudgetStatus(budgetId, newStatus);
     toast.success(`Estado actualizado a "${statusConfig[newStatus].label}"`);
+  };
+
+  const handleCreateSalesOrder = async () => {
+    if (!salesOrderPromptBudgetId) return;
+    const budget = budgets.find((b) => b.id === salesOrderPromptBudgetId);
+    if (!budget) return;
+    setCreatingSalesOrder(true);
+    try {
+      const orderId = `OV-${budget.id}`;
+      const { total } = calcBudgetTotals(budget.lines);
+      await createSalesOrder.mutateAsync({
+        id: orderId,
+        budgetId: budget.id,
+        serviceId: budget.serviceId,
+        clientName: budget.clientName,
+        clientAddress: budget.clientAddress,
+        collaboratorName: budget.collaboratorName,
+        total,
+        lines: budget.lines.map((l, i) => ({
+          concept: l.concept,
+          description: l.description || null,
+          units: l.units,
+          costPrice: l.costPrice,
+          margin: l.margin,
+          taxRate: l.taxRate,
+          sortOrder: i,
+        })),
+      });
+      toast.success(`Orden de venta ${orderId} creada`);
+    } catch (err: any) {
+      toast.error(err.message || "Error al crear la orden de venta");
+    } finally {
+      setCreatingSalesOrder(false);
+      setSalesOrderPromptBudgetId(null);
+    }
   };
 
   const handleMarkProformaPaid = async (budgetId: string) => {
@@ -392,6 +440,27 @@ export default function Budgets() {
               onClick={() => deletingBudgetId && handleDeleteBudget(deletingBudgetId)}
             >
               Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Sales order prompt */}
+      <AlertDialog open={!!salesOrderPromptBudgetId} onOpenChange={(open) => { if (!open) setSalesOrderPromptBudgetId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> ¿Emitir orden de venta?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              El presupuesto ha sido finalizado. ¿Quieres generar la orden de venta correspondiente? Las líneas se copiarán automáticamente del presupuesto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={creatingSalesOrder}>Más tarde</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateSalesOrder} disabled={creatingSalesOrder}>
+              {creatingSalesOrder ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+              Crear orden de venta
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

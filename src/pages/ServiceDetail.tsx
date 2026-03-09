@@ -16,6 +16,8 @@ import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
 import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
 import ServicePurchases from "@/components/service-detail/ServicePurchases";
+import ServiceSalesOrders from "@/components/service-detail/ServiceSalesOrders";
+import { useSalesOrders } from "@/hooks/useSalesOrders";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -42,6 +44,7 @@ export default function ServiceDetail() {
   const { data: allPurchaseOrders = [] } = usePurchaseOrders(id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
+  const { data: salesOrders = [] } = useSalesOrders(id);
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
@@ -230,6 +233,9 @@ export default function ServiceDetail() {
             <TabsTrigger value="purchases" className="text-sm">
               Compras {linkedOrders.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{linkedOrders.length}</span>}
             </TabsTrigger>
+            <TabsTrigger value="sales-orders" className="text-sm">
+              Órdenes de venta {salesOrders.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>}
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab: Visión general */}
@@ -270,6 +276,11 @@ export default function ServiceDetail() {
           {/* Tab: Compras */}
           <TabsContent value="purchases" className="space-y-6 mt-4">
             <ServicePurchases serviceId={service.id} />
+          </TabsContent>
+
+          {/* Tab: Órdenes de Venta */}
+          <TabsContent value="sales-orders" className="space-y-6 mt-4">
+            <ServiceSalesOrders serviceId={service.id} />
           </TabsContent>
 
           {/* Tab: Presupuesto */}
