@@ -295,10 +295,13 @@ export default function ServiceEdit() {
               <Select value={origin} onValueChange={(v) => setOrigin(v as ServiceOrigin)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Directo">Directo</SelectItem>
-                  <SelectItem value="B2B">B2B (Colaborador)</SelectItem>
-                  <SelectItem value="App">App</SelectItem>
-                  <SelectItem value="API_Externa">API Externa</SelectItem>
+                  {activeOrigins.map((o) => (
+                    <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
+                  ))}
+                  {/* Keep current value if not in active origins */}
+                  {origin && !activeOrigins.find(o => o.name === origin) && (
+                    <SelectItem value={origin}>{origin}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
