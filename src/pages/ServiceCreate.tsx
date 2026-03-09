@@ -50,6 +50,8 @@ export default function ServiceCreate() {
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
   const { data: branches = [] } = useBranches();
+  const { data: dbOrigins = [] } = useServiceOrigins();
+  const activeOrigins = dbOrigins.filter(o => o.active);
 
   // Auto-assign branch based on client cluster_id
   const findBranchForCluster = (clusterId: string) => {
