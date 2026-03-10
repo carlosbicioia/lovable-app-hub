@@ -180,7 +180,11 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
               </div>
               <div className="space-y-1.5">
                 <Label>DNI {!dniOptional && "*"}</Label>
-                <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
+                <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A"
+                  className={form.dni.trim() ? (validateDni(form.dni).valid ? "border-success" : "border-destructive") : ""} />
+                {form.dni.trim() && !validateDni(form.dni).valid && validateDni(form.dni).message && (
+                  <p className="text-xs text-destructive">{validateDni(form.dni).message}</p>
+                )}
               </div>
             </>
           )}
