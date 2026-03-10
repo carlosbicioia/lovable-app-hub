@@ -179,17 +179,25 @@ export default function SalesOrders() {
 
       {/* Bulk action bar */}
       {count > 0 && (
-        <BulkActionBar count={count} onClear={clear}>
+        <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5 animate-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-medium text-primary">
+            {count} {count === 1 ? "seleccionada" : "seleccionadas"}
+          </span>
+          <div className="h-4 w-px bg-primary/20" />
           <Button
             size="sm"
             onClick={sendToHolded}
             disabled={sending}
-            className="gap-2"
+            className="h-8 text-xs gap-1.5"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3.5 h-3.5" />
             {sending ? "Enviando..." : `Enviar a Holded (${selectedItems.filter(o => !o.sentToHolded).length})`}
           </Button>
-        </BulkActionBar>
+          <div className="flex-1" />
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={clear}>
+            <span className="sr-only">Limpiar selección</span>✕
+          </Button>
+        </div>
       )}
 
       {/* Table */}
