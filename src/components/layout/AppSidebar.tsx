@@ -14,8 +14,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import CompanyLogo from "@/components/shared/CompanyLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,10 +41,24 @@ const configItems = [
 
 export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isAdminOrGestor = isAdmin || roles.includes("gestor");
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Listen for custom event from TopBar hamburger
+  useEffect(() => {
+    const handler = () => setMobileOpen((prev) => !prev);
+    window.addEventListener("toggle-sidebar", handler);
+    return () => window.removeEventListener("toggle-sidebar", handler);
+  }, []);
+
   const renderNavItem = (item: typeof navItems[0]) => {
     const isActive = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
     return (
@@ -63,15 +78,10 @@ export default function AppSidebar() {
     );
   };
 
-  return (
-    <aside
-      className={cn(
-        "flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 h-screen sticky top-0",
-        collapsed ? "w-[68px]" : "w-[240px]"
-      )}
-    >
+  const sidebarContent = (
+    <>
       {/* Logo */}
-      <div className="flex items-center justify-center px-4 h-16 border-b border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between px-4 h-16 border-b border-sidebar-border shrink-0">
         <CompanyLogo
           size="md"
           className="rounded-lg shrink-0"
@@ -81,6 +91,13 @@ export default function AppSidebar() {
             </div>
           }
         />
+        {/* Close button on mobile */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="md:hidden p-1.5 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Nav */}
@@ -104,13 +121,45 @@ export default function AppSidebar() {
         </div>
       )}
 
-      {/* Collapse toggle */}
+      {/* Collapse toggle — desktop only */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors"
+        className="hidden md:flex items-center justify-center h-12 border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "hidden md:flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 h-screen sticky top-0",
+          collapsed ? "w-[68px]" : "w-[240px]"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground w-[260px] transition-transform duration-300 md:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
