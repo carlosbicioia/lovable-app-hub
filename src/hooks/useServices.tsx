@@ -63,6 +63,9 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
 
   const fetchServices = useCallback(async () => {
     try {
+      // Auto-start scheduled services that have reached their scheduled time
+      await supabase.rpc("auto_start_scheduled_services");
+
       const { data, error } = await supabase
         .from("services")
         .select("*")
