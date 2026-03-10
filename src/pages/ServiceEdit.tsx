@@ -81,6 +81,9 @@ export default function ServiceEdit() {
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [streetNumber, setStreetNumber] = useState("");
+  const [floor, setFloor] = useState("");
+  const [addressExtra, setAddressExtra] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
   const [servicePostalCode, setServicePostalCode] = useState("");
