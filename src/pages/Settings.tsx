@@ -499,7 +499,7 @@ function IndustrialConfigTab() {
   );
 }
 
-function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; onUploaded: (url: string) => void }) {
+function LogoUploadSection({ logoUrl, onUploaded, onRemoved }: { logoUrl: string | null; onUploaded: (url: string) => void; onRemoved: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
@@ -545,13 +545,20 @@ function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; on
             </div>
           )}
         </div>
-        <div className="pt-2">
+        <div className="pt-2 space-y-2">
           <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />
-          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
-            {uploading ? "Subiendo..." : displayUrl ? "Cambiar logo" : "Subir logo"}
-          </Button>
-          <p className="text-xs text-muted-foreground mt-1">PNG, SVG o JPG, máximo 2 MB</p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
+              {uploading ? "Subiendo..." : displayUrl ? "Cambiar logo" : "Subir logo"}
+            </Button>
+            {displayUrl && (
+              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => { setLocalPreview(null); onRemoved(); }}>
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Eliminar
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">PNG, SVG o JPG, máximo 2 MB</p>
         </div>
       </div>
     </div>
@@ -780,7 +787,7 @@ export default function Settings() {
 
               <Separator />
 
-              <LogoUploadSection logoUrl={settings?.logo_url ?? null} onUploaded={(url) => updateSettings.mutate({ logo_url: url })} />
+              <LogoUploadSection logoUrl={settings?.logo_url ?? null} onUploaded={(url) => updateSettings.mutate({ logo_url: url })} onRemoved={() => updateSettings.mutate({ logo_url: null })} />
 
               <div className="flex justify-end">
                 <Button onClick={handleSaveCompany} disabled={updateSettings.isPending}>
