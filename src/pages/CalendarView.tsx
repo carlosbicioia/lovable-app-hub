@@ -1116,7 +1116,8 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedOperatorId && "border-primary text-primary")}>
             <User className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Operario" />
+            <SelectValue>{selectedOperatorId ? allOps.find(o => o.id === selectedOperatorId)?.name : <span className="text-muted-foreground">Operario</span>}</SelectValue>
+          </SelectTrigger>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Todos los operarios</SelectItem>
