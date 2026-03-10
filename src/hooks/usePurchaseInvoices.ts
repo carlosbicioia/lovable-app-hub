@@ -113,6 +113,7 @@ export function useCreatePurchaseInvoice() {
   return useMutation({
     mutationFn: async (input: {
       invoiceNumber: string;
+      supplierInvoiceNumber?: string;
       supplierId?: string | null;
       supplierName: string;
       invoiceDate?: string | null;
