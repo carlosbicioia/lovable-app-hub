@@ -43,6 +43,9 @@ export default function Clients() {
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
   const { collaborators } = useCollaborators();
+  const { data: serviceOrigins = [] } = useServiceOrigins();
+  const hasAssistanceOrigin = serviceOrigins.some(o => o.is_assistance && o.active);
+  const [isAssistanceClient, setIsAssistanceClient] = useState(false);
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
   const branchByCluster = useMemo(() => {
