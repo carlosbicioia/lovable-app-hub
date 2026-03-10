@@ -487,7 +487,7 @@ export default function ServiceCreate() {
                             onSelect={() => handleClientChange(c.id)}
                           >
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.name}</span>
+                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.fullName}</span>
                               <span className="text-xs text-muted-foreground">{c.phone} · {c.address}, {c.city}</span>
                             </div>
                           </CommandItem>
