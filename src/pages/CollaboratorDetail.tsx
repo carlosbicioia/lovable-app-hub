@@ -106,8 +106,8 @@ export default function CollaboratorDetail() {
     setForm({
       companyName: c.companyName, category: c.category,
       email: c.email, phone: c.phone, contactPerson: c.contactPerson,
-      taxId: c.taxId, address: c.address, city: c.city,
-      province: c.province, postalCode: c.postalCode,
+      taxId: c.taxId, address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra,
+      city: c.city, province: c.province, postalCode: c.postalCode,
       website: c.website, notes: c.notes,
     });
     setPortalEnabled(!!row.portal_enabled);
