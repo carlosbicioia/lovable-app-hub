@@ -304,144 +304,158 @@ export default function ServiceDetail() {
 
           {/* Tab 5: VENTAS */}
           <TabsContent value="sales" className="space-y-4 mt-3">
-            {/* Budget section */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <FileText className="w-4 h-4 text-muted-foreground" /> Presupuesto
-              </h3>
-              {service.serviceType === "Presupuesto" ? (
-                linkedBudget ? (
-                  <Card>
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-                      <div>
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          Presupuesto {linkedBudget.id}
-                        </CardTitle>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {new Date(linkedBudget.createdAt).toLocaleDateString("es-ES")} · {linkedBudget.status}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
-                          <Pencil className="w-3 h-3 mr-1" /> Editar
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
-                          <Trash2 className="w-3 h-3 mr-1" /> Eliminar
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-1.5 text-muted-foreground font-medium">Concepto</th>
-                            <th className="text-center py-1.5 text-muted-foreground font-medium">Uds.</th>
-                            <th className="text-right py-1.5 text-muted-foreground font-medium">Coste</th>
-                            <th className="text-right py-1.5 text-muted-foreground font-medium">Margen</th>
-                            <th className="text-right py-1.5 text-muted-foreground font-medium">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {linkedBudget.lines.map((line) => {
-                            const salePrice = Math.round(line.costPrice * (1 + line.margin / 100) * 100) / 100;
-                            const subtotal = Math.round(salePrice * line.units * 100) / 100;
-                            const total = subtotal + Math.round(subtotal * (line.taxRate / 100) * 100) / 100;
-                            return (
-                              <tr key={line.id} className="border-b border-border last:border-0">
-                                <td className="py-1.5 text-card-foreground">
-                                  {line.concept}
-                                  {line.description && <span className="block text-[10px] text-muted-foreground">{line.description}</span>}
-                                </td>
-                                <td className="py-1.5 text-center text-muted-foreground">{line.units}</td>
-                                <td className="py-1.5 text-right text-muted-foreground">{line.costPrice.toFixed(2)} €</td>
-                                <td className="py-1.5 text-right text-muted-foreground">{line.margin}%</td>
-                                <td className="py-1.5 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                        <tfoot>
-                          <tr className="border-t-2 border-foreground/20">
-                            <td colSpan={4} className="py-1.5 font-bold text-card-foreground text-right text-xs">Total:</td>
-                            <td className="py-1.5 text-right font-bold text-card-foreground">
-                              {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="py-6 text-center">
-                      <FileText className="w-7 h-7 text-muted-foreground/40 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-foreground">Sin presupuesto vinculado</p>
-                      <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto.</p>
-                      <Button className="mt-3" size="sm" onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
-                        <FileText className="w-3.5 h-3.5 mr-1.5" /> Crear Presupuesto
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )
-              ) : (
-                <Card>
-                  <CardContent className="py-4 text-center">
-                    <p className="text-xs text-muted-foreground">Reparación directa — sin presupuesto requerido</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Sales orders */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-muted-foreground" /> Órdenes de venta
-                {salesOrders.length > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>
-                )}
-              </h3>
-              <ServiceSalesOrders serviceId={service.id} />
-            </div>
-
-            {/* Economic summary */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Euro className="w-4 h-4 text-muted-foreground" /> Resumen económico
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="bg-card rounded-lg border border-border p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
-                  <p className="text-base font-bold text-card-foreground">
+            {/* KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Presupuestos</p>
+                  <p className="text-2xl font-bold text-foreground">{linkedBudget ? 1 : 0}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Órdenes venta</p>
+                  <p className="text-2xl font-bold text-foreground">{salesOrders.length}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
                   </p>
-                </div>
-                <div className="bg-card rounded-lg border border-border p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas reales</p>
-                  <p className="text-base font-bold text-card-foreground">
-                    {service.realHours != null ? `${service.realHours}h` : "—"}
-                  </p>
-                </div>
-                <div className="bg-card rounded-lg border border-border p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Coste/hora</p>
-                  <p className="text-base font-bold text-card-foreground">
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {service.budgetTotal && service.realHours
                       ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
                       : "—"}
                   </p>
-                </div>
-                {service.nps !== null && (
-                  <div className="bg-card rounded-lg border border-border p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">NPS</p>
-                    <p className={cn(
-                      "text-base font-bold",
-                      service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
-                    )}>
-                      {service.nps}/10
-                    </p>
-                  </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
             </div>
+
+            <Tabs defaultValue="presupuestos">
+              <TabsList>
+                <TabsTrigger value="presupuestos" className="gap-1.5">
+                  <FileText className="w-3.5 h-3.5" /> Presupuestos
+                  <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold ml-1">
+                    {linkedBudget ? 1 : 0}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="ordenes" className="gap-1.5">
+                  <ClipboardList className="w-3.5 h-3.5" /> Órdenes de venta
+                  <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold ml-1">
+                    {salesOrders.length}
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Presupuestos sub-tab */}
+              <TabsContent value="presupuestos">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground" /> Presupuestos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {service.serviceType === "Presupuesto" ? (
+                      linkedBudget ? (
+                        <div className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono text-sm font-semibold text-foreground">{linkedBudget.id}</span>
+                              <span className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border",
+                                linkedBudget.status === "Finalizado" ? "bg-success/15 text-success border-success/30" :
+                                linkedBudget.status === "Aprobado" ? "bg-info/15 text-info border-info/30" :
+                                linkedBudget.status === "Rechazado" ? "bg-destructive/15 text-destructive border-destructive/30" :
+                                "bg-muted text-muted-foreground border-border"
+                              )}>
+                                {linkedBudget.status}
+                              </span>
+                            </div>
+                            <span className="text-lg font-bold text-foreground">
+                              {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                            <span>{linkedBudget.clientName}</span>
+                            <span>{new Date(linkedBudget.createdAt).toLocaleDateString("es-ES")}</span>
+                          </div>
+                          {linkedBudget.lines.length > 0 && (
+                            <div className="bg-muted/30 rounded-md overflow-hidden mt-3">
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="border-b border-border">
+                                    <th className="text-left px-3 py-2 text-muted-foreground font-medium">Concepto</th>
+                                    <th className="text-center px-3 py-2 text-muted-foreground font-medium">Uds.</th>
+                                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">Coste</th>
+                                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">Margen</th>
+                                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {linkedBudget.lines.map((line) => {
+                                    const salePrice = Math.round(line.costPrice * (1 + line.margin / 100) * 100) / 100;
+                                    const subtotal = Math.round(salePrice * line.units * 100) / 100;
+                                    const total = subtotal + Math.round(subtotal * (line.taxRate / 100) * 100) / 100;
+                                    return (
+                                      <tr key={line.id} className="border-b border-border/50 last:border-0">
+                                        <td className="px-3 py-1.5 text-foreground">
+                                          {line.concept}
+                                          {line.description && <span className="block text-[10px] text-muted-foreground">{line.description}</span>}
+                                        </td>
+                                        <td className="px-3 py-1.5 text-center text-muted-foreground">{line.units}</td>
+                                        <td className="px-3 py-1.5 text-right text-muted-foreground">{line.costPrice.toFixed(2)} €</td>
+                                        <td className="px-3 py-1.5 text-right text-muted-foreground">{line.margin}%</td>
+                                        <td className="px-3 py-1.5 text-right font-medium text-foreground">{total.toFixed(2)} €</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                          <div className="flex gap-2 pt-3">
+                            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
+                              <Pencil className="w-3 h-3 mr-1" /> Editar
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
+                              <Trash2 className="w-3 h-3 mr-1" /> Eliminar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-10">
+                          <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-sm font-medium text-foreground">Sin presupuesto vinculado</p>
+                          <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto.</p>
+                          <Button className="mt-3" size="sm" onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+                            <FileText className="w-3.5 h-3.5 mr-1.5" /> Crear Presupuesto
+                          </Button>
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-center py-10">
+                        <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-sm font-medium text-foreground">Reparación directa</p>
+                        <p className="text-xs text-muted-foreground mt-1">Sin presupuesto requerido</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Órdenes de venta sub-tab */}
+              <TabsContent value="ordenes">
+                <ServiceSalesOrders serviceId={service.id} />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
 
