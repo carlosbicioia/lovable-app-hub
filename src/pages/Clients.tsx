@@ -23,7 +23,7 @@ const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
   name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
-  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
+  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
 });
 
 const clientToForm = (c: DbClient): ClientFormData => ({
