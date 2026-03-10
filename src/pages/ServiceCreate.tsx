@@ -771,7 +771,6 @@ export default function ServiceCreate() {
                 <Input value={addressExtra} onChange={(e) => setAddressExtra(e.target.value)} placeholder="Esc, puerta..." />
               </div>
             </div>
-            </div>
             <PostalCodeFields
               postalCode={servicePostalCode}
               onPostalCodeChange={setServicePostalCode}
