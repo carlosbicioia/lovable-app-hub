@@ -16,6 +16,7 @@ import {
 export interface ClientFormData {
   clientType: "Particular" | "Empresa";
   name: string;
+  lastName: string;
   companyName: string;
   dni: string;
   taxId: string;
