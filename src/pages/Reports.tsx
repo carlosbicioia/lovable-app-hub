@@ -76,10 +76,10 @@ const REPORT_TEMPLATES = [
 
 export default function Reports() {
   const { services } = useServices();
-  const { operators } = useOperators();
-  const { clients } = useClients();
+  const { data: operators = [] } = useOperators();
+  const { data: clients = [] } = useClients();
   const { budgets } = useBudgets();
-  const { invoices } = usePurchaseInvoices();
+  const { data: invoices = [] } = usePurchaseInvoices();
 
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiReport, setAiReport] = useState("");
