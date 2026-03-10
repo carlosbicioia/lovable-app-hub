@@ -137,6 +137,7 @@ export function useCreatePurchaseInvoice() {
     }) => {
       const { data: row, error: e1 } = await supabase.from("purchase_invoices").insert({
         invoice_number: input.invoiceNumber,
+        supplier_invoice_number: input.supplierInvoiceNumber ?? "",
         supplier_id: input.supplierId ?? null,
         supplier_name: input.supplierName,
         invoice_date: input.invoiceDate ?? null,
