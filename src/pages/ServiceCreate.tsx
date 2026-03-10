@@ -180,7 +180,7 @@ export default function ServiceCreate() {
 
   // ── Derived data ──
   const selectedClient = clients.find((c) => c.id === clientId);
-  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
+  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.fullName) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (id: string) => {
