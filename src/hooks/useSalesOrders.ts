@@ -44,6 +44,7 @@ function mapRow(row: any, lines: any[]): SalesOrder {
     holdedDocId: row.holded_doc_id,
     total: Number(row.total),
     notes: row.notes,
+    pdfPath: row.pdf_path || null,
     createdAt: row.created_at,
     lines: lines
       .filter((l: any) => l.sales_order_id === row.id)
