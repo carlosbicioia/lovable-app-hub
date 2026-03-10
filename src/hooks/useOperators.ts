@@ -10,6 +10,9 @@ export interface DbOperator {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   photo: string;
