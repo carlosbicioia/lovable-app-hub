@@ -22,13 +22,13 @@ const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
-  name: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
+  name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
   clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
 });
 
 const clientToForm = (c: DbClient): ClientFormData => ({
   clientType: c.clientType,
-  name: c.name, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
+  name: c.name, lastName: c.lastName, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
   address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
   planType: c.planType, lastServiceDate: c.lastServiceDate,
