@@ -31,7 +31,7 @@ const clientToForm = (c: DbClient): ClientFormData => ({
   name: c.name, lastName: c.lastName, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
   address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
-  planType: c.planType, lastServiceDate: c.lastServiceDate,
+  planType: c.planType, lastServiceDate: c.lastServiceDate, origin: c.origin,
 });
 
 export default function Clients() {
