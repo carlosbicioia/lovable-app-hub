@@ -1233,6 +1233,23 @@ export default function CalendarView() {
           </SelectContent>
         </Select>
 
+        {/* Sede */}
+        <Select
+          value={selectedBranchId ?? "__all__"}
+          onValueChange={(v) => setSelectedBranchId(v === "__all__" ? null : v)}
+        >
+          <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedBranchId && "border-primary text-primary")}>
+            <MapPin className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue>{selectedBranchId ? branches.find(b => b.id === selectedBranchId)?.name : <span className="text-muted-foreground">Sede</span>}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Sede: Todas</SelectItem>
+            {branches.filter(b => b.active).map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* Clear all + active count */}
         {hasAnyFilter && (
           <Button
