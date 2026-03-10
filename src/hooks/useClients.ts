@@ -69,7 +69,7 @@ export function useCreateClient() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (input: Omit<DbClient, "id"> & { id?: string }) => {
+    mutationFn: async (input: Omit<DbClient, "id" | "fullName"> & { id?: string }) => {
       // Generate ID if not provided
       let id = input.id;
       if (!id) {
