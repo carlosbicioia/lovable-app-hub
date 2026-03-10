@@ -535,7 +535,7 @@ function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; on
     <div className="space-y-2">
       <Label>Logotipo</Label>
       <div className="flex items-start gap-4">
-        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden shrink-0">
+        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden shrink-0" style={{ backgroundImage: 'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)', backgroundSize: '16px 16px', backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px' }}>
           {displayUrl ? (
             <img src={displayUrl} alt="Logo de la empresa" className="w-full h-full object-contain p-2" />
           ) : (
