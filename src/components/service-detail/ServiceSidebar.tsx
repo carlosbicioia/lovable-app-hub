@@ -6,6 +6,7 @@ import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import { useServices } from "@/hooks/useServices";
 import { useBranches } from "@/hooks/useBranches";
+import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,8 @@ export default function ServiceSidebar({ service }: Props) {
   const { collaborators } = useCollaborators();
   const { updateService } = useServices();
   const { data: branches = [] } = useBranches();
+  const { data: serviceOrigins = [] } = useServiceOrigins();
+  const showCollaborator = serviceOrigins.find(o => o.name === service.origin)?.show_collaborator ?? false;
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
@@ -101,33 +104,35 @@ export default function ServiceSidebar({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Collaborator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-muted-foreground" /> Colaborador
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin colaborador" },
-              ...collaborators.map((c) => ({
-                value: c.id,
-                label: c.companyName,
-                subtitle: c.contactPerson,
-                searchText: `${c.email} ${c.phone}`,
-              })),
-            ]}
-            value={service.collaboratorId ?? "none"}
-            onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar colaborador…"
-            searchPlaceholder="Buscar colaborador…"
-            emptyText="Sin colaboradores"
-            disabled={savingField === "collaborator_id"}
-          />
-        </CardContent>
-      </Card>
+      {/* Collaborator - only for origins with show_collaborator */}
+      {showCollaborator && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-muted-foreground" /> Colaborador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SearchableSelect
+              options={[
+                { value: "none", label: "Sin colaborador" },
+                ...collaborators.map((c) => ({
+                  value: c.id,
+                  label: c.companyName,
+                  subtitle: c.contactPerson,
+                  searchText: `${c.email} ${c.phone}`,
+                })),
+              ]}
+              value={service.collaboratorId ?? "none"}
+              onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
+              placeholder="Seleccionar colaborador…"
+              searchPlaceholder="Buscar colaborador…"
+              emptyText="Sin colaboradores"
+              disabled={savingField === "collaborator_id"}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Operator */}
       <Card>
