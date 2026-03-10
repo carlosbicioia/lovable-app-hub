@@ -119,6 +119,43 @@ function IndustrialConfigTab() {
   const [editSpec, setEditSpec] = useState<SpecialtyRow | null>(null);
   const [editCert, setEditCert] = useState<CertificationRow | null>(null);
 
+  // Delete confirmation with usage count
+  const [deleteTarget, setDeleteTarget] = useState<{ type: "spec" | "cert"; id: string; name: string } | null>(null);
+  const [usageCount, setUsageCount] = useState<number | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+
+  const handleDeleteClick = async (type: "spec" | "cert", id: string, name: string) => {
+    setDeleteTarget({ type, id, name });
+    setUsageCount(null);
+    setUsageLoading(true);
+    try {
+      if (type === "spec") {
+        const { count } = await supabase
+          .from("operators")
+          .select("id", { count: "exact", head: true })
+          .or(`specialty.eq.${name},secondary_specialty.eq.${name}`);
+        setUsageCount(count ?? 0);
+      } else {
+        const { count } = await supabase
+          .from("operators")
+          .select("id", { count: "exact", head: true })
+          .contains("certifications", [name]);
+        setUsageCount(count ?? 0);
+      }
+    } catch {
+      setUsageCount(0);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === "spec") deleteSpec.mutate(deleteTarget.id);
+    else deleteCert.mutate(deleteTarget.id);
+    setDeleteTarget(null);
+  };
+
   const handleCreateSpec = () => {
     if (!newSpecName.trim()) return;
     createSpec.mutate({ name: newSpecName.trim(), icon: newSpecIcon, color: newSpecColor }, {
@@ -203,23 +240,9 @@ function IndustrialConfigTab() {
                     <Button variant="ghost" size="icon" onClick={() => setEditSpec(sp)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeleteClick("spec", sp.id, sp.name)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar especialidad?</AlertDialogTitle>
-                          <AlertDialogDescription>Esta acción no se puede deshacer. Los operarios que tengan esta especialidad no se verán afectados.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteSpec.mutate(sp.id)}>Eliminar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
               ))}
@@ -331,23 +354,9 @@ function IndustrialConfigTab() {
                     <Button variant="ghost" size="icon" onClick={() => setEditCert(cert)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeleteClick("cert", cert.id, cert.name)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar certificación?</AlertDialogTitle>
-                          <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteCert.mutate(cert.id)}>Eliminar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
               ))}
@@ -454,6 +463,38 @@ function IndustrialConfigTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Shared Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Eliminar {deleteTarget?.type === "spec" ? "especialidad" : "certificación"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {usageLoading ? (
+                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Comprobando operarios afectados…</span>
+              ) : usageCount && usageCount > 0 ? (
+                <>
+                  <span className="font-semibold text-destructive">⚠ {usageCount} operario{usageCount > 1 ? "s" : ""}</span>{" "}
+                  {usageCount > 1 ? "tienen" : "tiene"} asignada la {deleteTarget?.type === "spec" ? "especialidad" : "certificación"}{" "}
+                  <strong>{deleteTarget?.name}</strong>. {deleteTarget?.type === "spec"
+                    ? "Conservarán el valor actual pero dejará de estar disponible en los desplegables."
+                    : "Conservarán el valor actual pero dejará de estar disponible para asignar."}
+                </>
+              ) : (
+                <>No hay operarios usando <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={usageLoading}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
