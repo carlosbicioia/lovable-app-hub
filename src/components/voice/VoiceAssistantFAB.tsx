@@ -11,7 +11,7 @@ export default function VoiceAssistantFAB({ onClick, className }: Props) {
     <button
       onClick={onClick}
       className={cn(
-        "fixed bottom-6 right-6 z-40 w-16 h-16 rounded-2xl rotate-3",
+        "fixed bottom-6 right-6 z-30 w-16 h-16 rounded-2xl rotate-3",
         "bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground",
         "shadow-lg shadow-primary/30",
         "hover:scale-110 hover:rotate-0 hover:shadow-xl hover:shadow-primary/40 active:scale-95",
