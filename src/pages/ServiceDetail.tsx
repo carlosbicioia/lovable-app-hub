@@ -71,7 +71,8 @@ export default function ServiceDetail() {
   };
 
   const sla = getSlaStatus();
-  const financialCount = (linkedBudget ? 1 : 0) + linkedOrders.length + salesOrders.length;
+  const purchaseCount = linkedOrders.length;
+  const salesCount = (linkedBudget ? 1 : 0) + salesOrders.length;
 
   const handleDeleteService = async () => {
     try {
@@ -191,7 +192,7 @@ export default function ServiceDetail() {
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="w-full justify-start bg-muted/50 p-0.5 h-auto flex-wrap gap-0.5">
-            <TabsTrigger value="overview" className="text-xs gap-1 h-8">
+             <TabsTrigger value="overview" className="text-xs gap-1 h-8">
               <BarChart3 className="w-3 h-3" /> Resumen
             </TabsTrigger>
             <TabsTrigger value="operations" className="text-xs gap-1 h-8">
@@ -200,10 +201,16 @@ export default function ServiceDetail() {
             <TabsTrigger value="notes" className="text-xs gap-1 h-8">
               <MessageSquare className="w-3 h-3" /> Notas
             </TabsTrigger>
-            <TabsTrigger value="financial" className="text-xs gap-1 h-8">
-              <Euro className="w-3 h-3" /> Económico
-              {financialCount > 0 && (
-                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{financialCount}</span>
+            <TabsTrigger value="purchases" className="text-xs gap-1 h-8">
+              <ShoppingCart className="w-3 h-3" /> Compras
+              {purchaseCount > 0 && (
+                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{purchaseCount}</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="sales" className="text-xs gap-1 h-8">
+              <Euro className="w-3 h-3" /> Ventas
+              {salesCount > 0 && (
+                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{salesCount}</span>
               )}
             </TabsTrigger>
           </TabsList>
@@ -279,8 +286,24 @@ export default function ServiceDetail() {
             />
           </TabsContent>
 
-          {/* Tab 4: ECONÓMICO */}
-          <TabsContent value="financial" className="space-y-4 mt-3">
+          {/* Tab 4: COMPRAS */}
+          <TabsContent value="purchases" className="space-y-4 mt-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
+                {purchaseCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{purchaseCount}</span>
+                )}
+              </h3>
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                <ShoppingCart className="w-3 h-3 mr-1" /> Nueva orden
+              </Button>
+            </div>
+            <ServicePurchases serviceId={service.id} />
+          </TabsContent>
+
+          {/* Tab 5: VENTAS */}
+          <TabsContent value="sales" className="space-y-4 mt-3">
             {/* Budget section */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -369,6 +392,17 @@ export default function ServiceDetail() {
               )}
             </div>
 
+            {/* Sales orders */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-muted-foreground" /> Órdenes de venta
+                {salesOrders.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>
+                )}
+              </h3>
+              <ServiceSalesOrders serviceId={service.id} />
+            </div>
+
             {/* Economic summary */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -407,28 +441,6 @@ export default function ServiceDetail() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Purchase orders */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
-                {linkedOrders.length > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{linkedOrders.length}</span>
-                )}
-              </h3>
-              <ServicePurchases serviceId={service.id} />
-            </div>
-
-            {/* Sales orders */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-muted-foreground" /> Órdenes de venta
-                {salesOrders.length > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{salesOrders.length}</span>
-                )}
-              </h3>
-              <ServiceSalesOrders serviceId={service.id} />
             </div>
           </TabsContent>
         </Tabs>
