@@ -981,7 +981,7 @@ export default function CalendarView() {
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 
-  const hasAnyFilter = !!(selectedOperatorId || selectedSpecialty || selectedStatus || selectedUrgency || selectedOrigin || selectedCollaboratorId);
+  const hasAnyFilter = !!(selectedOperatorId || selectedSpecialty || selectedStatus || selectedUrgency || selectedOrigin || selectedCollaboratorId || selectedBranchId);
 
   const clearAllFilters = () => {
     setSelectedOperatorId(null);
@@ -990,9 +990,10 @@ export default function CalendarView() {
     setSelectedUrgency(null);
     setSelectedOrigin(null);
     setSelectedCollaboratorId(null);
+    setSelectedBranchId(null);
   };
 
-  const activeFilterCount = [selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId].filter(Boolean).length;
+  const activeFilterCount = [selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, selectedBranchId].filter(Boolean).length;
 
   const filteredServices = useMemo(() => {
     if (!hasAnyFilter) return undefined;
