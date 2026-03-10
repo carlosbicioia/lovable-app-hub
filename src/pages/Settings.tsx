@@ -148,9 +148,45 @@ function IndustrialConfigTab() {
             <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-14 w-full" />)}</div>
           ) : (
             <>
-              {(specialties ?? []).map((sp) => (
-                <div key={sp.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+              {(specialties ?? []).map((sp, idx) => (
+                <div
+                  key={sp.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", String(idx));
+                    (e.currentTarget as HTMLElement).classList.add("opacity-40");
+                  }}
+                  onDragEnd={(e) => {
+                    (e.currentTarget as HTMLElement).classList.remove("opacity-40");
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    (e.currentTarget as HTMLElement).classList.add("ring-2", "ring-primary/40");
+                  }}
+                  onDragLeave={(e) => {
+                    (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).classList.remove("ring-2", "ring-primary/40");
+                    const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                    const toIdx = idx;
+                    if (fromIdx === toIdx || isNaN(fromIdx)) return;
+                    const reordered = [...(specialties ?? [])];
+                    const [moved] = reordered.splice(fromIdx, 1);
+                    reordered.splice(toIdx, 0, moved);
+                    reordered.forEach((s, i) => {
+                      if (s.sort_order !== i) {
+                        updateSpec.mutate({ id: s.id, sort_order: i });
+                      }
+                    });
+                  }}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border cursor-grab active:cursor-grabbing transition-all"
+                >
                   <div className="flex items-center gap-3">
+                    <GripVertical className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                     <span className={cn("inline-flex items-center justify-center w-8 h-8 rounded-lg border", sp.color)}>
                       {iconMap[sp.icon] ?? <Wrench className="w-4 h-4" />}
                     </span>
