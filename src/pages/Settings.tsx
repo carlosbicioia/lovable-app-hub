@@ -240,23 +240,9 @@ function IndustrialConfigTab() {
                     <Button variant="ghost" size="icon" onClick={() => setEditSpec(sp)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeleteClick("spec", sp.id, sp.name)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar especialidad?</AlertDialogTitle>
-                          <AlertDialogDescription>Esta acción no se puede deshacer. Los operarios que tengan esta especialidad no se verán afectados.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteSpec.mutate(sp.id)}>Eliminar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
               ))}
