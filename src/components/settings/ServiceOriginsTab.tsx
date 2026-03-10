@@ -36,9 +36,10 @@ export default function ServiceOriginsTab() {
   const handleCreate = () => {
     if (!newName.trim()) return;
     const maxOrder = origins.length > 0 ? Math.max(...origins.map(o => o.sort_order)) + 1 : 0;
-    createOrigin.mutate({ name: newName.trim(), show_collaborator: newShowCollab, sort_order: maxOrder });
+    createOrigin.mutate({ name: newName.trim(), show_collaborator: newShowCollab, is_assistance: newIsAssistance, sort_order: maxOrder });
     setNewName("");
     setNewShowCollab(false);
+    setNewIsAssistance(false);
   };
 
   const startEdit = (o: ServiceOriginRow) => {
