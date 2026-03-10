@@ -263,7 +263,7 @@ export default function ServiceDetail() {
             <ServiceProtocolChecklist service={service} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
-            <ServiceMaterials service={service} />
+            <ServiceMaterials serviceId={service.id} />
           </TabsContent>
 
           {/* Tab 3: NOTAS */}
