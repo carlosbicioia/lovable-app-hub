@@ -43,6 +43,7 @@ function mapRow(row: any, lines: any[]): PurchaseInvoice {
   return {
     id: row.id,
     invoiceNumber: row.invoice_number ?? "",
+    supplierInvoiceNumber: row.supplier_invoice_number ?? "",
     supplierId: row.supplier_id,
     supplierName: row.supplier_name,
     invoiceDate: row.invoice_date,
