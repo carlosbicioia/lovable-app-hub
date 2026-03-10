@@ -144,9 +144,9 @@ export default function Clients() {
   };
 
   const handleBulkExport = () => {
-    const headers = ["ID", "Tipo", "Nombre", "Apellidos", "Razón Social", "DNI", "CIF", "Email", "Teléfono", "Dirección", "Ciudad", "Provincia", "CP", "Plan", "Colaborador", "Últ. Servicio"];
+    const headers = ["ID", "Tipo", "Nombre", "Apellidos", "Razón Social", "DNI", "CIF", "Email", "Teléfono", "Calle", "Número", "Piso", "Adicional", "Ciudad", "Provincia", "CP", "Plan", "Colaborador", "Últ. Servicio"];
     const rows = bulk.selectedItems.map((c) => [
-      c.id, c.clientType, c.name, c.lastName, c.companyName, c.dni, c.taxId, c.email, c.phone, c.address, c.city, c.province, c.postalCode, c.planType, c.collaboratorName ?? "Directo", c.lastServiceDate ?? "",
+      c.id, c.clientType, c.name, c.lastName, c.companyName, c.dni, c.taxId, c.email, c.phone, c.address, c.streetNumber, c.floor, c.addressExtra, c.city, c.province, c.postalCode, c.planType, c.collaboratorName ?? "Directo", c.lastServiceDate ?? "",
     ]);
     exportCsv("clientes.csv", headers, rows);
   };
