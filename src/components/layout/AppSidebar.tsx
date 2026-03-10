@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Calendar,
   HardHat,
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Settings,
@@ -33,6 +34,7 @@ const navItems = [
   { to: "/articulos", label: "Artículos", icon: Package },
   { to: "/operarios", label: "Operarios", icon: HardHat },
   { to: "/colaboradores", label: "Colaboradores", icon: Handshake },
+  { to: "/informes", label: "Informes", icon: BarChart3 },
 ];
 
 const configItems = [
@@ -104,7 +106,7 @@ export default function AppSidebar() {
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
         {navItems
           .filter((item) => {
-            if (item.to === "/operarios" || item.to === "/colaboradores") return isAdminOrGestor;
+            if (item.to === "/operarios" || item.to === "/colaboradores" || item.to === "/informes") return isAdminOrGestor;
             return true;
           })
           .map(renderNavItem)}
