@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 import { useClients, useCreateClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import ClientFormDialog, { ClientFormData } from "@/components/clients/ClientFormDialog";
-import { Plus } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
