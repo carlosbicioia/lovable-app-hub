@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
@@ -31,6 +30,16 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 
 const CONFIRM_STATUSES = ["Finalizado", "Liquidado"];
 
+const STATUS_PIPELINE = [
+  { key: "Pendiente_Contacto", label: "Pte. Contacto", short: "Pte.C" },
+  { key: "Pte_Asignacion", label: "Pte. Asignación", short: "Pte.A" },
+  { key: "Asignado", label: "Asignado", short: "Asig." },
+  { key: "Agendado", label: "Agendado", short: "Agend." },
+  { key: "En_Curso", label: "En Curso", short: "Curso" },
+  { key: "Finalizado", label: "Finalizado", short: "Final." },
+  { key: "Liquidado", label: "Liquidado", short: "Liq." },
+];
+
 export default function ServiceInfoCards({ service }: Props) {
   const navigate = useNavigate();
   const { updateService } = useServices();
@@ -49,7 +58,6 @@ export default function ServiceInfoCards({ service }: Props) {
   const handleUpdate = async (field: string, value: string | null) => {
     setSaving(field);
     const updates: Record<string, any> = { [field]: value };
-
     if (field === "operator_id") {
       const op = operators.find((o) => o.id === value);
       updates.operator_name = op?.name ?? null;
@@ -58,7 +66,6 @@ export default function ServiceInfoCards({ service }: Props) {
       const col = collaborators.find((c) => c.id === value);
       updates.collaborator_name = col?.companyName ?? null;
     }
-
     await updateService(service.id, updates);
     setSaving(null);
   };
@@ -69,12 +76,10 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
       return;
     }
-
     if (CONFIRM_STATUSES.includes(newStatus)) {
       setPendingStatusChange(newStatus);
       return;
     }
-
     handleUpdate("status", newStatus);
   };
 
@@ -85,92 +90,94 @@ export default function ServiceInfoCards({ service }: Props) {
     }
   };
 
-  const statusLabel = (s: string) => {
-    const map: Record<string, string> = {
-      Pendiente_Contacto: "Pte. Contacto",
-      Pte_Asignacion: "Pte. Asignación",
-      Asignado: "Asignado",
-      Agendado: "Agendado",
-      En_Curso: "En Curso",
-      Finalizado: "Finalizado",
-      Liquidado: "Liquidado",
-    };
-    return map[s] ?? s;
-  };
+  const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
 
-  const availableOperators = operators.filter(
-    (o) => o.status === "Activo" && o.available
-  );
-  const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
-  const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
-    ? [currentOp, ...availableOperators]
-    : availableOperators;
-
-  const allowedStatuses = VALID_TRANSITIONS[service.status] || [];
-  const allStatuses = ["Pendiente_Contacto", "Pte_Asignacion", "Asignado", "Agendado", "En_Curso", "Finalizado", "Liquidado"];
   const isLocked = service.status === "Liquidado";
+  const currentIdx = STATUS_PIPELINE.findIndex(p => p.key === service.status);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {/* Cita */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Cita</span>
+    <div className="space-y-4">
+      {/* Status Pipeline - visual stepper */}
+      <div className="bg-card rounded-xl border border-border p-4">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {STATUS_PIPELINE.map((step, idx) => {
+            const isPast = idx < currentIdx;
+            const isCurrent = idx === currentIdx;
+            const isFuture = idx > currentIdx;
+            return (
+              <div key={step.key} className="flex items-center">
+                <button
+                  onClick={() => {
+                    if (!isLocked && step.key !== service.status) handleStatusChange(step.key);
+                  }}
+                  disabled={isLocked}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap",
+                    isCurrent && "bg-primary text-primary-foreground shadow-md",
+                    isPast && "bg-success/15 text-success",
+                    isFuture && "bg-muted text-muted-foreground",
+                    !isLocked && !isCurrent && "hover:bg-muted/80 cursor-pointer",
+                    isLocked && "cursor-not-allowed opacity-60"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border",
+                    isCurrent && "bg-primary-foreground text-primary border-primary-foreground/30",
+                    isPast && "bg-success text-success-foreground border-success",
+                    isFuture && "bg-muted border-border text-muted-foreground"
+                  )}>
+                    {isPast ? "✓" : idx + 1}
+                  </span>
+                  <span className="hidden sm:inline">{step.label}</span>
+                  <span className="sm:hidden">{step.short}</span>
+                </button>
+                {idx < STATUS_PIPELINE.length - 1 && (
+                  <ChevronRight className={cn("w-3.5 h-3.5 mx-0.5 shrink-0", isPast ? "text-success" : "text-border")} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {isLocked && (
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">🔒 Servicio liquidado — no se puede modificar</p>
+        )}
+      </div>
+
+      {/* Info grid — compact horizontal layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        {/* Cita */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <CalendarClock className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Cita</span>
           </div>
           {service.scheduledAt ? (() => {
             const start = new Date(service.scheduledAt);
             const end = service.scheduledEndAt ? new Date(service.scheduledEndAt) : null;
-            const isMultiDay = end && !isSameDay(start, end);
             return (
               <div>
-                <span className={cn(
-                  "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold mb-1",
-                  "bg-success/15 text-success border border-success/30"
-                )}>
+                <span className={cn("inline-flex items-center px-1 py-0.5 rounded text-[9px] font-semibold mb-0.5", "bg-success/15 text-success border border-success/30")}>
                   Citado
                 </span>
-                <p className="text-sm font-medium text-card-foreground">
-                  {format(start, "d MMM yyyy", { locale: es })}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {format(start, "HH:mm")}
-                  {end ? ` – ${format(end, "HH:mm")}` : ""}
-                </p>
-                {isMultiDay && (
-                  <p className="text-xs text-muted-foreground">
-                    hasta {format(end, "d MMM", { locale: es })}
-                  </p>
-                )}
+                <p className="text-xs font-medium text-card-foreground">{format(start, "d MMM", { locale: es })}</p>
+                <p className="text-[10px] text-muted-foreground">{format(start, "HH:mm")}{end ? ` – ${format(end, "HH:mm")}` : ""}</p>
               </div>
             );
           })() : (
-            <div>
-              <span className={cn(
-                "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold",
-                "bg-warning/15 text-warning border border-warning/30"
-              )}>
-                Pendiente de citar
-              </span>
-            </div>
+            <span className={cn("inline-flex items-center px-1 py-0.5 rounded text-[9px] font-semibold", "bg-warning/15 text-warning border border-warning/30")}>
+              Sin cita
+            </span>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Especialidad */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Especialidad</span>
+        {/* Especialidad */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Wrench className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Especialidad</span>
           </div>
-          <Select
-            value={service.specialty}
-            onValueChange={(v) => handleUpdate("specialty", v)}
-            disabled={saving === "specialty" || isLocked}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+          <Select value={service.specialty} onValueChange={(v) => handleUpdate("specialty", v)} disabled={saving === "specialty" || isLocked}>
+            <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -179,22 +186,16 @@ export default function ServiceInfoCards({ service }: Props) {
               <SelectItem value="Clima">Clima</SelectItem>
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Origen */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Origen</span>
+        {/* Origen */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Zap className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Origen</span>
           </div>
-          <Select
-            value={service.origin}
-            onValueChange={(v) => handleUpdate("origin", v)}
-            disabled={saving === "origin" || isLocked}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+          <Select value={service.origin} onValueChange={(v) => handleUpdate("origin", v)} disabled={saving === "origin" || isLocked}>
+            <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -204,15 +205,13 @@ export default function ServiceInfoCards({ service }: Props) {
               <SelectItem value="API_Externa">API Externa</SelectItem>
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Tipo de servicio */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <ClipboardList className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Tipo</span>
+        {/* Tipo */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ClipboardList className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Tipo</span>
           </div>
           <Select
             value={service.serviceType}
@@ -228,7 +227,7 @@ export default function ServiceInfoCards({ service }: Props) {
             }}
             disabled={saving === "service_type" || isLocked}
           >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+            <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue>{service.serviceType === "Reparación_Directa" ? "Rep. Directa" : "Presupuesto"}</SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -236,22 +235,16 @@ export default function ServiceInfoCards({ service }: Props) {
               <SelectItem value="Presupuesto">Presupuesto</SelectItem>
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Urgencia */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <ShieldAlert className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Urgencia</span>
+        {/* Urgencia */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ShieldAlert className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Urgencia</span>
           </div>
-          <Select
-            value={service.urgency}
-            onValueChange={(v) => handleUpdate("urgency", v)}
-            disabled={saving === "urgency" || isLocked}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
+          <Select value={service.urgency} onValueChange={(v) => handleUpdate("urgency", v)} disabled={saving === "urgency" || isLocked}>
+            <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -260,45 +253,28 @@ export default function ServiceInfoCards({ service }: Props) {
               <SelectItem value="Emergencia">Emergencia</SelectItem>
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Estado */}
-      <Card className="bg-card">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Estado</span>
+        {/* Siniestro */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Activity className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Siniestro</span>
           </div>
-          <Select
-            value={service.status}
-            onValueChange={handleStatusChange}
-            disabled={saving === "status" || isLocked}
-          >
-            <SelectTrigger className="h-7 border-none shadow-none px-0 text-sm font-medium text-card-foreground bg-transparent focus:ring-0">
-              <SelectValue>{statusLabel(service.status)}</SelectValue>
+          <Select value={service.claimStatus} onValueChange={(v) => handleUpdate("claim_status", v)} disabled={isLocked}>
+            <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
-              {allStatuses.map((s) => (
-                <SelectItem
-                  key={s}
-                  value={s}
-                  disabled={s !== service.status && !allowedStatuses.includes(s)}
-                  className={cn(
-                    s !== service.status && !allowedStatuses.includes(s) && "opacity-40"
-                  )}
-                >
-                  {statusLabel(s)}
-                  {s === service.status && " ✓"}
-                </SelectItem>
-              ))}
+              <SelectItem value="Abierto">Abierto</SelectItem>
+              <SelectItem value="En_Valoración">En valoración</SelectItem>
+              <SelectItem value="Aceptado">Aceptado</SelectItem>
+              <SelectItem value="Rechazado">Rechazado</SelectItem>
+              <SelectItem value="Cerrado">Cerrado</SelectItem>
             </SelectContent>
           </Select>
-          {isLocked && (
-            <p className="text-[10px] text-muted-foreground mt-1">🔒 Estado bloqueado</p>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Budget prompt */}
       <AlertDialog open={showBudgetPrompt} onOpenChange={setShowBudgetPrompt}>
