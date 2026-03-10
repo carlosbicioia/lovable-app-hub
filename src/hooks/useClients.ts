@@ -86,6 +86,7 @@ export function useCreateClient() {
         id,
         client_type: input.clientType,
         name: input.name,
+        last_name: input.lastName,
         company_name: input.companyName,
         dni: input.dni,
         tax_id: input.taxId,
@@ -100,7 +101,7 @@ export function useCreateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
-      });
+      } as any);
       if (error) throw error;
       return id;
     },
