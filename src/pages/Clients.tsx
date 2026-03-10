@@ -176,6 +176,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Tipo</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI/CIF</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Apellidos</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Sede</th>
