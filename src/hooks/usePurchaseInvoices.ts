@@ -21,6 +21,7 @@ export interface PurchaseInvoiceLine {
 export interface PurchaseInvoice {
   id: string;
   invoiceNumber: string;
+  supplierInvoiceNumber: string;
   supplierId: string | null;
   supplierName: string;
   invoiceDate: string | null;
@@ -42,6 +43,7 @@ function mapRow(row: any, lines: any[]): PurchaseInvoice {
   return {
     id: row.id,
     invoiceNumber: row.invoice_number ?? "",
+    supplierInvoiceNumber: row.supplier_invoice_number ?? "",
     supplierId: row.supplier_id,
     supplierName: row.supplier_name,
     invoiceDate: row.invoice_date,
@@ -111,6 +113,7 @@ export function useCreatePurchaseInvoice() {
   return useMutation({
     mutationFn: async (input: {
       invoiceNumber: string;
+      supplierInvoiceNumber?: string;
       supplierId?: string | null;
       supplierName: string;
       invoiceDate?: string | null;
@@ -134,6 +137,7 @@ export function useCreatePurchaseInvoice() {
     }) => {
       const { data: row, error: e1 } = await supabase.from("purchase_invoices").insert({
         invoice_number: input.invoiceNumber,
+        supplier_invoice_number: input.supplierInvoiceNumber ?? "",
         supplier_id: input.supplierId ?? null,
         supplier_name: input.supplierName,
         invoice_date: input.invoiceDate ?? null,

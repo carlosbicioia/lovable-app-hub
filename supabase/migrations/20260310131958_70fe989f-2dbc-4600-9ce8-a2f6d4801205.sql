@@ -1,0 +1,1 @@
+ALTER TABLE public.purchase_invoices ADD COLUMN supplier_invoice_number text NOT NULL DEFAULT '';

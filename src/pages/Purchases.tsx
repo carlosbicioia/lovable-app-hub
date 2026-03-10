@@ -187,6 +187,7 @@ export default function Purchases() {
     return invoices.filter(
       (i) =>
         (!search || i.invoiceNumber.toLowerCase().includes(q) ||
+        i.supplierInvoiceNumber.toLowerCase().includes(q) ||
         i.supplierName.toLowerCase().includes(q)) &&
         dateInRange(i.invoiceDate || i.createdAt) &&
         (filterSupplier === "all" || i.supplierName === filterSupplier) &&
@@ -257,8 +258,8 @@ export default function Purchases() {
       const rows = bulkDN.selectedItems.map((d) => [d.code || d.id.slice(0, 8), d.serviceId, d.supplierName, d.operatorName ?? "", d.status, format(new Date(d.createdAt), "dd/MM/yyyy"), d.totalCost.toString()]);
       exportCsv("albaranes.csv", headers, rows);
     } else {
-      const headers = ["Nº Factura", "Proveedor", "Fecha", "Estado", "Total"];
-      const rows = bulkInv.selectedItems.map((i) => [i.invoiceNumber, i.supplierName, i.invoiceDate ? format(new Date(i.invoiceDate), "dd/MM/yyyy") : "", i.status, i.total.toString()]);
+      const headers = ["Nº Factura", "Nº Proveedor", "Proveedor", "Fecha", "Estado", "Total"];
+      const rows = bulkInv.selectedItems.map((i) => [i.invoiceNumber, i.supplierInvoiceNumber, i.supplierName, i.invoiceDate ? format(new Date(i.invoiceDate), "dd/MM/yyyy") : "", i.status, i.total.toString()]);
       exportCsv("facturas_compra.csv", headers, rows);
     }
   };
@@ -542,26 +543,28 @@ export default function Purchases() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
-                    <th className="px-3 py-3 w-10"><Checkbox checked={bulkInv.allSelected} onCheckedChange={bulkInv.toggleAll} className={bulkInv.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} /></th>
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nº Factura</th>
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
-                    <th className="text-right px-5 py-3 text-muted-foreground font-medium">Total</th>
-                    <th className="text-center px-5 py-3 text-muted-foreground font-medium">PDF</th>
-                    <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredInv.length === 0 ? (
-                    <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
-                  ) : filteredInv.map((inv) => {
-                    const sc = invStatusConfig[inv.status];
-                    return (
-                      <tr key={inv.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulkInv.selectedIds.has(inv.id) && "bg-primary/5")}>
-                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}><Checkbox checked={bulkInv.selectedIds.has(inv.id)} onCheckedChange={() => bulkInv.toggle(inv.id)} /></td>
-                        <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{inv.invoiceNumber || "—"}</td>
-                        <td className="px-5 py-3 font-medium text-card-foreground">{inv.supplierName || "—"}</td>
+                     <th className="px-3 py-3 w-10"><Checkbox checked={bulkInv.allSelected} onCheckedChange={bulkInv.toggleAll} className={bulkInv.someSelected ? "data-[state=unchecked]:bg-primary/20" : ""} /></th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nº Factura</th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nº Proveedor</th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Proveedor</th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
+                     <th className="text-right px-5 py-3 text-muted-foreground font-medium">Total</th>
+                     <th className="text-center px-5 py-3 text-muted-foreground font-medium">PDF</th>
+                     <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {filteredInv.length === 0 ? (
+                     <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
+                   ) : filteredInv.map((inv) => {
+                     const sc = invStatusConfig[inv.status];
+                     return (
+                       <tr key={inv.id} className={cn("border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer", bulkInv.selectedIds.has(inv.id) && "bg-primary/5")}>
+                         <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}><Checkbox checked={bulkInv.selectedIds.has(inv.id)} onCheckedChange={() => bulkInv.toggle(inv.id)} /></td>
+                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{inv.invoiceNumber || "—"}</td>
+                         <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{inv.supplierInvoiceNumber || "—"}</td>
+                         <td className="px-5 py-3 font-medium text-card-foreground">{inv.supplierName || "—"}</td>
                         <td className="px-5 py-3 text-muted-foreground text-xs">
                           {inv.invoiceDate ? format(new Date(inv.invoiceDate), "dd MMM yyyy", { locale: es }) : "—"}
                         </td>
