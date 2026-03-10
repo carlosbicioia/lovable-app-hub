@@ -188,7 +188,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const handleModifyBudgetAndCancel = () => {
     setShowFinalizadoPrompt(false);
     if (budgetData) {
-      navigate(`/presupuestos/${budgetData.id}`);
+      navigate(`/presupuestos/${budgetData.id}/editar`);
     }
   };
 

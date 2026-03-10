@@ -17,6 +17,7 @@ import ServiceDetail from "@/pages/ServiceDetail";
 import Budgets from "@/pages/Budgets";
 import BudgetDetail from "@/pages/BudgetDetail";
 import BudgetCreate from "@/pages/BudgetCreate";
+import BudgetEdit from "@/pages/BudgetEdit";
 import Articles from "@/pages/Articles";
 import InvoiceCreate from "@/pages/InvoiceCreate";
 import CalendarView from "@/pages/CalendarView";
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Route path="/presupuestos" element={<Budgets />} />
         <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
         <Route path="/presupuestos/:id" element={<BudgetDetail />} />
+        <Route path="/presupuestos/:id/editar" element={<BudgetEdit />} />
         <Route path="/articulos" element={<Articles />} />
         <Route path="/compras" element={<Purchases />} />
         <Route path="/compras/nueva" element={<PurchaseCreate />} />
