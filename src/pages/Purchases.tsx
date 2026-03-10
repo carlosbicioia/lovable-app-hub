@@ -258,8 +258,8 @@ export default function Purchases() {
       const rows = bulkDN.selectedItems.map((d) => [d.code || d.id.slice(0, 8), d.serviceId, d.supplierName, d.operatorName ?? "", d.status, format(new Date(d.createdAt), "dd/MM/yyyy"), d.totalCost.toString()]);
       exportCsv("albaranes.csv", headers, rows);
     } else {
-      const headers = ["Nº Factura", "Proveedor", "Fecha", "Estado", "Total"];
-      const rows = bulkInv.selectedItems.map((i) => [i.invoiceNumber, i.supplierName, i.invoiceDate ? format(new Date(i.invoiceDate), "dd/MM/yyyy") : "", i.status, i.total.toString()]);
+      const headers = ["Nº Factura", "Nº Proveedor", "Proveedor", "Fecha", "Estado", "Total"];
+      const rows = bulkInv.selectedItems.map((i) => [i.invoiceNumber, i.supplierInvoiceNumber, i.supplierName, i.invoiceDate ? format(new Date(i.invoiceDate), "dd/MM/yyyy") : "", i.status, i.total.toString()]);
       exportCsv("facturas_compra.csv", headers, rows);
     }
   };
