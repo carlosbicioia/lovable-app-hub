@@ -126,7 +126,7 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
                 <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
               </div>
               <div className="space-y-1.5">
-                <Label>DNI *</Label>
+                <Label>DNI {!dniOptional && "*"}</Label>
                 <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
               </div>
             </>
