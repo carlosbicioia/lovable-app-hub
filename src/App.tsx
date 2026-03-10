@@ -31,6 +31,7 @@ import Suppliers from "@/pages/Suppliers";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
 import Settings from "@/pages/Settings";
+import Reports from "@/pages/Reports";
 import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
 import ResetPassword from "@/pages/ResetPassword";
