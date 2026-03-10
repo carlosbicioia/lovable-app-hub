@@ -80,7 +80,7 @@ export default function Clients() {
     (c) => {
       const q = search.toLowerCase();
       return (
-        c.name.toLowerCase().includes(q) ||
+        c.fullName.toLowerCase().includes(q) ||
         c.companyName.toLowerCase().includes(q) ||
         c.id.toLowerCase().includes(q) ||
         c.city.toLowerCase().includes(q) ||
