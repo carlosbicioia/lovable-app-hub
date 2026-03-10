@@ -203,10 +203,16 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             <Label>Teléfono</Label>
             <Input value={form.phone} onChange={(e) => upd("phone", e.target.value)} placeholder="612345678" />
           </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label>Dirección</Label>
-            <Input value={form.address} onChange={(e) => upd("address", e.target.value)} placeholder="Calle, número, piso" />
-          </div>
+          <AddressFields
+            address={form.address}
+            onAddressChange={(v) => upd("address", v)}
+            streetNumber={form.streetNumber}
+            onStreetNumberChange={(v) => upd("streetNumber", v)}
+            floor={form.floor}
+            onFloorChange={(v) => upd("floor", v)}
+            addressExtra={form.addressExtra}
+            onAddressExtraChange={(v) => upd("addressExtra", v)}
+          />
           <PostalCodeFields
             postalCode={form.postalCode}
             onPostalCodeChange={(v) => upd("postalCode", v)}
