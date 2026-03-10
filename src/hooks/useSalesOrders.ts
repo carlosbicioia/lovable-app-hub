@@ -25,6 +25,7 @@ export interface SalesOrder {
   holdedDocId: string | null;
   total: number;
   notes: string;
+  pdfPath: string | null;
   createdAt: string;
   lines: SalesOrderLine[];
 }
