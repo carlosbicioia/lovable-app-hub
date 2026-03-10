@@ -361,8 +361,12 @@ export default function InvoiceCreate() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Nº Factura *</Label>
+              <Label>Nº Factura interno *</Label>
               <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="FAC-001" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nº Factura proveedor</Label>
+              <Input value={supplierInvoiceNumber} onChange={(e) => setSupplierInvoiceNumber(e.target.value)} placeholder="Nº del proveedor" />
             </div>
             <div className="space-y-1.5">
               <Label>Proveedor *</Label>
