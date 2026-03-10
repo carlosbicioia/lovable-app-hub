@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Pencil, Save, X, Users, GripVertical } from "lucide-react";
+import { Plus, Trash2, Pencil, Save, X, Users, GripVertical, HeartPulse } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useServiceOrigins,
@@ -26,28 +26,32 @@ export default function ServiceOriginsTab() {
 
   const [newName, setNewName] = useState("");
   const [newShowCollab, setNewShowCollab] = useState(false);
+  const [newIsAssistance, setNewIsAssistance] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editShowCollab, setEditShowCollab] = useState(false);
+  const [editIsAssistance, setEditIsAssistance] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ServiceOriginRow | null>(null);
 
   const handleCreate = () => {
     if (!newName.trim()) return;
     const maxOrder = origins.length > 0 ? Math.max(...origins.map(o => o.sort_order)) + 1 : 0;
-    createOrigin.mutate({ name: newName.trim(), show_collaborator: newShowCollab, sort_order: maxOrder });
+    createOrigin.mutate({ name: newName.trim(), show_collaborator: newShowCollab, is_assistance: newIsAssistance, sort_order: maxOrder });
     setNewName("");
     setNewShowCollab(false);
+    setNewIsAssistance(false);
   };
 
   const startEdit = (o: ServiceOriginRow) => {
     setEditingId(o.id);
     setEditName(o.name);
     setEditShowCollab(o.show_collaborator);
+    setEditIsAssistance(o.is_assistance);
   };
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
-    updateOrigin.mutate({ id: editingId, name: editName.trim(), show_collaborator: editShowCollab });
+    updateOrigin.mutate({ id: editingId, name: editName.trim(), show_collaborator: editShowCollab, is_assistance: editIsAssistance });
     setEditingId(null);
   };
 
@@ -61,14 +65,18 @@ export default function ServiceOriginsTab() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add new */}
-        <div className="flex items-end gap-3">
-          <div className="flex-1 space-y-1.5">
+        <div className="flex items-end gap-3 flex-wrap">
+          <div className="flex-1 space-y-1.5 min-w-[160px]">
             <Label>Nombre</Label>
             <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ej: Teléfono" onKeyDown={(e) => e.key === "Enter" && handleCreate()} />
           </div>
           <div className="flex items-center gap-2 pb-0.5">
             <Switch checked={newShowCollab} onCheckedChange={setNewShowCollab} id="new-collab" />
             <Label htmlFor="new-collab" className="text-xs whitespace-nowrap"><Users className="w-3 h-3 inline mr-1" />Colaborador</Label>
+          </div>
+          <div className="flex items-center gap-2 pb-0.5">
+            <Switch checked={newIsAssistance} onCheckedChange={setNewIsAssistance} id="new-assist" />
+            <Label htmlFor="new-assist" className="text-xs whitespace-nowrap"><HeartPulse className="w-3 h-3 inline mr-1" />Asistencia</Label>
           </div>
           <Button size="sm" onClick={handleCreate} disabled={!newName.trim()} className="gap-1"><Plus className="w-4 h-4" /> Añadir</Button>
         </div>
@@ -120,6 +128,10 @@ export default function ServiceOriginsTab() {
                     <Switch checked={editShowCollab} onCheckedChange={setEditShowCollab} />
                     <span className="text-xs text-muted-foreground whitespace-nowrap"><Users className="w-3 h-3 inline mr-1" />Colab.</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Switch checked={editIsAssistance} onCheckedChange={setEditIsAssistance} />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap"><HeartPulse className="w-3 h-3 inline mr-1" />Asist.</span>
+                  </div>
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}><Save className="w-3.5 h-3.5" /></Button>
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="w-3.5 h-3.5" /></Button>
                 </>
@@ -128,6 +140,7 @@ export default function ServiceOriginsTab() {
                   <GripVertical className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                   <span className="flex-1 font-medium text-sm">{o.name}</span>
                   {o.show_collaborator && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full"><Users className="w-3 h-3 inline mr-1" />Colaborador</span>}
+                  {o.is_assistance && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full"><HeartPulse className="w-3 h-3 inline mr-1" />Asistencia</span>}
                   <Switch checked={o.active} onCheckedChange={(v) => updateOrigin.mutate({ id: o.id, active: v })} />
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(o)}><Pencil className="w-3.5 h-3.5" /></Button>
                   <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(o)}><Trash2 className="w-3.5 h-3.5" /></Button>

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -40,9 +41,13 @@ interface Props {
   collaborators: { id: string; companyName: string }[];
   title: string;
   saveLabel: string;
+  dniOptional?: boolean;
+  isAssistanceAvailable?: boolean;
+  isAssistance?: boolean;
+  onAssistanceChange?: (v: boolean) => void;
 }
 
-export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
+export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional, isAssistanceAvailable, isAssistance, onAssistanceChange }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
   const activePlans = plans.filter((p) => p.active);
@@ -93,16 +98,26 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-2">
-          <div className="col-span-2 space-y-1.5">
-            <Label>Tipo de cliente</Label>
-            <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Particular">Particular</SelectItem>
-                <SelectItem value="Empresa">Empresa</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className={isAssistanceAvailable ? "" : "col-span-2"}>
+            <div className="space-y-1.5">
+              <Label>Tipo de cliente</Label>
+              <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Particular">Particular</SelectItem>
+                  <SelectItem value="Empresa">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          {isAssistanceAvailable && form.clientType === "Particular" && (
+            <div className="flex items-end pb-1">
+              <div className="flex items-center gap-2">
+                <Switch checked={isAssistance} onCheckedChange={onAssistanceChange} id="assistance-toggle" />
+                <Label htmlFor="assistance-toggle" className="text-sm whitespace-nowrap">Asistencia</Label>
+              </div>
+            </div>
+          )}
           {form.clientType === "Empresa" ? (
             <>
               <div className="space-y-1.5">
@@ -125,7 +140,7 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
                 <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
               </div>
               <div className="space-y-1.5">
-                <Label>DNI *</Label>
+                <Label>DNI {!dniOptional && "*"}</Label>
                 <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
               </div>
             </>

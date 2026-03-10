@@ -1,0 +1,1 @@
+ALTER TABLE public.service_origins ADD COLUMN is_assistance boolean NOT NULL DEFAULT false;

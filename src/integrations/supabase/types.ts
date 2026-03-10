@@ -1362,6 +1362,7 @@ export type Database = {
           active: boolean
           created_at: string
           id: string
+          is_assistance: boolean
           name: string
           show_collaborator: boolean
           sort_order: number
@@ -1370,6 +1371,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          is_assistance?: boolean
           name: string
           show_collaborator?: boolean
           sort_order?: number
@@ -1378,6 +1380,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          is_assistance?: boolean
           name?: string
           show_collaborator?: boolean
           sort_order?: number
