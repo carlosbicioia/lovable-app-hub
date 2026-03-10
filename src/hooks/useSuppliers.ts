@@ -106,6 +106,9 @@ export function useUpdateSupplier() {
       if (input.phone !== undefined) updates.phone = input.phone;
       if (input.email !== undefined) updates.email = input.email;
       if (input.address !== undefined) updates.address = input.address;
+      if (input.streetNumber !== undefined) updates.street_number = input.streetNumber;
+      if (input.floor !== undefined) updates.floor = input.floor;
+      if (input.addressExtra !== undefined) updates.address_extra = input.addressExtra;
       if (input.city !== undefined) updates.city = input.city;
       if (input.province !== undefined) updates.province = input.province;
       if (input.contactPerson !== undefined) updates.contact_person = input.contactPerson;
