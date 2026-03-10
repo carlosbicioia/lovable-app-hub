@@ -1004,9 +1004,10 @@ export default function CalendarView() {
       if (selectedUrgency && s.urgency !== selectedUrgency) return false;
       if (selectedOrigin && s.origin !== selectedOrigin) return false;
       if (selectedCollaboratorId && s.collaboratorId !== selectedCollaboratorId) return false;
+      if (selectedBranchId && s.branchId !== selectedBranchId) return false;
       return true;
     });
-  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, hasAnyFilter]);
+  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, selectedBranchId, hasAnyFilter]);
 
 
   // ── Create-from-calendar dialog state ──
