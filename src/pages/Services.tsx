@@ -234,17 +234,17 @@ export default function Services() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Servicios</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">{services.length} servicios · {filtered.length} mostrados</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-display font-bold text-foreground">Servicios</h1>
+          <p className="text-muted-foreground text-xs md:text-sm mt-0.5">{services.length} servicios · {filtered.length} mostrados</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={() => { const event = new CustomEvent("open-voice-assistant"); window.dispatchEvent(event); }} className="gap-1.5 hidden sm:inline-flex">
             <Mic className="w-3.5 h-3.5" /> Alex
           </Button>
           <Button onClick={() => navigate("/servicios/nuevo")} size="sm">
-            <Plus className="w-4 h-4 mr-1.5" /> Nuevo Servicio
+            <Plus className="w-4 h-4 mr-1.5" /> <span className="hidden sm:inline">Nuevo Servicio</span><span className="sm:hidden">Nuevo</span>
           </Button>
         </div>
       </div>
@@ -401,8 +401,55 @@ export default function Services() {
 
       <BulkActionBar count={bulk.count} onClear={bulk.clear} onDelete={handleBulkDelete} onExport={handleBulkExport} entityName="servicios" />
 
-      {/* Table */}
-      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-2">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">{isBillingTab ? "No hay servicios pendientes de facturación" : "No se encontraron servicios"}</div>
+        ) : filtered.map((s) => {
+          const sla = getSlaStatus(s.receivedAt, s.contactedAt);
+          const bStatus = getBudgetStatusForService(s.id);
+          return (
+            <div
+              key={s.id}
+              onClick={() => { if (isBillingTab) bulk.toggle(s.id); else navigate(`/servicios/${s.id}`); }}
+              className={cn(
+                "bg-card rounded-xl border border-border p-3 space-y-2 active:bg-muted/50 transition-colors",
+                bulk.selectedIds.has(s.id) && "border-primary/50 bg-primary/5"
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-semibold text-foreground">{s.id}</span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">{s.origin}</span>
+                  {s.specialty && <span className="text-[10px] text-muted-foreground">{s.specialty}</span>}
+                </div>
+                <StatusBadge status={s.status} className="text-[10px]" />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-card-foreground">{s.clientName}</span>
+                <span className="text-muted-foreground">{format(new Date(s.receivedAt), "dd MMM", { locale: es })}</span>
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
+                {s.operatorName && <span className="flex items-center gap-0.5"><User className="w-3 h-3" />{s.operatorName}</span>}
+                {s.scheduledAt && <span>📅 {format(new Date(s.scheduledAt), "dd MMM HH:mm", { locale: es })}</span>}
+                {sla === "expired" && <span className="text-destructive font-semibold">⏰ SLA Vencido</span>}
+                {sla === "warning" && <span className="text-warning font-semibold">⚠ SLA Próximo</span>}
+                <StatusBadge urgency={s.urgency} className="text-[10px]" />
+                {s.budgetTotal && <span className="text-card-foreground font-medium">€{s.budgetTotal.toLocaleString()}</span>}
+                {bStatus && <span className={cn("font-medium", bStatus === "Aprobado" || bStatus === "Finalizado" ? "text-success" : bStatus === "Rechazado" ? "text-destructive" : "text-warning")}>{bStatus}</span>}
+              </div>
+              <div onClick={(e) => e.stopPropagation()}>
+                <TooltipProvider delayDuration={200}>
+                  <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />
+                </TooltipProvider>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -432,7 +479,6 @@ export default function Services() {
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Checkbox checked={bulk.selectedIds.has(s.id)} onCheckedChange={() => bulk.toggle(s.id)} />
                     </td>
-                    {/* Service info — combined column */}
                     <td className="px-3 py-2.5">
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
@@ -456,7 +502,6 @@ export default function Services() {
                         </div>
                       </div>
                     </td>
-                    {/* Status */}
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
                         <SelectTrigger className="h-6 w-auto min-w-[100px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge status={s.status} className="text-[10px]" /></SelectTrigger>
@@ -464,7 +509,6 @@ export default function Services() {
                       </Select>
                       {isBillingTab && !closedStatuses.includes(s.status) && <span className="block text-[10px] text-destructive mt-0.5">No cerrado</span>}
                     </td>
-                    {/* Scheduled date */}
                     <td className="px-3 py-2.5 text-xs">
                       {s.scheduledAt ? (
                         <div className="flex flex-col">
@@ -473,21 +517,18 @@ export default function Services() {
                         </div>
                       ) : <span className="text-muted-foreground italic">Sin cita</span>}
                     </td>
-                    {/* SLA */}
                     <td className="px-3 py-2.5">
                       {sla === "expired" && <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive animate-pulse-soft">⏰ Vencido</span>}
                       {sla === "warning" && <span className="text-[10px] font-semibold text-warning">⚠ Próximo</span>}
                       {sla === "ok" && <span className="text-[10px] text-success">✓ OK</span>}
                       {!sla && <span className="text-[10px] text-muted-foreground">—</span>}
                     </td>
-                    {/* Urgency */}
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
                         <SelectTrigger className="h-6 w-auto min-w-[70px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge urgency={s.urgency} className="text-[10px]" /></SelectTrigger>
                         <SelectContent>{urgencyOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge urgency={opt.value} /></SelectItem>)}</SelectContent>
                       </Select>
                     </td>
-                    {/* Budget status */}
                     <td className="px-3 py-2.5">
                       {(() => {
                         const bStatus = getBudgetStatusForService(s.id);
@@ -503,9 +544,7 @@ export default function Services() {
                         return <span className="text-[10px] text-muted-foreground">Rep. directa</span>;
                       })()}
                     </td>
-                    {/* Amount */}
                     <td className="px-3 py-2.5 text-right font-medium text-card-foreground text-xs">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
-                    {/* Protocol */}
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <TooltipProvider delayDuration={200}>
                         <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />

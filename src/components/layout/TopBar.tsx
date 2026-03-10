@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, MessageSquare, LogOut } from "lucide-react";
+import { Search, MessageSquare, LogOut, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ChatPanel from "@/components/chat/ChatPanel";
 import NotificationsPopover from "@/components/layout/NotificationsPopover";
@@ -37,15 +37,24 @@ export default function TopBar() {
 
   return (
     <>
-      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar clientes, servicios..."
-            className="pl-9 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
-          />
+      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-6 shrink-0">
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-sidebar"))}
+            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="relative w-48 sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar clientes, servicios..."
+              className="pl-9 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setChatOpen(true)}
             className="relative p-2 rounded-lg hover:bg-muted transition-colors"
@@ -73,7 +82,7 @@ export default function TopBar() {
           </Link>
           <button
             onClick={signOut}
-            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-destructive hidden sm:block"
             title="Cerrar sesión"
           >
             <LogOut className="w-4 h-4" />
