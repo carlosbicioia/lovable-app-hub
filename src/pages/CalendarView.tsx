@@ -1116,10 +1116,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedOperatorId && "border-primary text-primary")}>
             <User className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Operario" />
+            <SelectValue>{selectedOperatorId ? allOps.find(o => o.id === selectedOperatorId)?.name : <span className="text-muted-foreground">Operario</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los operarios</SelectItem>
+            <SelectItem value="__all__">Operario: Todos</SelectItem>
             {allOps.map((op) => (
               <SelectItem key={op.id} value={op.id}>
                 <span className="flex items-center gap-2">
@@ -1138,10 +1138,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedSpecialty && "border-primary text-primary")}>
             <Droplets className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Especialidad" />
+            <SelectValue>{selectedSpecialty ? selectedSpecialty.replace("/", " / ") : <span className="text-muted-foreground">Especialidad</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todas las especialidades</SelectItem>
+            <SelectItem value="__all__">Especialidad: Todas</SelectItem>
             <SelectItem value="Fontanería/Agua">
               <span className="flex items-center gap-1.5">{specialtyIcon["Fontanería/Agua"]} Fontanería</span>
             </SelectItem>
@@ -1161,10 +1161,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedStatus && "border-primary text-primary")}>
             <PlayCircle className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Estado" />
+            <SelectValue>{selectedStatus ? selectedStatus.replace(/_/g, " ") : <span className="text-muted-foreground">Estado</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los estados</SelectItem>
+            <SelectItem value="__all__">Estado: Todos</SelectItem>
             <SelectItem value="Pendiente_Contacto">Pendiente contacto</SelectItem>
             <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
             <SelectItem value="Asignado">Asignado</SelectItem>
@@ -1182,10 +1182,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedUrgency && "border-primary text-primary")}>
             <AlertTriangle className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Urgencia" />
+            <SelectValue>{selectedUrgency ?? <span className="text-muted-foreground">Urgencia</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todas las urgencias</SelectItem>
+            <SelectItem value="__all__">Urgencia: Todas</SelectItem>
             <SelectItem value="Estándar">Estándar</SelectItem>
             <SelectItem value="24h">24h</SelectItem>
             <SelectItem value="Inmediato">Inmediato</SelectItem>
@@ -1199,10 +1199,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedOrigin && "border-primary text-primary")}>
             <Globe className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Origen" />
+            <SelectValue>{selectedOrigin ? selectedOrigin.replace(/_/g, " ") : <span className="text-muted-foreground">Origen</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los orígenes</SelectItem>
+            <SelectItem value="__all__">Origen: Todos</SelectItem>
             <SelectItem value="App">App</SelectItem>
             <SelectItem value="B2B">B2B</SelectItem>
             <SelectItem value="Directo">Directo</SelectItem>
@@ -1217,10 +1217,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[180px] h-8 text-xs", selectedCollaboratorId && "border-primary text-primary")}>
             <Building2 className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Colaborador" />
+            <SelectValue>{selectedCollaboratorId ? collaborators.find(c => c.id === selectedCollaboratorId)?.companyName : <span className="text-muted-foreground">Colaborador</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los colaboradores</SelectItem>
+            <SelectItem value="__all__">Colaborador: Todos</SelectItem>
             {collaborators.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
             ))}
