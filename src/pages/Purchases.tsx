@@ -187,6 +187,7 @@ export default function Purchases() {
     return invoices.filter(
       (i) =>
         (!search || i.invoiceNumber.toLowerCase().includes(q) ||
+        i.supplierInvoiceNumber.toLowerCase().includes(q) ||
         i.supplierName.toLowerCase().includes(q)) &&
         dateInRange(i.invoiceDate || i.createdAt) &&
         (filterSupplier === "all" || i.supplierName === filterSupplier) &&
