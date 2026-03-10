@@ -54,6 +54,7 @@ export default function InvoiceCreate() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState("");
   const [supplierName, setSupplierName] = useState("");
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [invoiceDate, setInvoiceDate] = useState("");
