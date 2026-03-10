@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { useBranches } from "@/hooks/useBranches";
 import PostalCodeFields from "@/components/shared/PostalCodeFields";
+import AddressFields from "@/components/shared/AddressFields";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -54,6 +55,9 @@ export interface ClientFormData {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   postalCode: string;
   city: string;
   province: string;
@@ -200,10 +204,16 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             <Label>Teléfono</Label>
             <Input value={form.phone} onChange={(e) => upd("phone", e.target.value)} placeholder="612345678" />
           </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label>Dirección</Label>
-            <Input value={form.address} onChange={(e) => upd("address", e.target.value)} placeholder="Calle, número, piso" />
-          </div>
+          <AddressFields
+            address={form.address}
+            onAddressChange={(v) => upd("address", v)}
+            streetNumber={form.streetNumber}
+            onStreetNumberChange={(v) => upd("streetNumber", v)}
+            floor={form.floor}
+            onFloorChange={(v) => upd("floor", v)}
+            addressExtra={form.addressExtra}
+            onAddressExtraChange={(v) => upd("addressExtra", v)}
+          />
           <PostalCodeFields
             postalCode={form.postalCode}
             onPostalCodeChange={(v) => upd("postalCode", v)}

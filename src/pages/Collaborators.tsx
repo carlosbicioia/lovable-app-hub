@@ -60,6 +60,9 @@ const emptyForm: CollaboratorInput = {
   contactPerson: "",
   taxId: "",
   address: "",
+  streetNumber: "",
+  floor: "",
+  addressExtra: "",
   city: "",
   province: "",
   postalCode: "",
@@ -111,6 +114,9 @@ export default function Collaborators() {
       contactPerson: c.contactPerson,
       taxId: c.taxId,
       address: c.address,
+      streetNumber: c.streetNumber,
+      floor: c.floor,
+      addressExtra: c.addressExtra,
       city: c.city,
       province: c.province,
       postalCode: c.postalCode,
@@ -370,14 +376,23 @@ export default function Collaborators() {
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address">Dirección</Label>
-              <Input
-                id="address"
-                value={form.address}
-                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                placeholder="Calle, número, piso..."
-              />
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-6 space-y-1.5">
+                <Label>Calle</Label>
+                <Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder="Nombre de la calle" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Número</Label>
+                <Input value={form.streetNumber} onChange={(e) => setForm((f) => ({ ...f, streetNumber: e.target.value }))} placeholder="Nº" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Piso</Label>
+                <Input value={form.floor} onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))} placeholder="1ºA" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Adicional</Label>
+                <Input value={form.addressExtra} onChange={(e) => setForm((f) => ({ ...f, addressExtra: e.target.value }))} placeholder="Esc, puerta..." />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">

@@ -13,6 +13,9 @@ export interface DbClient {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   postalCode: string;
   city: string;
   province: string;
@@ -40,6 +43,9 @@ function mapRow(r: any): DbClient {
     email: r.email,
     phone: r.phone,
     address: r.address,
+    streetNumber: r.street_number ?? "",
+    floor: r.floor ?? "",
+    addressExtra: r.address_extra ?? "",
     postalCode: r.postal_code,
     city: r.city,
     province: r.province,
@@ -95,6 +101,9 @@ export function useCreateClient() {
         email: input.email,
         phone: input.phone,
         address: input.address,
+        street_number: input.streetNumber,
+        floor: input.floor,
+        address_extra: input.addressExtra,
         postal_code: input.postalCode,
         city: input.city,
         province: input.province,
@@ -131,6 +140,9 @@ export function useUpdateClient() {
         email: input.email,
         phone: input.phone,
         address: input.address,
+        street_number: input.streetNumber,
+        floor: input.floor,
+        address_extra: input.addressExtra,
         postal_code: input.postalCode,
         city: input.city,
         province: input.province,

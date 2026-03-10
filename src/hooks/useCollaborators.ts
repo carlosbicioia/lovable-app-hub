@@ -15,6 +15,9 @@ function mapRow(row: any): Collaborator {
     totalClients: row.total_clients,
     taxId: row.tax_id ?? "",
     address: row.address ?? "",
+    streetNumber: row.street_number ?? "",
+    floor: row.floor ?? "",
+    addressExtra: row.address_extra ?? "",
     city: row.city ?? "",
     province: row.province ?? "",
     postalCode: row.postal_code ?? "",
@@ -32,6 +35,9 @@ export type CollaboratorInput = {
   contactPerson: string;
   taxId: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   postalCode: string;
@@ -77,6 +83,9 @@ export function useCollaborators() {
       contact_person: input.contactPerson,
       tax_id: input.taxId,
       address: input.address,
+      street_number: input.streetNumber,
+      floor: input.floor,
+      address_extra: input.addressExtra,
       city: input.city,
       province: input.province,
       postal_code: input.postalCode,
@@ -99,6 +108,9 @@ export function useCollaborators() {
         contact_person: input.contactPerson,
         tax_id: input.taxId,
         address: input.address,
+        street_number: input.streetNumber,
+        floor: input.floor,
+        address_extra: input.addressExtra,
         city: input.city,
         province: input.province,
         postal_code: input.postalCode,

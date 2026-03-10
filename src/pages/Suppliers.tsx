@@ -33,6 +33,9 @@ const emptyForm = () => ({
   phone: "",
   email: "",
   address: "",
+  streetNumber: "",
+  floor: "",
+  addressExtra: "",
   city: "",
   province: "",
   contactPerson: "",
@@ -77,6 +80,9 @@ export default function Suppliers() {
       phone: s.phone,
       email: s.email,
       address: s.address,
+      streetNumber: s.streetNumber,
+      floor: s.floor,
+      addressExtra: s.addressExtra,
       city: s.city,
       province: s.province,
       contactPerson: s.contactPerson,
@@ -251,9 +257,23 @@ export default function Suppliers() {
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Dirección</Label>
-              <Input value={form.address} onChange={(e) => updateField("address", e.target.value)} />
+            <div className="col-span-2 grid grid-cols-12 gap-3">
+              <div className="col-span-6 space-y-1.5">
+                <Label>Calle</Label>
+                <Input value={form.address} onChange={(e) => updateField("address", e.target.value)} placeholder="Nombre de la calle" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Número</Label>
+                <Input value={form.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} placeholder="Nº" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Piso</Label>
+                <Input value={form.floor} onChange={(e) => updateField("floor", e.target.value)} placeholder="1ºA" />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Adicional</Label>
+                <Input value={form.addressExtra} onChange={(e) => updateField("addressExtra", e.target.value)} placeholder="Esc, puerta..." />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Ciudad</Label>

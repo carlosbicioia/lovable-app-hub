@@ -48,10 +48,12 @@ export type Database = {
         Row: {
           active: boolean
           address: string
+          address_extra: string
           city: string
           cluster_ids: string[]
           created_at: string
           email: string
+          floor: string
           id: string
           logo_url: string | null
           manager_name: string
@@ -59,15 +61,18 @@ export type Database = {
           phone: string
           postal_code: string
           province: string
+          street_number: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           address?: string
+          address_extra?: string
           city?: string
           cluster_ids?: string[]
           created_at?: string
           email?: string
+          floor?: string
           id?: string
           logo_url?: string | null
           manager_name?: string
@@ -75,15 +80,18 @@ export type Database = {
           phone?: string
           postal_code?: string
           province?: string
+          street_number?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           address?: string
+          address_extra?: string
           city?: string
           cluster_ids?: string[]
           created_at?: string
           email?: string
+          floor?: string
           id?: string
           logo_url?: string | null
           manager_name?: string
@@ -91,6 +99,7 @@ export type Database = {
           phone?: string
           postal_code?: string
           province?: string
+          street_number?: string
           updated_at?: string
         }
         Relationships: []
@@ -258,6 +267,7 @@ export type Database = {
       clients: {
         Row: {
           address: string
+          address_extra: string
           city: string
           client_type: string
           cluster_id: string
@@ -267,6 +277,7 @@ export type Database = {
           created_at: string
           dni: string
           email: string
+          floor: string
           id: string
           last_name: string
           last_service_date: string | null
@@ -276,11 +287,13 @@ export type Database = {
           plan_type: string
           postal_code: string
           province: string
+          street_number: string
           tax_id: string
           updated_at: string
         }
         Insert: {
           address?: string
+          address_extra?: string
           city?: string
           client_type?: string
           cluster_id?: string
@@ -290,6 +303,7 @@ export type Database = {
           created_at?: string
           dni?: string
           email?: string
+          floor?: string
           id: string
           last_name?: string
           last_service_date?: string | null
@@ -299,11 +313,13 @@ export type Database = {
           plan_type?: string
           postal_code?: string
           province?: string
+          street_number?: string
           tax_id?: string
           updated_at?: string
         }
         Update: {
           address?: string
+          address_extra?: string
           city?: string
           client_type?: string
           cluster_id?: string
@@ -313,6 +329,7 @@ export type Database = {
           created_at?: string
           dni?: string
           email?: string
+          floor?: string
           id?: string
           last_name?: string
           last_service_date?: string | null
@@ -322,6 +339,7 @@ export type Database = {
           plan_type?: string
           postal_code?: string
           province?: string
+          street_number?: string
           tax_id?: string
           updated_at?: string
         }
@@ -332,6 +350,7 @@ export type Database = {
           active_services: number
           additional_contacts: Json
           address: string
+          address_extra: string
           branch_id: string | null
           category: string
           city: string
@@ -339,6 +358,7 @@ export type Database = {
           contact_person: string
           created_at: string
           email: string
+          floor: string
           id: string
           logo_url: string | null
           notes: string
@@ -348,6 +368,7 @@ export type Database = {
           portal_enabled: boolean
           postal_code: string
           province: string
+          street_number: string
           tax_id: string
           total_clients: number
           updated_at: string
@@ -357,6 +378,7 @@ export type Database = {
           active_services?: number
           additional_contacts?: Json
           address?: string
+          address_extra?: string
           branch_id?: string | null
           category?: string
           city?: string
@@ -364,6 +386,7 @@ export type Database = {
           contact_person?: string
           created_at?: string
           email?: string
+          floor?: string
           id: string
           logo_url?: string | null
           notes?: string
@@ -373,6 +396,7 @@ export type Database = {
           portal_enabled?: boolean
           postal_code?: string
           province?: string
+          street_number?: string
           tax_id?: string
           total_clients?: number
           updated_at?: string
@@ -382,6 +406,7 @@ export type Database = {
           active_services?: number
           additional_contacts?: Json
           address?: string
+          address_extra?: string
           branch_id?: string | null
           category?: string
           city?: string
@@ -389,6 +414,7 @@ export type Database = {
           contact_person?: string
           created_at?: string
           email?: string
+          floor?: string
           id?: string
           logo_url?: string | null
           notes?: string
@@ -398,6 +424,7 @@ export type Database = {
           portal_enabled?: boolean
           postal_code?: string
           province?: string
+          street_number?: string
           tax_id?: string
           total_clients?: number
           updated_at?: string
@@ -416,6 +443,7 @@ export type Database = {
       company_settings: {
         Row: {
           address: string
+          address_extra: string
           budget_next_number: number
           budget_prefix: string
           budget_terms: string
@@ -427,6 +455,7 @@ export type Database = {
           default_vat: number
           document_footer: string
           email: string
+          floor: string
           id: string
           invoice_prefix: string
           language: string
@@ -437,6 +466,7 @@ export type Database = {
           service_prefix: string
           sla_first_contact_hours: number
           sla_resolution_hours: number
+          street_number: string
           tax_id: string
           theme: string
           timezone: string
@@ -445,6 +475,7 @@ export type Database = {
         }
         Insert: {
           address?: string
+          address_extra?: string
           budget_next_number?: number
           budget_prefix?: string
           budget_terms?: string
@@ -456,6 +487,7 @@ export type Database = {
           default_vat?: number
           document_footer?: string
           email?: string
+          floor?: string
           id?: string
           invoice_prefix?: string
           language?: string
@@ -466,6 +498,7 @@ export type Database = {
           service_prefix?: string
           sla_first_contact_hours?: number
           sla_resolution_hours?: number
+          street_number?: string
           tax_id?: string
           theme?: string
           timezone?: string
@@ -474,6 +507,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          address_extra?: string
           budget_next_number?: number
           budget_prefix?: string
           budget_terms?: string
@@ -485,6 +519,7 @@ export type Database = {
           default_vat?: number
           document_footer?: string
           email?: string
+          floor?: string
           id?: string
           invoice_prefix?: string
           language?: string
@@ -495,6 +530,7 @@ export type Database = {
           service_prefix?: string
           sla_first_contact_hours?: number
           sla_resolution_hours?: number
+          street_number?: string
           tax_id?: string
           theme?: string
           timezone?: string
@@ -760,6 +796,7 @@ export type Database = {
         Row: {
           active_services: number
           address: string
+          address_extra: string
           available: boolean
           avg_response_time: number
           branch_id: string | null
@@ -773,6 +810,7 @@ export type Database = {
           dni: string
           email: string
           first_name: string
+          floor: string
           hire_date: string | null
           id: string
           last_name: string
@@ -785,6 +823,7 @@ export type Database = {
           secondary_specialty: string | null
           specialty: string
           status: string
+          street_number: string
           total_revenue: number
           updated_at: string
           vehicle_plate: string | null
@@ -792,6 +831,7 @@ export type Database = {
         Insert: {
           active_services?: number
           address?: string
+          address_extra?: string
           available?: boolean
           avg_response_time?: number
           branch_id?: string | null
@@ -805,6 +845,7 @@ export type Database = {
           dni?: string
           email?: string
           first_name?: string
+          floor?: string
           hire_date?: string | null
           id: string
           last_name?: string
@@ -817,6 +858,7 @@ export type Database = {
           secondary_specialty?: string | null
           specialty?: string
           status?: string
+          street_number?: string
           total_revenue?: number
           updated_at?: string
           vehicle_plate?: string | null
@@ -824,6 +866,7 @@ export type Database = {
         Update: {
           active_services?: number
           address?: string
+          address_extra?: string
           available?: boolean
           avg_response_time?: number
           branch_id?: string | null
@@ -837,6 +880,7 @@ export type Database = {
           dni?: string
           email?: string
           first_name?: string
+          floor?: string
           hire_date?: string | null
           id?: string
           last_name?: string
@@ -849,6 +893,7 @@ export type Database = {
           secondary_specialty?: string | null
           specialty?: string
           status?: string
+          street_number?: string
           total_revenue?: number
           updated_at?: string
           vehicle_plate?: string | null
@@ -1399,6 +1444,7 @@ export type Database = {
       services: {
         Row: {
           address: string | null
+          address_extra: string
           branch_id: string | null
           budget_status: string | null
           budget_total: number | null
@@ -1415,6 +1461,7 @@ export type Database = {
           created_at: string
           description: string | null
           diagnosis_complete: boolean
+          floor: string
           id: string
           internal_notes: string
           nps: number | null
@@ -1434,11 +1481,13 @@ export type Database = {
           skip_sales_order_reason: string | null
           specialty: string
           status: string
+          street_number: string
           updated_at: string
           urgency: string
         }
         Insert: {
           address?: string | null
+          address_extra?: string
           branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null
@@ -1455,6 +1504,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           diagnosis_complete?: boolean
+          floor?: string
           id: string
           internal_notes?: string
           nps?: number | null
@@ -1474,11 +1524,13 @@ export type Database = {
           skip_sales_order_reason?: string | null
           specialty?: string
           status?: string
+          street_number?: string
           updated_at?: string
           urgency?: string
         }
         Update: {
           address?: string | null
+          address_extra?: string
           branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null
@@ -1495,6 +1547,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           diagnosis_complete?: boolean
+          floor?: string
           id?: string
           internal_notes?: string
           nps?: number | null
@@ -1514,6 +1567,7 @@ export type Database = {
           skip_sales_order_reason?: string | null
           specialty?: string
           status?: string
+          street_number?: string
           updated_at?: string
           urgency?: string
         }
@@ -1618,11 +1672,13 @@ export type Database = {
         Row: {
           active: boolean
           address: string
+          address_extra: string
           city: string
           contact_person: string
           created_at: string
           due_days: number
           email: string
+          floor: string
           iban: string
           id: string
           name: string
@@ -1630,17 +1686,20 @@ export type Database = {
           payment_terms: string
           phone: string
           province: string
+          street_number: string
           tax_id: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           address?: string
+          address_extra?: string
           city?: string
           contact_person?: string
           created_at?: string
           due_days?: number
           email?: string
+          floor?: string
           iban?: string
           id?: string
           name?: string
@@ -1648,17 +1707,20 @@ export type Database = {
           payment_terms?: string
           phone?: string
           province?: string
+          street_number?: string
           tax_id?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           address?: string
+          address_extra?: string
           city?: string
           contact_person?: string
           created_at?: string
           due_days?: number
           email?: string
+          floor?: string
           iban?: string
           id?: string
           name?: string
@@ -1666,6 +1728,7 @@ export type Database = {
           payment_terms?: string
           phone?: string
           province?: string
+          street_number?: string
           tax_id?: string
           updated_at?: string
         }

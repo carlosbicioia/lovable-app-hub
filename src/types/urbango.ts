@@ -14,6 +14,9 @@ export interface Client {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   postalCode: string;
   city: string;
   province: string;
@@ -36,6 +39,9 @@ export interface Collaborator {
   contactPerson: string;
   taxId: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   postalCode: string;
@@ -105,6 +111,9 @@ export interface Service {
   budgetStatus: "Pendiente" | "Enviado" | "Aprobado" | "Rechazado" | null;
   description?: string;
   address?: string;
+  streetNumber?: string;
+  floor?: string;
+  addressExtra?: string;
   contactName?: string;
   contactPhone?: string;
   postalCode?: string;
@@ -138,6 +147,9 @@ export interface Operator {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   photo: string;

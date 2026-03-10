@@ -10,6 +10,9 @@ export interface DbOperator {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   photo: string;
@@ -43,6 +46,9 @@ function mapRow(r: any, monthlyRevenue: any[]): DbOperator {
     email: r.email,
     phone: r.phone,
     address: r.address,
+    streetNumber: r.street_number ?? "",
+    floor: r.floor ?? "",
+    addressExtra: r.address_extra ?? "",
     city: r.city,
     province: r.province,
     photo: r.photo,

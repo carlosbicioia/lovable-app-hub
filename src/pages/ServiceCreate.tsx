@@ -53,8 +53,8 @@ export default function ServiceCreate() {
   // ── New client dialog state ──
   const emptyClientForm: ClientFormData = {
     clientType: "Particular", name: "", lastName: "", companyName: "",
-    dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "",
-    city: "", province: "", clusterId: "", collaboratorId: null,
+    dni: "", taxId: "", email: "", phone: "", address: "", streetNumber: "", floor: "", addressExtra: "",
+    postalCode: "", city: "", province: "", clusterId: "", collaboratorId: null,
     collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
   };
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
@@ -114,6 +114,9 @@ export default function ServiceCreate() {
   // ── Description & Location ──
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [streetNumber, setStreetNumber] = useState("");
+  const [floor, setFloor] = useState("");
+  const [addressExtra, setAddressExtra] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
   const [servicePostalCode, setServicePostalCode] = useState("");
@@ -201,6 +204,9 @@ export default function ServiceCreate() {
     const client = clients.find((c) => c.id === id);
     if (client) {
       setAddress(client.address || "");
+      setStreetNumber(client.streetNumber || "");
+      setFloor(client.floor || "");
+      setAddressExtra(client.addressExtra || "");
       setServiceCity(client.city || "");
       setServiceProvince(client.province || "");
       setServicePostalCode(client.postalCode || "");
@@ -279,6 +285,9 @@ export default function ServiceCreate() {
       claim_status: claimStatus,
       description,
       address,
+      street_number: streetNumber,
+      floor,
+      address_extra: addressExtra,
       contact_name: serviceContactName,
       contact_phone: servicePhone,
       postal_code: servicePostalCode,
@@ -744,9 +753,23 @@ export default function ServiceCreate() {
               <Label>Email de contacto</Label>
               <Input type="email" value={serviceEmail} onChange={(e) => setServiceEmail(e.target.value)} placeholder="email@ejemplo.com" />
             </div>
-            <div className="space-y-2 md:col-span-3">
-              <Label>Dirección de intervención</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
+            <div className="md:col-span-3 grid grid-cols-12 gap-3">
+              <div className="col-span-6 space-y-2">
+                <Label>Calle</Label>
+                <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Nombre de la calle" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Número</Label>
+                <Input value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} placeholder="Nº" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Piso</Label>
+                <Input value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="1ºA" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Adicional</Label>
+                <Input value={addressExtra} onChange={(e) => setAddressExtra(e.target.value)} placeholder="Esc, puerta..." />
+              </div>
             </div>
             <PostalCodeFields
               postalCode={servicePostalCode}

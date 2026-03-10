@@ -9,6 +9,9 @@ export interface Supplier {
   phone: string;
   email: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   contactPerson: string;
@@ -29,6 +32,9 @@ function mapRow(row: any): Supplier {
     phone: row.phone,
     email: row.email,
     address: row.address,
+    streetNumber: row.street_number ?? "",
+    floor: row.floor ?? "",
+    addressExtra: row.address_extra ?? "",
     city: row.city,
     province: row.province,
     contactPerson: row.contact_person,
@@ -67,6 +73,9 @@ export function useCreateSupplier() {
         phone: input.phone,
         email: input.email,
         address: input.address,
+        street_number: input.streetNumber,
+        floor: input.floor,
+        address_extra: input.addressExtra,
         city: input.city,
         province: input.province,
         contact_person: input.contactPerson,
@@ -97,6 +106,9 @@ export function useUpdateSupplier() {
       if (input.phone !== undefined) updates.phone = input.phone;
       if (input.email !== undefined) updates.email = input.email;
       if (input.address !== undefined) updates.address = input.address;
+      if (input.streetNumber !== undefined) updates.street_number = input.streetNumber;
+      if (input.floor !== undefined) updates.floor = input.floor;
+      if (input.addressExtra !== undefined) updates.address_extra = input.addressExtra;
       if (input.city !== undefined) updates.city = input.city;
       if (input.province !== undefined) updates.province = input.province;
       if (input.contactPerson !== undefined) updates.contact_person = input.contactPerson;
