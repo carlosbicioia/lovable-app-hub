@@ -6,6 +6,7 @@ export interface ServiceOriginRow {
   id: string;
   name: string;
   show_collaborator: boolean;
+  is_assistance: boolean;
   active: boolean;
   sort_order: number;
   created_at: string;
