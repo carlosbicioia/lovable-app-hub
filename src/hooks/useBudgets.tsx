@@ -116,6 +116,48 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     await fetchBudgets();
   }, [fetchBudgets]);
 
+  const updateBudget = useCallback(async (budget: Budget) => {
+    setBudgets((prev) => prev.map((b) => (b.id === budget.id ? budget : b)));
+
+    const { error } = await supabase
+      .from("budgets")
+      .update({
+        service_name: budget.serviceName,
+        client_name: budget.clientName,
+        client_address: budget.clientAddress,
+        collaborator_name: budget.collaboratorName,
+        terms_and_conditions: budget.termsAndConditions,
+        status: budget.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", budget.id);
+
+    if (error) {
+      toast.error("Error al actualizar presupuesto");
+      await fetchBudgets();
+      return;
+    }
+
+    // Replace lines: delete old, insert new
+    await supabase.from("budget_lines").delete().eq("budget_id", budget.id);
+    if (budget.lines.length > 0) {
+      await supabase.from("budget_lines").insert(
+        budget.lines.map((l, i) => ({
+          budget_id: budget.id,
+          concept: l.concept,
+          description: l.description || null,
+          units: l.units,
+          cost_price: l.costPrice,
+          margin: l.margin,
+          tax_rate: l.taxRate,
+          sort_order: i,
+        }))
+      );
+    }
+
+    await fetchBudgets();
+  }, [fetchBudgets]);
+
   const updateBudgetStatus = useCallback(async (budgetId: string, status: BudgetStatus) => {
     // Optimistic
     setBudgets((prev) =>
