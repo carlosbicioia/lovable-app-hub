@@ -217,7 +217,14 @@ function ServiceChip({
             </span>
           </span>
           {isSpanning && (
-            <span className="truncate text-[10px] opacity-80 mt-0.5">{service.clientName} · {service.specialty}</span>
+            <>
+              <span className="truncate text-[10px] opacity-80 mt-0.5">{service.clientName} · {service.specialty}</span>
+              {service.address && (
+                <span className="truncate text-[10px] opacity-60 flex items-center gap-0.5">
+                  <MapPin className="w-2.5 h-2.5 shrink-0" />{service.address}
+                </span>
+              )}
+            </>
           )}
         </button>
       </TooltipTrigger>
