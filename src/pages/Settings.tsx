@@ -545,13 +545,20 @@ function LogoUploadSection({ logoUrl, onUploaded, onRemoved }: { logoUrl: string
             </div>
           )}
         </div>
-        <div className="pt-2">
+        <div className="pt-2 space-y-2">
           <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />
-          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
-            {uploading ? "Subiendo..." : displayUrl ? "Cambiar logo" : "Subir logo"}
-          </Button>
-          <p className="text-xs text-muted-foreground mt-1">PNG, SVG o JPG, máximo 2 MB</p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
+              {uploading ? "Subiendo..." : displayUrl ? "Cambiar logo" : "Subir logo"}
+            </Button>
+            {displayUrl && (
+              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => { setLocalPreview(null); onRemoved(); }}>
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Eliminar
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">PNG, SVG o JPG, máximo 2 MB</p>
         </div>
       </div>
     </div>
