@@ -118,6 +118,9 @@ export default function ServiceEdit() {
     setClaimStatus(service.claimStatus);
     setDescription(service.description ?? "");
     setAddress(service.address ?? "");
+    setStreetNumber((service as any).streetNumber ?? "");
+    setFloor((service as any).floor ?? "");
+    setAddressExtra((service as any).addressExtra ?? "");
     const svcClient = clients.find(c => c.id === service.clientId);
     // Use persisted service fields if available, fallback to client data
     setServiceCity(svcClient?.city ?? "");
