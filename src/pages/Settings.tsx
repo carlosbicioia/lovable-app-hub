@@ -534,19 +534,22 @@ function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; on
   return (
     <div className="space-y-2">
       <Label>Logotipo</Label>
-      <div className="flex items-center gap-4">
-        <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden">
+      <div className="flex items-start gap-4">
+        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden shrink-0">
           {displayUrl ? (
-            <img src={displayUrl} alt="Logo" className="w-full h-full object-contain" />
+            <img src={displayUrl} alt="Logo de la empresa" className="w-full h-full object-contain p-2" />
           ) : (
-            <Upload className="w-6 h-6 text-muted-foreground" />
+            <div className="flex flex-col items-center gap-1 text-muted-foreground">
+              <Upload className="w-6 h-6" />
+              <span className="text-[10px]">Sin logo</span>
+            </div>
           )}
         </div>
-        <div>
+        <div className="pt-2">
           <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />
           <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
             {uploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
-            {uploading ? "Subiendo..." : "Subir logo"}
+            {uploading ? "Subiendo..." : displayUrl ? "Cambiar logo" : "Subir logo"}
           </Button>
           <p className="text-xs text-muted-foreground mt-1">PNG, SVG o JPG, máximo 2 MB</p>
         </div>
