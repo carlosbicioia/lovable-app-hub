@@ -53,8 +53,8 @@ export default function ServiceCreate() {
   // ── New client dialog state ──
   const emptyClientForm: ClientFormData = {
     clientType: "Particular", name: "", lastName: "", companyName: "",
-    dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "",
-    city: "", province: "", clusterId: "", collaboratorId: null,
+    dni: "", taxId: "", email: "", phone: "", address: "", streetNumber: "", floor: "", addressExtra: "",
+    postalCode: "", city: "", province: "", clusterId: "", collaboratorId: null,
     collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
   };
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
