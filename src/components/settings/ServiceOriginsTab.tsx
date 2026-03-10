@@ -46,6 +46,7 @@ export default function ServiceOriginsTab() {
     setEditingId(o.id);
     setEditName(o.name);
     setEditShowCollab(o.show_collaborator);
+    setEditIsAssistance(o.is_assistance);
   };
 
   const saveEdit = () => {
