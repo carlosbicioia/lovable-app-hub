@@ -3,11 +3,12 @@ import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, FileText, Pencil, Clock, Package, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon, ClipboardList, MessageSquare, Image, BarChart3 } from "lucide-react";
+import { ArrowLeft, FileText, Pencil, Clock, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon, ClipboardList, MessageSquare, Image, BarChart3, User, MapPin, Phone, Building2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { differenceInHours } from "date-fns";
+import { differenceInHours, format } from "date-fns";
+import { es } from "date-fns/locale";
 import ServiceInfoCards from "@/components/service-detail/ServiceInfoCards";
 import ServiceDescription from "@/components/service-detail/ServiceDescription";
 import ServiceTimeline from "@/components/service-detail/ServiceTimeline";
@@ -27,14 +28,6 @@ import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const claimStatusConfig: Record<ClaimStatus, { label: string; className: string; tooltip: string }> = {
-  Abierto: { label: "Abierto", className: "bg-info/15 text-info border-info/30", tooltip: "Reclamación abierta por el cliente o colaborador" },
-  En_Valoración: { label: "En Valoración", className: "bg-warning/15 text-warning border-warning/30", tooltip: "Reclamación en proceso de valoración interna" },
-  Aceptado: { label: "Aceptado", className: "bg-success/15 text-success border-success/30", tooltip: "Reclamación aceptada — se procede con la solución" },
-  Rechazado: { label: "Rechazado", className: "bg-destructive/15 text-destructive border-destructive/30", tooltip: "Reclamación rechazada tras valoración" },
-  Cerrado: { label: "Cerrado", className: "bg-muted text-muted-foreground border-border", tooltip: "Reclamación cerrada y resuelta" },
-};
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -78,7 +71,7 @@ export default function ServiceDetail() {
   };
 
   const sla = getSlaStatus();
-  const claimCfg = claimStatusConfig[service.claimStatus];
+  const financialCount = (linkedBudget ? 1 : 0) + linkedOrders.length + salesOrders.length;
 
   const handleDeleteService = async () => {
     try {
@@ -110,52 +103,60 @@ export default function ServiceDetail() {
     }
   };
 
-  // Financial counters
-  const financialCount = (linkedBudget ? 1 : 0) + linkedOrders.length + salesOrders.length;
+  const copyId = () => {
+    navigator.clipboard.writeText(service.id);
+    toast.success("ID copiado");
+  };
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
-        {/* Header — simplified */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/servicios")}>
+      <div className="space-y-4">
+        {/* Compact header */}
+        <div className="flex items-start gap-3">
+          <Button variant="ghost" size="icon" className="mt-0.5 shrink-0" onClick={() => navigate("/servicios")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-display font-bold text-foreground">{service.id}</h1>
-              <StatusBadge status={service.status} />
+              <h1 className="text-xl font-display font-bold text-foreground">{service.id}</h1>
+              <Button variant="ghost" size="icon" className="w-6 h-6" onClick={copyId}>
+                <Copy className="w-3 h-3" />
+              </Button>
               <StatusBadge urgency={service.urgency} />
               {sla === "expired" && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive animate-pulse-soft px-2 py-0.5 rounded-full border border-destructive/30 bg-destructive/15 cursor-help">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive animate-pulse-soft px-1.5 py-0.5 rounded-full border border-destructive/30 bg-destructive/15 cursor-help">
                       ⏰ SLA Vencido
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent><p className="text-xs">Han pasado más de 12h sin contactar al cliente</p></TooltipContent>
+                  <TooltipContent><p className="text-xs">Más de 12h sin contactar al cliente</p></TooltipContent>
                 </Tooltip>
               )}
               {sla === "warning" && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-warning px-2 py-0.5 rounded-full border border-warning/30 bg-warning/15 cursor-help">
-                      ⚠ SLA Próximo
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent><p className="text-xs">Quedan menos de 4h para que venza el SLA de primer contacto</p></TooltipContent>
-                </Tooltip>
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-warning px-1.5 py-0.5 rounded-full border border-warning/30 bg-warning/15">
+                  ⚠ SLA Próximo
+                </span>
               )}
             </div>
-            <p className="text-muted-foreground text-sm mt-0.5">
-              {service.clientName} · {service.specialty} · {service.origin}
-              {service.serviceType === "Presupuesto" ? " · 📋 Con Presupuesto" : " · 🔧 Rep. Directa"}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+              <span className="font-medium text-card-foreground">{service.clientName}</span>
+              <span>·</span>
+              <span>{service.specialty}</span>
+              <span>·</span>
+              <span>{service.origin}</span>
+              <span>·</span>
+              <span>{service.serviceCategory === "Plan_Preventivo" ? "🛡 Preventivo" : "🔨 Correctivo"}</span>
+              <span>·</span>
+              <span>{service.serviceType === "Presupuesto" ? "📋 Presupuesto" : "🔧 Rep. Directa"}</span>
+              <span>·</span>
+              <span className="text-muted-foreground/60">Cluster {service.clusterId}</span>
+            </div>
           </div>
-          {/* Actions dropdown */}
+          {/* Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="sm" className="shrink-0">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -184,103 +185,65 @@ export default function ServiceDetail() {
           </DropdownMenu>
         </div>
 
-        {/* Secondary badges row */}
-        <div className="flex items-center gap-2 flex-wrap -mt-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border cursor-help", claimCfg.className)}>
-                Siniestro: {claimCfg.label}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent><p className="text-xs">{claimCfg.tooltip}</p></TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className={cn(
-                "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border cursor-help",
-                service.serviceCategory === "Plan_Preventivo"
-                  ? "bg-info/15 text-info border-info/30"
-                  : "bg-muted text-muted-foreground border-border"
-              )}>
-                {service.serviceCategory === "Plan_Preventivo" ? "🛡 Plan Preventivo" : "🔨 Correctivo"}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs">
-                {service.serviceCategory === "Plan_Preventivo"
-                  ? "Servicio programado dentro del plan de mantenimiento"
-                  : "Servicio reactivo por avería o incidencia"}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-          <span className="text-[11px] text-muted-foreground">Cluster {service.clusterId}</span>
-        </div>
+        {/* Status pipeline + Info Cards */}
+        <ServiceInfoCards service={service} />
 
-        {/* Tabs — reorganized */}
+        {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap gap-0.5">
-            <TabsTrigger value="overview" className="text-sm gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5" /> Resumen
+          <TabsList className="w-full justify-start bg-muted/50 p-0.5 h-auto flex-wrap gap-0.5">
+            <TabsTrigger value="overview" className="text-xs gap-1 h-8">
+              <BarChart3 className="w-3 h-3" /> Resumen
             </TabsTrigger>
-            <TabsTrigger value="operations" className="text-sm gap-1.5">
-              <ClipboardList className="w-3.5 h-3.5" /> Operativa
+            <TabsTrigger value="operations" className="text-xs gap-1 h-8">
+              <ClipboardList className="w-3 h-3" /> Operativa
             </TabsTrigger>
-            <TabsTrigger value="notes" className="text-sm gap-1.5">
-              <MessageSquare className="w-3.5 h-3.5" /> Notas
+            <TabsTrigger value="notes" className="text-xs gap-1 h-8">
+              <MessageSquare className="w-3 h-3" /> Notas
             </TabsTrigger>
-            <TabsTrigger value="financial" className="text-sm gap-1.5">
-              <Euro className="w-3.5 h-3.5" /> Económico
+            <TabsTrigger value="financial" className="text-xs gap-1 h-8">
+              <Euro className="w-3 h-3" /> Económico
               {financialCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{financialCount}</span>
+                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{financialCount}</span>
               )}
             </TabsTrigger>
           </TabsList>
 
-          {/* ═══════════ Tab 1: RESUMEN ═══════════ */}
-          <TabsContent value="overview" className="space-y-6 mt-4">
-            <ServiceInfoCards service={service} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
+          {/* Tab 1: RESUMEN */}
+          <TabsContent value="overview" className="space-y-4 mt-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 space-y-4">
                 <ServiceDescription service={service} onUpdate={(updates) => updateService(service.id, updates)} />
 
-                {/* Quick economic summary */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
-                      <p className="text-lg font-bold text-card-foreground">
-                        {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
-                      <p className="text-lg font-bold text-card-foreground">
-                        {service.realHours != null ? `${service.realHours}h` : "—"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Materiales</p>
-                      <p className="text-lg font-bold text-card-foreground">
-                        {(service.materials?.length ?? 0) > 0 ? service.materials!.length : "—"}
-                      </p>
-                    </CardContent>
-                  </Card>
+                {/* Quick KPIs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="bg-card rounded-lg border border-border p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
+                    <p className="text-base font-bold text-card-foreground">
+                      {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                    </p>
+                  </div>
+                  <div className="bg-card rounded-lg border border-border p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas</p>
+                    <p className="text-base font-bold text-card-foreground">
+                      {service.realHours != null ? `${service.realHours}h` : "—"}
+                    </p>
+                  </div>
+                  <div className="bg-card rounded-lg border border-border p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Materiales</p>
+                    <p className="text-base font-bold text-card-foreground">
+                      {(service.materials?.length ?? 0) > 0 ? service.materials!.length : "—"}
+                    </p>
+                  </div>
                   {service.nps !== null && (
-                    <Card>
-                      <CardContent className="p-3">
-                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
-                        <p className={cn(
-                          "text-lg font-bold",
-                          service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
-                        )}>
-                          {service.nps}/10
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div className="bg-card rounded-lg border border-border p-3">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">NPS</p>
+                      <p className={cn(
+                        "text-base font-bold",
+                        service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
+                      )}>
+                        {service.nps}/10
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -288,16 +251,16 @@ export default function ServiceDetail() {
             </div>
           </TabsContent>
 
-          {/* ═══════════ Tab 2: OPERATIVA ═══════════ */}
-          <TabsContent value="operations" className="space-y-6 mt-4">
+          {/* Tab 2: OPERATIVA */}
+          <TabsContent value="operations" className="space-y-4 mt-3">
             <ServiceProtocolChecklist service={service} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
             <ServiceMaterials service={service} />
           </TabsContent>
 
-          {/* ═══════════ Tab 3: NOTAS ═══════════ */}
-          <TabsContent value="notes" className="space-y-6 mt-4">
+          {/* Tab 3: NOTAS */}
+          <TabsContent value="notes" className="space-y-4 mt-3">
             <ServiceComments
               title="Comentarios internos"
               description="Solo visibles para el equipo interno"
@@ -316,44 +279,43 @@ export default function ServiceDetail() {
             />
           </TabsContent>
 
-          {/* ═══════════ Tab 4: ECONÓMICO ═══════════ */}
-          <TabsContent value="financial" className="space-y-6 mt-4">
+          {/* Tab 4: ECONÓMICO */}
+          <TabsContent value="financial" className="space-y-4 mt-3">
             {/* Budget section */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" /> Presupuesto
               </h3>
               {service.serviceType === "Presupuesto" ? (
                 linkedBudget ? (
                   <Card>
-                    <CardHeader className="flex-row items-center justify-between space-y-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
                       <div>
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
                           Presupuesto {linkedBudget.id}
                         </CardTitle>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Creado el {new Date(linkedBudget.createdAt).toLocaleDateString("es-ES")} · Estado: {linkedBudget.status}
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {new Date(linkedBudget.createdAt).toLocaleDateString("es-ES")} · {linkedBudget.status}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
-                          <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar
+                      <div className="flex items-center gap-1.5">
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Editar
                         </Button>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
-                          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Eliminar
+                        <Button variant="outline" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => setShowDeleteBudgetDialog(true)}>
+                          <Trash2 className="w-3 h-3 mr-1" /> Eliminar
                         </Button>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <table className="w-full text-sm">
+                      <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-border">
-                            <th className="text-left py-2 text-muted-foreground font-medium">Concepto</th>
-                            <th className="text-center py-2 text-muted-foreground font-medium">Uds.</th>
-                            <th className="text-right py-2 text-muted-foreground font-medium">Coste</th>
-                            <th className="text-right py-2 text-muted-foreground font-medium">Margen</th>
-                            <th className="text-right py-2 text-muted-foreground font-medium">IVA</th>
-                            <th className="text-right py-2 text-muted-foreground font-medium">Total</th>
+                            <th className="text-left py-1.5 text-muted-foreground font-medium">Concepto</th>
+                            <th className="text-center py-1.5 text-muted-foreground font-medium">Uds.</th>
+                            <th className="text-right py-1.5 text-muted-foreground font-medium">Coste</th>
+                            <th className="text-right py-1.5 text-muted-foreground font-medium">Margen</th>
+                            <th className="text-right py-1.5 text-muted-foreground font-medium">Total</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -363,25 +325,22 @@ export default function ServiceDetail() {
                             const total = subtotal + Math.round(subtotal * (line.taxRate / 100) * 100) / 100;
                             return (
                               <tr key={line.id} className="border-b border-border last:border-0">
-                                <td className="py-2 text-card-foreground">
+                                <td className="py-1.5 text-card-foreground">
                                   {line.concept}
-                                  {line.description && (
-                                    <span className="block text-xs text-muted-foreground">{line.description}</span>
-                                  )}
+                                  {line.description && <span className="block text-[10px] text-muted-foreground">{line.description}</span>}
                                 </td>
-                                <td className="py-2 text-center text-muted-foreground">{line.units}</td>
-                                <td className="py-2 text-right text-muted-foreground">{line.costPrice.toFixed(2)} €</td>
-                                <td className="py-2 text-right text-muted-foreground">{line.margin}%</td>
-                                <td className="py-2 text-right text-muted-foreground">{line.taxRate}%</td>
-                                <td className="py-2 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
+                                <td className="py-1.5 text-center text-muted-foreground">{line.units}</td>
+                                <td className="py-1.5 text-right text-muted-foreground">{line.costPrice.toFixed(2)} €</td>
+                                <td className="py-1.5 text-right text-muted-foreground">{line.margin}%</td>
+                                <td className="py-1.5 text-right font-medium text-card-foreground">{total.toFixed(2)} €</td>
                               </tr>
                             );
                           })}
                         </tbody>
                         <tfoot>
                           <tr className="border-t-2 border-foreground/20">
-                            <td colSpan={5} className="py-2 font-bold text-card-foreground text-right">Total presupuesto:</td>
-                            <td className="py-2 text-right font-bold text-card-foreground text-lg">
+                            <td colSpan={4} className="py-1.5 font-bold text-card-foreground text-right text-xs">Total:</td>
+                            <td className="py-1.5 text-right font-bold text-card-foreground">
                               {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
                             </td>
                           </tr>
@@ -391,10 +350,10 @@ export default function ServiceDetail() {
                   </Card>
                 ) : (
                   <Card>
-                    <CardContent className="py-8 text-center">
-                      <FileText className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                    <CardContent className="py-6 text-center">
+                      <FileText className="w-7 h-7 text-muted-foreground/40 mx-auto mb-2" />
                       <p className="text-sm font-medium text-foreground">Sin presupuesto vinculado</p>
-                      <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto pero aún no se ha creado uno.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Este servicio requiere presupuesto.</p>
                       <Button className="mt-3" size="sm" onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
                         <FileText className="w-3.5 h-3.5 mr-1.5" /> Crear Presupuesto
                       </Button>
@@ -403,63 +362,55 @@ export default function ServiceDetail() {
                 )
               ) : (
                 <Card>
-                  <CardContent className="py-6 text-center">
-                    <p className="text-sm text-muted-foreground">Servicio de reparación directa — sin presupuesto requerido</p>
+                  <CardContent className="py-4 text-center">
+                    <p className="text-xs text-muted-foreground">Reparación directa — sin presupuesto requerido</p>
                   </CardContent>
                 </Card>
               )}
             </div>
 
             {/* Economic summary */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Euro className="w-4 h-4 text-muted-foreground" /> Resumen económico
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
-                    <p className="text-lg font-bold text-card-foreground">
-                      {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
-                    <p className="text-lg font-bold text-card-foreground">
-                      {service.realHours != null ? `${service.realHours}h` : "—"}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
-                    <p className="text-lg font-bold text-card-foreground">
-                      {service.budgetTotal && service.realHours
-                        ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
-                        : "—"}
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="bg-card rounded-lg border border-border p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
+                  <p className="text-base font-bold text-card-foreground">
+                    {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                  </p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas reales</p>
+                  <p className="text-base font-bold text-card-foreground">
+                    {service.realHours != null ? `${service.realHours}h` : "—"}
+                  </p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Coste/hora</p>
+                  <p className="text-base font-bold text-card-foreground">
+                    {service.budgetTotal && service.realHours
+                      ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                      : "—"}
+                  </p>
+                </div>
                 {service.nps !== null && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
-                      <p className={cn(
-                        "text-lg font-bold",
-                        service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
-                      )}>
-                        {service.nps}/10
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-card rounded-lg border border-border p-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">NPS</p>
+                    <p className={cn(
+                      "text-base font-bold",
+                      service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
+                    )}>
+                      {service.nps}/10
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Purchase orders */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
                 {linkedOrders.length > 0 && (
@@ -470,7 +421,7 @@ export default function ServiceDetail() {
             </div>
 
             {/* Sales orders */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-muted-foreground" /> Órdenes de venta
                 {salesOrders.length > 0 && (
@@ -505,7 +456,7 @@ export default function ServiceDetail() {
             <AlertDialogHeader>
               <AlertDialogTitle>¿Eliminar presupuesto {linkedBudget?.id}?</AlertDialogTitle>
               <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminarán el presupuesto <span className="font-semibold">{linkedBudget?.id}</span> y todas sus líneas.
+                Se eliminarán el presupuesto y todas sus líneas. Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
