@@ -128,6 +128,10 @@ export default function ServiceOriginsTab() {
                     <Switch checked={editShowCollab} onCheckedChange={setEditShowCollab} />
                     <span className="text-xs text-muted-foreground whitespace-nowrap"><Users className="w-3 h-3 inline mr-1" />Colab.</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Switch checked={editIsAssistance} onCheckedChange={setEditIsAssistance} />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap"><HeartPulse className="w-3 h-3 inline mr-1" />Asist.</span>
+                  </div>
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}><Save className="w-3.5 h-3.5" /></Button>
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="w-3.5 h-3.5" /></Button>
                 </>
