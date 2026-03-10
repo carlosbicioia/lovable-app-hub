@@ -100,6 +100,7 @@ function AppRoutes() {
         <Route path="/ordenes-venta" element={<SalesOrders />} />
         <Route path="/calendario" element={<CalendarView />} />
         {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
+        {isAdminOrGestor ? <Route path="/informes" element={<Reports />} /> : <Route path="/informes" element={<AccessDenied />} />}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>
