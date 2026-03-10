@@ -268,6 +268,7 @@ export type Database = {
           dni: string
           email: string
           id: string
+          last_name: string
           last_service_date: string | null
           name: string
           phone: string
@@ -289,6 +290,7 @@ export type Database = {
           dni?: string
           email?: string
           id: string
+          last_name?: string
           last_service_date?: string | null
           name?: string
           phone?: string
@@ -310,6 +312,7 @@ export type Database = {
           dni?: string
           email?: string
           id?: string
+          last_name?: string
           last_service_date?: string | null
           name?: string
           phone?: string
