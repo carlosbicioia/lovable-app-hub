@@ -463,6 +463,38 @@ function IndustrialConfigTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Shared Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Eliminar {deleteTarget?.type === "spec" ? "especialidad" : "certificación"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {usageLoading ? (
+                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Comprobando operarios afectados…</span>
+              ) : usageCount && usageCount > 0 ? (
+                <>
+                  <span className="font-semibold text-destructive">⚠ {usageCount} operario{usageCount > 1 ? "s" : ""}</span>{" "}
+                  {usageCount > 1 ? "tienen" : "tiene"} asignada la {deleteTarget?.type === "spec" ? "especialidad" : "certificación"}{" "}
+                  <strong>{deleteTarget?.name}</strong>. {deleteTarget?.type === "spec"
+                    ? "Conservarán el valor actual pero dejará de estar disponible en los desplegables."
+                    : "Conservarán el valor actual pero dejará de estar disponible para asignar."}
+                </>
+              ) : (
+                <>No hay operarios usando <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={usageLoading}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
