@@ -46,8 +46,19 @@ const PENDING_SERVICE_KEY = "pendingServiceCreate";
 export default function ServiceCreate() {
   const { refetch } = useServices();
   const { budgets } = useBudgets();
-  const { data: clients = [] } = useClients();
+  const { data: clients = [], refetch: refetchClients } = useClients();
+  const createClient = useCreateClient();
   const { collaborators } = useCollaborators();
+
+  // ── New client dialog state ──
+  const emptyClientForm: ClientFormData = {
+    clientType: "Particular", name: "", lastName: "", companyName: "",
+    dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "",
+    city: "", province: "", clusterId: "", collaboratorId: null,
+    collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
+  };
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false);
+  const [newClientForm, setNewClientForm] = useState<ClientFormData>(emptyClientForm);
   const { data: allOperators = [] } = useOperators();
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
