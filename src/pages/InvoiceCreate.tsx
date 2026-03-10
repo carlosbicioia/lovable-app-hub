@@ -208,6 +208,7 @@ export default function InvoiceCreate() {
     createInvoice.mutate(
       {
         invoiceNumber,
+        supplierInvoiceNumber,
         supplierId,
         supplierName,
         invoiceDate: invoiceDate || null,
