@@ -200,7 +200,7 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.clientType === "Empresa" ? c.taxId : c.dni}</td>
                   <td className="px-5 py-3">
-                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.name}</p>
+                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.fullName}</p>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
                   </td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>
