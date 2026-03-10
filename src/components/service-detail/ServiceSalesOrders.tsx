@@ -201,8 +201,18 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
                         </table>
                       </div>
                     )}
+                    {/* PDF */}
+                    <div className="mt-2">
+                      <PdfUpload
+                        currentPdfUrl={order.pdfPath}
+                        folder="purchase-docs"
+                        onUploaded={(url) => updateOrder.mutate({ id: order.id, pdf_path: url })}
+                        onRemoved={() => updateOrder.mutate({ id: order.id, pdf_path: null })}
+                        compact
+                      />
+                    </div>
 
-                    {/* Actions */}
+
                     {!isLiquidada && (
                       <div className="flex gap-2 pt-3">
                         {!order.sentToHolded ? (
