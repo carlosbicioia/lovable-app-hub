@@ -48,6 +48,7 @@ function mapRow(r: any): DbClient {
     collaboratorName: r.collaborator_name,
     planType: r.plan_type,
     lastServiceDate: r.last_service_date,
+    origin: r.origin ?? "Directo",
     fullName: [name, lastName].filter(Boolean).join(" "),
   };
 }
