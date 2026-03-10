@@ -35,6 +35,9 @@ export type CollaboratorInput = {
   contactPerson: string;
   taxId: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   postalCode: string;
