@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2 } from "lucide-react";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
+import { useCreateSalesOrder } from "@/hooks/useSalesOrders";
 import { supabase } from "@/integrations/supabase/client";
-import { format, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -17,7 +19,6 @@ interface Props {
   service: Service;
 }
 
-// Define valid forward transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
   Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado", "En_Curso"],
   Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado", "En_Curso"],
@@ -40,19 +41,50 @@ const STATUS_PIPELINE = [
   { key: "Liquidado", label: "Liquidado", short: "Liq." },
 ];
 
+interface BudgetData {
+  id: string;
+  client_name: string;
+  client_address: string;
+  collaborator_name: string | null;
+  lines: { concept: string; description: string | null; units: number; cost_price: number; margin: number; tax_rate: number; sort_order: number }[];
+}
+
 export default function ServiceInfoCards({ service }: Props) {
   const navigate = useNavigate();
   const { updateService } = useServices();
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
+  const createSalesOrder = useCreateSalesOrder();
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
+  const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+  const [showFinalizadoPrompt, setShowFinalizadoPrompt] = useState(false);
+  const [creatingSalesOrder, setCreatingSalesOrder] = useState(false);
 
   useEffect(() => {
-    supabase.from("budgets").select("id").eq("service_id", service.id).limit(1)
-      .then(({ data }) => setHasBudget((data?.length ?? 0) > 0));
+    async function fetchBudget() {
+      const { data: budgets } = await supabase
+        .from("budgets")
+        .select("id, client_name, client_address, collaborator_name")
+        .eq("service_id", service.id)
+        .limit(1);
+      if (budgets && budgets.length > 0) {
+        setHasBudget(true);
+        const b = budgets[0];
+        const { data: lines } = await supabase
+          .from("budget_lines")
+          .select("concept, description, units, cost_price, margin, tax_rate, sort_order")
+          .eq("budget_id", b.id)
+          .order("sort_order");
+        setBudgetData({ ...b, lines: lines ?? [] });
+      } else {
+        setHasBudget(false);
+        setBudgetData(null);
+      }
+    }
+    fetchBudget();
   }, [service.id]);
 
   const handleUpdate = async (field: string, value: string | null) => {
@@ -76,6 +108,11 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
       return;
     }
+    // Special flow: En_Curso → Finalizado with budget
+    if (newStatus === "Finalizado" && service.status === "En_Curso" && hasBudget && budgetData) {
+      setShowFinalizadoPrompt(true);
+      return;
+    }
     if (CONFIRM_STATUSES.includes(newStatus)) {
       setPendingStatusChange(newStatus);
       return;
@@ -88,6 +125,76 @@ export default function ServiceInfoCards({ service }: Props) {
       handleUpdate("status", pendingStatusChange);
       setPendingStatusChange(null);
     }
+  };
+
+  const handleCreateSalesOrderAndFinalize = async () => {
+    if (!budgetData) return;
+    setCreatingSalesOrder(true);
+    try {
+      // Check if sales order already exists for this service
+      const { data: existing } = await supabase
+        .from("sales_orders")
+        .select("id")
+        .eq("service_id", service.id)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        toast.error("Ya existe una orden de venta para este servicio.");
+        setShowFinalizadoPrompt(false);
+        setCreatingSalesOrder(false);
+        return;
+      }
+
+      // Generate sales order ID
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const salesOrderId = `OV-${service.id.replace("SRV-", "")}-${timestamp}`;
+
+      // Calculate total from budget lines
+      const total = budgetData.lines.reduce((sum, line) => {
+        const salePrice = Math.round(line.cost_price * (1 + line.margin / 100) * 100) / 100;
+        const subtotal = Math.round(salePrice * line.units * 100) / 100;
+        return sum + subtotal + Math.round(subtotal * (line.tax_rate / 100) * 100) / 100;
+      }, 0);
+
+      await createSalesOrder.mutateAsync({
+        id: salesOrderId,
+        budgetId: budgetData.id,
+        serviceId: service.id,
+        clientName: budgetData.client_name,
+        clientAddress: budgetData.client_address,
+        collaboratorName: budgetData.collaborator_name,
+        total: Math.round(total * 100) / 100,
+        lines: budgetData.lines.map((l, i) => ({
+          concept: l.concept,
+          description: l.description,
+          units: l.units,
+          costPrice: l.cost_price,
+          margin: l.margin,
+          taxRate: l.tax_rate,
+          sortOrder: i,
+        })),
+      });
+
+      // Now finalize the service
+      await handleUpdate("status", "Finalizado");
+      toast.success(`Orden de venta ${salesOrderId} creada y servicio finalizado.`);
+      setShowFinalizadoPrompt(false);
+    } catch (err: any) {
+      toast.error(err.message || "Error al crear la orden de venta");
+    } finally {
+      setCreatingSalesOrder(false);
+    }
+  };
+
+  const handleModifyBudgetAndCancel = () => {
+    setShowFinalizadoPrompt(false);
+    if (budgetData) {
+      navigate(`/presupuestos/${budgetData.id}`);
+    }
+  };
+
+  const handleFinalizeWithoutSalesOrder = () => {
+    setShowFinalizadoPrompt(false);
+    handleUpdate("status", "Finalizado");
   };
 
   const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
@@ -294,7 +401,68 @@ export default function ServiceInfoCards({ service }: Props) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Status confirmation dialog */}
+      {/* Finalizado prompt — create sales order or modify budget */}
+      <AlertDialog open={showFinalizadoPrompt} onOpenChange={setShowFinalizadoPrompt}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              Finalizar servicio {service.id}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  El servicio tiene un presupuesto vinculado (<strong>{budgetData?.id}</strong>).
+                  ¿Qué deseas hacer antes de finalizar?
+                </p>
+                {budgetData && budgetData.lines.length > 0 && (
+                  <div className="bg-muted/50 rounded-lg p-2.5 text-xs space-y-1">
+                    <p className="font-medium text-card-foreground">Resumen del presupuesto:</p>
+                    <p className="text-muted-foreground">{budgetData.lines.length} línea(s) · Total: €{
+                      budgetData.lines.reduce((sum, l) => {
+                        const sp = Math.round(l.cost_price * (1 + l.margin / 100) * 100) / 100;
+                        const sub = Math.round(sp * l.units * 100) / 100;
+                        return sum + sub + Math.round(sub * (l.tax_rate / 100) * 100) / 100;
+                      }, 0).toFixed(2)
+                    }</p>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2 mt-2">
+            <Button
+              onClick={handleCreateSalesOrderAndFinalize}
+              disabled={creatingSalesOrder}
+              className="w-full justify-start gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              {creatingSalesOrder ? "Creando orden de venta..." : "Crear orden de venta y finalizar"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleModifyBudgetAndCancel}
+              className="w-full justify-start gap-2"
+            >
+              <Pencil className="w-4 h-4" />
+              Quiero modificar el presupuesto antes
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleFinalizeWithoutSalesOrder}
+              className="w-full justify-start gap-2 text-muted-foreground"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Finalizar sin crear orden de venta
+            </Button>
+          </div>
+          <AlertDialogFooter className="mt-1">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Status confirmation dialog (for Liquidado and Finalizado without budget) */}
       <AlertDialog open={!!pendingStatusChange} onOpenChange={(open) => { if (!open) setPendingStatusChange(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
