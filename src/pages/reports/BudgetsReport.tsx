@@ -94,7 +94,7 @@ export default function BudgetsReport() {
         <KpiCard title="Total" value={stats.total} icon={FileText} variant="default" />
         <KpiCard title="Aprobados" value={stats.approved} icon={FileText} variant="success" />
         <KpiCard title="Pendientes" value={stats.pending} icon={FileText} variant="warning" />
-        <KpiCard title="Rechazados" value={stats.rejected} icon={FileText} variant="destructive" />
+        <KpiCard title="Rechazados" value={stats.rejected} icon={FileText} variant="default" />
         <KpiCard title="Tasa aprob." value={`${stats.approvalRate}%`} icon={FileText} variant="info" />
         <KpiCard title="Vol. aprobado" value={`${(stats.approvedAmount / 1000).toFixed(1)}k €`} icon={FileText} variant="primary" />
       </div>

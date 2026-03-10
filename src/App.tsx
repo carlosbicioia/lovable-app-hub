@@ -106,7 +106,19 @@ function AppRoutes() {
         <Route path="/ordenes-venta" element={<SalesOrders />} />
         <Route path="/calendario" element={<CalendarView />} />
         {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
-        {isAdminOrGestor ? <Route path="/informes" element={<Reports />} /> : <Route path="/informes" element={<AccessDenied />} />}
+        {isAdminOrGestor ? (
+          <>
+            <Route path="/informes" element={<ReportsIndex />} />
+            <Route path="/informes/servicios" element={<ServicesReport />} />
+            <Route path="/informes/operarios" element={<OperatorsReport />} />
+            <Route path="/informes/financiero" element={<FinancialReport />} />
+            <Route path="/informes/clientes" element={<ClientsReport />} />
+            <Route path="/informes/compras" element={<PurchasesReport />} />
+            <Route path="/informes/presupuestos" element={<BudgetsReport />} />
+          </>
+        ) : (
+          <Route path="/informes/*" element={<AccessDenied />} />
+        )}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>

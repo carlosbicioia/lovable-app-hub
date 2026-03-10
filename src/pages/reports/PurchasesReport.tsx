@@ -75,7 +75,7 @@ export default function PurchasesReport() {
         <KpiCard title="Total" value={`${(stats.totalAmount / 1000).toFixed(1)}k €`} icon={ShoppingCart} variant="primary" />
         <KpiCard title="Media/fact." value={`${stats.avgAmount.toFixed(0)} €`} icon={ShoppingCart} variant="info" />
         <KpiCard title="Total IVA" value={`${(stats.totalTax / 1000).toFixed(1)}k €`} icon={ShoppingCart} variant="warning" />
-        <KpiCard title="Pendiente" value={`${(stats.pending / 1000).toFixed(1)}k €`} icon={ShoppingCart} variant="destructive" />
+        <KpiCard title="Pendiente" value={`${(stats.pending / 1000).toFixed(1)}k €`} icon={ShoppingCart} variant="warning" />
         <KpiCard title="Validadas" value={`${(stats.validated / 1000).toFixed(1)}k €`} icon={ShoppingCart} variant="success" />
       </div>
 
