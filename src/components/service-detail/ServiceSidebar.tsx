@@ -26,6 +26,8 @@ export default function ServiceSidebar({ service }: Props) {
   const { collaborators } = useCollaborators();
   const { updateService } = useServices();
   const { data: branches = [] } = useBranches();
+  const { data: serviceOrigins = [] } = useServiceOrigins();
+  const showCollaborator = serviceOrigins.find(o => o.name === service.origin)?.show_collaborator ?? false;
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
