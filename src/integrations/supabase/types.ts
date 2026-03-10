@@ -271,6 +271,7 @@ export type Database = {
           last_name: string
           last_service_date: string | null
           name: string
+          origin: string
           phone: string
           plan_type: string
           postal_code: string
@@ -293,6 +294,7 @@ export type Database = {
           last_name?: string
           last_service_date?: string | null
           name?: string
+          origin?: string
           phone?: string
           plan_type?: string
           postal_code?: string
@@ -315,6 +317,7 @@ export type Database = {
           last_name?: string
           last_service_date?: string | null
           name?: string
+          origin?: string
           phone?: string
           plan_type?: string
           postal_code?: string

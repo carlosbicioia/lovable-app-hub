@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { useBranches } from "@/hooks/useBranches";
 import PostalCodeFields from "@/components/shared/PostalCodeFields";
+import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -61,6 +62,7 @@ export interface ClientFormData {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  origin: string;
 }
 
 interface Props {
@@ -81,8 +83,10 @@ interface Props {
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional, isAssistanceAvailable, isAssistance, onAssistanceChange }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
+  const { data: serviceOrigins = [] } = useServiceOrigins();
   const activePlans = plans.filter((p) => p.active);
   const activeBranches = branches.filter((b) => b.active);
+  const activeOrigins = serviceOrigins.filter((o) => o.active);
 
   // Resolve current branch from clusterId
   const currentBranchId = useMemo(() => {
@@ -237,6 +241,17 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
                 <SelectItem value="Ninguno">Ninguno</SelectItem>
                 {activePlans.map((p) => (
                   <SelectItem key={p.slug} value={p.name}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Origen</Label>
+            <Select value={form.origin} onValueChange={(v) => upd("origin", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {activeOrigins.map((o) => (
+                  <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -21,6 +21,7 @@ export interface DbClient {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  origin: string;
   /** Computed full name for display */
   fullName: string;
 }
@@ -47,6 +48,7 @@ function mapRow(r: any): DbClient {
     collaboratorName: r.collaborator_name,
     planType: r.plan_type,
     lastServiceDate: r.last_service_date,
+    origin: r.origin ?? "Directo",
     fullName: [name, lastName].filter(Boolean).join(" "),
   };
 }
@@ -101,6 +103,7 @@ export function useCreateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
+        origin: input.origin,
       } as any);
       if (error) throw error;
       return id;
@@ -136,6 +139,7 @@ export function useUpdateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
+        origin: input.origin,
       } as any).eq("id", input.id);
       if (error) throw error;
     },

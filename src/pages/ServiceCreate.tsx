@@ -195,6 +195,9 @@ export default function ServiceCreate() {
       setServiceContactName(client.fullName);
       setServicePhone(client.phone);
       setServiceEmail(client.email);
+      if (client.origin) {
+        setOrigin(client.origin as ServiceOrigin);
+      }
       if (client.collaboratorId) {
         setCollaboratorId(client.collaboratorId);
       }

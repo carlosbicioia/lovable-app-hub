@@ -23,7 +23,7 @@ const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
   name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
-  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
+  clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
 });
 
 const clientToForm = (c: DbClient): ClientFormData => ({
@@ -31,7 +31,7 @@ const clientToForm = (c: DbClient): ClientFormData => ({
   name: c.name, lastName: c.lastName, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
   address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
-  planType: c.planType, lastServiceDate: c.lastServiceDate,
+  planType: c.planType, lastServiceDate: c.lastServiceDate, origin: c.origin,
 });
 
 export default function Clients() {
