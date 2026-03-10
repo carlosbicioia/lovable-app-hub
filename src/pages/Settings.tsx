@@ -499,7 +499,7 @@ function IndustrialConfigTab() {
   );
 }
 
-function LogoUploadSection({ logoUrl, onUploaded }: { logoUrl: string | null; onUploaded: (url: string) => void }) {
+function LogoUploadSection({ logoUrl, onUploaded, onRemoved }: { logoUrl: string | null; onUploaded: (url: string) => void; onRemoved: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
