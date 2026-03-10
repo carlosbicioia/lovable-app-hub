@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "re
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useCollaborators } from "@/hooks/useCollaborators";
+import { useBranches } from "@/hooks/useBranches";
 import {
   format,
   startOfWeek,
