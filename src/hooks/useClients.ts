@@ -26,10 +26,13 @@ export interface DbClient {
 }
 
 function mapRow(r: any): DbClient {
+  const name = r.name ?? "";
+  const lastName = r.last_name ?? "";
   return {
     id: r.id,
     clientType: r.client_type ?? "Particular",
-    name: r.name,
+    name,
+    lastName,
     companyName: r.company_name ?? "",
     dni: r.dni,
     taxId: r.tax_id ?? "",
@@ -44,6 +47,7 @@ function mapRow(r: any): DbClient {
     collaboratorName: r.collaborator_name,
     planType: r.plan_type,
     lastServiceDate: r.last_service_date,
+    fullName: [name, lastName].filter(Boolean).join(" "),
   };
 }
 
