@@ -13,6 +13,9 @@ export interface DbClient {
   email: string;
   phone: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   postalCode: string;
   city: string;
   province: string;
