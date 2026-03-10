@@ -22,7 +22,9 @@ const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
-  name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
+  name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "",
+  address: "", streetNumber: "", floor: "", addressExtra: "",
+  postalCode: "", city: "", province: "",
   clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
 });
 
