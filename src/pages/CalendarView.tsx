@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "re
 import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useCollaborators } from "@/hooks/useCollaborators";
+import { useBranches } from "@/hooks/useBranches";
 import {
   format,
   startOfWeek,
@@ -48,6 +49,7 @@ import {
   AlertTriangle,
   Globe,
   Building2,
+  MapPin,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -970,14 +972,16 @@ export default function CalendarView() {
   const [selectedUrgency, setSelectedUrgency] = useState<UrgencyLevel | null>(null);
   const [selectedOrigin, setSelectedOrigin] = useState<ServiceOrigin | null>(null);
   const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const { services, refetch } = useServices();
   const { data: allOps = [] } = useOperators();
   const { collaborators } = useCollaborators();
+  const { data: branches = [] } = useBranches();
   _operatorsCache = allOps;
   const { toast } = useToast();
   const routerNavigate = useNavigate();
 
-  const hasAnyFilter = !!(selectedOperatorId || selectedSpecialty || selectedStatus || selectedUrgency || selectedOrigin || selectedCollaboratorId);
+  const hasAnyFilter = !!(selectedOperatorId || selectedSpecialty || selectedStatus || selectedUrgency || selectedOrigin || selectedCollaboratorId || selectedBranchId);
 
   const clearAllFilters = () => {
     setSelectedOperatorId(null);
@@ -986,9 +990,10 @@ export default function CalendarView() {
     setSelectedUrgency(null);
     setSelectedOrigin(null);
     setSelectedCollaboratorId(null);
+    setSelectedBranchId(null);
   };
 
-  const activeFilterCount = [selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId].filter(Boolean).length;
+  const activeFilterCount = [selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, selectedBranchId].filter(Boolean).length;
 
   const filteredServices = useMemo(() => {
     if (!hasAnyFilter) return undefined;
@@ -999,9 +1004,10 @@ export default function CalendarView() {
       if (selectedUrgency && s.urgency !== selectedUrgency) return false;
       if (selectedOrigin && s.origin !== selectedOrigin) return false;
       if (selectedCollaboratorId && s.collaboratorId !== selectedCollaboratorId) return false;
+      if (selectedBranchId && s.branchId !== selectedBranchId) return false;
       return true;
     });
-  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, hasAnyFilter]);
+  }, [services, selectedOperatorId, selectedSpecialty, selectedStatus, selectedUrgency, selectedOrigin, selectedCollaboratorId, selectedBranchId, hasAnyFilter]);
 
 
   // ── Create-from-calendar dialog state ──
@@ -1223,6 +1229,23 @@ export default function CalendarView() {
             <SelectItem value="__all__">Colaborador: Todos</SelectItem>
             {collaborators.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Sede */}
+        <Select
+          value={selectedBranchId ?? "__all__"}
+          onValueChange={(v) => setSelectedBranchId(v === "__all__" ? null : v)}
+        >
+          <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedBranchId && "border-primary text-primary")}>
+            <MapPin className="w-3.5 h-3.5 mr-1 shrink-0" />
+            <SelectValue>{selectedBranchId ? branches.find(b => b.id === selectedBranchId)?.name : <span className="text-muted-foreground">Sede</span>}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Sede: Todas</SelectItem>
+            {branches.filter(b => b.active).map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
