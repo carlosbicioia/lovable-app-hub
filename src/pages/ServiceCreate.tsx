@@ -188,13 +188,15 @@ export default function ServiceCreate() {
     setClientOpen(false);
     const client = clients.find((c) => c.id === id);
     if (client) {
-      setAddress(client.address);
-      setServiceCity(client.city);
-      setServiceProvince(client.province);
-      setServicePostalCode(client.postalCode);
-      setServiceContactName(client.fullName);
-      setServicePhone(client.phone);
-      setServiceEmail(client.email);
+      setAddress(client.address || "");
+      setServiceCity(client.city || "");
+      setServiceProvince(client.province || "");
+      setServicePostalCode(client.postalCode || "");
+      // Contact name: use fullName, fallback to companyName for Empresa clients
+      const contactName = client.fullName || client.companyName || "";
+      setServiceContactName(contactName);
+      setServicePhone(client.phone || "");
+      setServiceEmail(client.email || "");
       if (client.origin) {
         setOrigin(client.origin as ServiceOrigin);
       }
