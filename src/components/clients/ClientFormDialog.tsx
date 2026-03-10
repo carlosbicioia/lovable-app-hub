@@ -47,7 +47,7 @@ interface Props {
   onAssistanceChange?: (v: boolean) => void;
 }
 
-export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional }: Props) {
+export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional, isAssistanceAvailable, isAssistance, onAssistanceChange }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
   const activePlans = plans.filter((p) => p.active);
