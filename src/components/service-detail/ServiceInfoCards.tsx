@@ -514,6 +514,30 @@ export default function ServiceInfoCards({ service }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Skip sales order reason dialog */}
+      <AlertDialog open={showSkipReasonPrompt} onOpenChange={(open) => { if (!open) { setShowSkipReasonPrompt(false); setSkipReason(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Motivo de finalización sin orden de venta</AlertDialogTitle>
+            <AlertDialogDescription>
+              Indica por qué este servicio se finaliza sin generar una orden de venta.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={skipReason}
+            onChange={(e) => setSkipReason(e.target.value)}
+            placeholder="Ej: Servicio sin coste, garantía, trabajo interno..."
+            rows={3}
+            className="mt-2"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSkipReason} disabled={!skipReason.trim()}>
+              Finalizar servicio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
