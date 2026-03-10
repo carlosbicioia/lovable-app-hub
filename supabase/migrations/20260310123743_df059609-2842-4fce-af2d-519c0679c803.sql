@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN origin text NOT NULL DEFAULT 'Directo';
