@@ -54,9 +54,13 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
         id: order.id,
         sent_to_holded: true,
         sent_to_holded_at: new Date().toISOString(),
+        status: "Liquidada",
       });
 
-      toast.success("Orden de venta enviada a Holded");
+      // Auto-liquidate the service
+      await updateService(order.serviceId, { status: "Liquidado" });
+
+      toast.success("Orden enviada a Holded — servicio liquidado");
     } catch (err: any) {
       toast.error(err.message || "Error al enviar a Holded");
     } finally {
