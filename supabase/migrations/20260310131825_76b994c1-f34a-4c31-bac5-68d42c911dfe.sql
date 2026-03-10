@@ -1,0 +1,1 @@
+ALTER TABLE public.services ADD COLUMN skip_sales_order_reason text DEFAULT NULL;

@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
@@ -192,9 +193,23 @@ export default function ServiceInfoCards({ service }: Props) {
     }
   };
 
+  const [showSkipReasonPrompt, setShowSkipReasonPrompt] = useState(false);
+  const [skipReason, setSkipReason] = useState("");
+
   const handleFinalizeWithoutSalesOrder = () => {
     setShowFinalizadoPrompt(false);
-    handleUpdate("status", "Finalizado");
+    setShowSkipReasonPrompt(true);
+  };
+
+  const handleConfirmSkipReason = async () => {
+    if (!skipReason.trim()) {
+      toast.error("Debes indicar un motivo");
+      return;
+    }
+    setShowSkipReasonPrompt(false);
+    await handleUpdate("status", "Finalizado");
+    await updateService(service.id, { skip_sales_order_reason: skipReason.trim() } as any);
+    setSkipReason("");
   };
 
   const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
@@ -495,6 +510,30 @@ export default function ServiceInfoCards({ service }: Props) {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmStatusChange}>
               Confirmar cambio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Skip sales order reason dialog */}
+      <AlertDialog open={showSkipReasonPrompt} onOpenChange={(open) => { if (!open) { setShowSkipReasonPrompt(false); setSkipReason(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Motivo de finalización sin orden de venta</AlertDialogTitle>
+            <AlertDialogDescription>
+              Indica por qué este servicio se finaliza sin generar una orden de venta.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={skipReason}
+            onChange={(e) => setSkipReason(e.target.value)}
+            placeholder="Ej: Servicio sin coste, garantía, trabajo interno..."
+            rows={3}
+            className="mt-2"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSkipReason} disabled={!skipReason.trim()}>
+              Finalizar servicio
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
