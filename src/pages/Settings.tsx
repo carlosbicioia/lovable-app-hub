@@ -787,7 +787,7 @@ export default function Settings() {
 
               <Separator />
 
-              <LogoUploadSection logoUrl={settings?.logo_url ?? null} onUploaded={(url) => updateSettings.mutate({ logo_url: url })} />
+              <LogoUploadSection logoUrl={settings?.logo_url ?? null} onUploaded={(url) => updateSettings.mutate({ logo_url: url })} onRemoved={() => updateSettings.mutate({ logo_url: null })} />
 
               <div className="flex justify-end">
                 <Button onClick={handleSaveCompany} disabled={updateSettings.isPending}>
