@@ -9,6 +9,9 @@ export interface Supplier {
   phone: string;
   email: string;
   address: string;
+  streetNumber: string;
+  floor: string;
+  addressExtra: string;
   city: string;
   province: string;
   contactPerson: string;
