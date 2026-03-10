@@ -166,7 +166,9 @@ export default function CollaboratorDetail() {
       .update({
         company_name: form.companyName, category: form.category,
         email: form.email, phone: form.phone, contact_person: form.contactPerson,
-        tax_id: form.taxId, address: form.address, city: form.city,
+        tax_id: form.taxId, address: form.address,
+        street_number: form.streetNumber, floor: form.floor, address_extra: form.addressExtra,
+        city: form.city,
         province: form.province, postal_code: form.postalCode,
         website: form.website, notes: form.notes,
       } as any)
