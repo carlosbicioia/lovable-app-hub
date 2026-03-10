@@ -196,7 +196,11 @@ export default function Services() {
         body: { services: servicesToExport, budgets: budgetsToExport, type: "invoice" },
       });
       if (error) throw error;
-      toast({ title: "Exportación completada", description: `${ids.length} servicio(s) enviados a Holded correctamente.` });
+      // Auto-liquidate exported services
+      for (const s of servicesToExport) {
+        await updateService(s.id, { status: "Liquidado" });
+      }
+      toast({ title: "Exportación completada", description: `${ids.length} servicio(s) enviados a Holded y liquidados.` });
       bulk.clear();
     } catch (err: any) {
       toast({ title: "Error al exportar", description: err.message || "No se pudo conectar con Holded", variant: "destructive" });
