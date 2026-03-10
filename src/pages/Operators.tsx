@@ -64,6 +64,7 @@ const fallbackIconMap: Record<string, React.ReactNode> = {
   Droplets: <Droplets className="w-4 h-4" />,
   Zap: <Zap className="w-4 h-4" />,
   Wind: <Wind className="w-4 h-4" />,
+  Hammer: <Hammer className="w-4 h-4" />,
   Wrench: <Wrench className="w-4 h-4" />,
 };
 
