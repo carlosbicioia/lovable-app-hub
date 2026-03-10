@@ -207,6 +207,9 @@ export default function ServiceEdit() {
     const client = clients.find((c) => c.id === cid);
     if (client) {
       setAddress(client.address);
+      setStreetNumber(client.streetNumber || "");
+      setFloor(client.floor || "");
+      setAddressExtra(client.addressExtra || "");
       setServiceCity(client.city);
       setServiceProvince(client.province);
       setServicePostalCode(client.postalCode);
