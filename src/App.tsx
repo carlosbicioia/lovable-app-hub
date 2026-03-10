@@ -17,6 +17,7 @@ import ServiceDetail from "@/pages/ServiceDetail";
 import Budgets from "@/pages/Budgets";
 import BudgetDetail from "@/pages/BudgetDetail";
 import BudgetCreate from "@/pages/BudgetCreate";
+import BudgetEdit from "@/pages/BudgetEdit";
 import Articles from "@/pages/Articles";
 import InvoiceCreate from "@/pages/InvoiceCreate";
 import CalendarView from "@/pages/CalendarView";
