@@ -235,8 +235,22 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Dirección</Label>
+              <Label className="text-xs">Calle</Label>
               <Input value={form.address} onChange={(e) => set("address", e.target.value)} className="h-8 text-sm" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Número</Label>
+                <Input value={form.street_number} onChange={(e) => set("street_number", e.target.value)} className="h-8 text-sm" placeholder="Nº" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Piso</Label>
+                <Input value={form.floor} onChange={(e) => set("floor", e.target.value)} className="h-8 text-sm" placeholder="1ºA" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Adicional</Label>
+                <Input value={form.address_extra} onChange={(e) => set("address_extra", e.target.value)} className="h-8 text-sm" placeholder="Esc..." />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
