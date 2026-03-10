@@ -94,7 +94,7 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
