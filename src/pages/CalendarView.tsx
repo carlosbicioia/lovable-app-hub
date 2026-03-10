@@ -1139,10 +1139,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedSpecialty && "border-primary text-primary")}>
             <Droplets className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Especialidad" />
+            <SelectValue>{selectedSpecialty ? selectedSpecialty.replace("/", " / ") : <span className="text-muted-foreground">Especialidad</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todas las especialidades</SelectItem>
+            <SelectItem value="__all__">Especialidad: Todas</SelectItem>
             <SelectItem value="Fontanería/Agua">
               <span className="flex items-center gap-1.5">{specialtyIcon["Fontanería/Agua"]} Fontanería</span>
             </SelectItem>
