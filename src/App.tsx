@@ -88,6 +88,7 @@ function AppRoutes() {
         <Route path="/presupuestos" element={<Budgets />} />
         <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
         <Route path="/presupuestos/:id" element={<BudgetDetail />} />
+        <Route path="/presupuestos/:id/editar" element={<BudgetEdit />} />
         <Route path="/articulos" element={<Articles />} />
         <Route path="/compras" element={<Purchases />} />
         <Route path="/compras/nueva" element={<PurchaseCreate />} />
