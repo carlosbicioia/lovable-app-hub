@@ -227,6 +227,9 @@ function ServiceChip({
           <p className="text-xs"><span className="text-muted-foreground">Tipo:</span> {service.serviceType === "Presupuesto" ? "Con presupuesto" : "Reparación directa"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
           <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
+          {service.address && (
+            <p className="text-xs"><span className="text-muted-foreground">Dirección:</span> {service.address}</p>
+          )}
           <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[service.status] ?? service.status}</p>
           {timeStr && (
             <p className="text-xs"><span className="text-muted-foreground">Horario:</span> {timeStr}</p>
