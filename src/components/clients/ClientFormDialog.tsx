@@ -42,6 +42,9 @@ interface Props {
   title: string;
   saveLabel: string;
   dniOptional?: boolean;
+  isAssistanceAvailable?: boolean;
+  isAssistance?: boolean;
+  onAssistanceChange?: (v: boolean) => void;
 }
 
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional }: Props) {
