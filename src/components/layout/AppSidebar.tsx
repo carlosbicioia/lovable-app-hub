@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Calendar,
   HardHat,
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Settings,
