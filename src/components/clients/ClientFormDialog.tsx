@@ -98,16 +98,26 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-2">
-          <div className="col-span-2 space-y-1.5">
-            <Label>Tipo de cliente</Label>
-            <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Particular">Particular</SelectItem>
-                <SelectItem value="Empresa">Empresa</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className={isAssistanceAvailable ? "" : "col-span-2"}>
+            <div className="space-y-1.5">
+              <Label>Tipo de cliente</Label>
+              <Select value={form.clientType} onValueChange={(v) => setForm((prev) => ({ ...prev, clientType: v as "Particular" | "Empresa" }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Particular">Particular</SelectItem>
+                  <SelectItem value="Empresa">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          {isAssistanceAvailable && form.clientType === "Particular" && (
+            <div className="flex items-end pb-1">
+              <div className="flex items-center gap-2">
+                <Switch checked={isAssistance} onCheckedChange={onAssistanceChange} id="assistance-toggle" />
+                <Label htmlFor="assistance-toggle" className="text-sm whitespace-nowrap">Asistencia</Label>
+              </div>
+            </div>
+          )}
           {form.clientType === "Empresa" ? (
             <>
               <div className="space-y-1.5">
