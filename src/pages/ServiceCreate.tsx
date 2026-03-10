@@ -495,7 +495,14 @@ export default function ServiceCreate() {
                   <Command>
                     <CommandInput placeholder="Nombre, DNI, teléfono..." />
                     <CommandList>
-                      <CommandEmpty>No se encontraron clientes</CommandEmpty>
+                      <CommandEmpty>
+                        <div className="flex flex-col items-center gap-2 py-2">
+                          <span className="text-sm text-muted-foreground">No se encontraron clientes</span>
+                          <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); setClientOpen(false); setShowNewClientDialog(true); }}>
+                            <Plus className="h-3.5 w-3.5" /> Crear cliente
+                          </Button>
+                        </div>
+                      </CommandEmpty>
                       <CommandGroup>
                         {clients.map((c) => (
                            <CommandItem
