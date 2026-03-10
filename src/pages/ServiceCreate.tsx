@@ -480,7 +480,12 @@ export default function ServiceCreate() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Client searchable selector */}
             <div className="space-y-2">
-              <Label>Cliente *</Label>
+              <div className="flex items-center justify-between">
+                <Label>Cliente *</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-6 gap-1 text-xs px-2" onClick={() => setShowNewClientDialog(true)}>
+                  <Plus className="h-3 w-3" /> Nuevo
+                </Button>
+              </div>
               <Popover open={clientOpen} onOpenChange={setClientOpen}>
                 <PopoverTrigger asChild>
                   <Button
