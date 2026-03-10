@@ -98,6 +98,9 @@ export default function Clients() {
     if (form.clientType === "Empresa") {
       return !!(form.companyName.trim() && form.taxId.trim());
     }
+    if (isAssistanceClient) {
+      return !!form.name.trim();
+    }
     return !!(form.name.trim() && form.dni.trim());
   };
 
