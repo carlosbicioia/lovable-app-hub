@@ -545,9 +545,23 @@ export default function ServiceEdit() {
               <Label>Email de contacto</Label>
               <Input type="email" value={serviceEmail} onChange={(e) => setServiceEmail(e.target.value)} placeholder="email@ejemplo.com" />
             </div>
-            <div className="space-y-2 md:col-span-3">
-              <Label>Dirección de intervención</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, piso" />
+            <div className="md:col-span-3 grid grid-cols-12 gap-3">
+              <div className="col-span-6 space-y-2">
+                <Label>Calle</Label>
+                <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Nombre de la calle" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Número</Label>
+                <Input value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} placeholder="Nº" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Piso</Label>
+                <Input value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="1ºA" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Adicional</Label>
+                <Input value={addressExtra} onChange={(e) => setAddressExtra(e.target.value)} placeholder="Esc, puerta..." />
+              </div>
             </div>
             <PostalCodeFields
               postalCode={servicePostalCode}
