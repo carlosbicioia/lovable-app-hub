@@ -144,7 +144,7 @@ export default function ServiceMaterials({ serviceId }: Props) {
                             </div>
                             <div className="space-y-1.5">
                               <Label className="text-xs">Proveedor</Label>
-                              <SupplierAutocomplete value={editForm.supplier_name} onChange={v => setEditForm(p => ({ ...p, supplier_name: v }))} placeholder="Buscar proveedor…" className="h-8" />
+                              <SupplierAutocomplete value={editForm.supplier_name} onChange={v => setEditForm(p => ({ ...p, supplier_name: v }))} placeholder="Ej: Comercial Urgel" className="h-8" />
                             </div>
                             <div className="space-y-1.5">
                               <Label className="text-xs">Marca</Label>
