@@ -176,6 +176,7 @@ export default function Clients() {
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Tipo</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">DNI/CIF</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Nombre</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Apellidos</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Dirección</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Ciudad</th>
                 <th className="text-left px-5 py-3 text-muted-foreground font-medium">Sede</th>
@@ -200,9 +201,10 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.clientType === "Empresa" ? c.taxId : c.dni}</td>
                   <td className="px-5 py-3">
-                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.fullName}</p>
+                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.name}</p>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
                   </td>
+                  <td className="px-5 py-3 text-muted-foreground">{c.clientType === "Empresa" ? "" : c.lastName}</td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>
                   <td className="px-5 py-3 text-muted-foreground">{c.city}</td>
                   <td className="px-5 py-3">
