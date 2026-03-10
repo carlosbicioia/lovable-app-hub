@@ -22,13 +22,13 @@ const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 
 const emptyClient = (): ClientFormData => ({
   clientType: "Particular",
-  name: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
+  name: "", lastName: "", companyName: "", dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "", city: "", province: "",
   clusterId: "", collaboratorId: null, collaboratorName: null, planType: "Ninguno", lastServiceDate: null,
 });
 
 const clientToForm = (c: DbClient): ClientFormData => ({
   clientType: c.clientType,
-  name: c.name, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
+  name: c.name, lastName: c.lastName, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
   address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
   planType: c.planType, lastServiceDate: c.lastServiceDate,
@@ -80,7 +80,7 @@ export default function Clients() {
     (c) => {
       const q = search.toLowerCase();
       return (
-        c.name.toLowerCase().includes(q) ||
+        c.fullName.toLowerCase().includes(q) ||
         c.companyName.toLowerCase().includes(q) ||
         c.id.toLowerCase().includes(q) ||
         c.city.toLowerCase().includes(q) ||
@@ -128,9 +128,9 @@ export default function Clients() {
   };
 
   const handleBulkExport = () => {
-    const headers = ["ID", "Tipo", "Nombre", "Razón Social", "DNI", "CIF", "Email", "Teléfono", "Dirección", "Ciudad", "Provincia", "CP", "Plan", "Colaborador", "Últ. Servicio"];
+    const headers = ["ID", "Tipo", "Nombre", "Apellidos", "Razón Social", "DNI", "CIF", "Email", "Teléfono", "Dirección", "Ciudad", "Provincia", "CP", "Plan", "Colaborador", "Últ. Servicio"];
     const rows = bulk.selectedItems.map((c) => [
-      c.id, c.clientType, c.name, c.companyName, c.dni, c.taxId, c.email, c.phone, c.address, c.city, c.province, c.postalCode, c.planType, c.collaboratorName ?? "Directo", c.lastServiceDate ?? "",
+      c.id, c.clientType, c.name, c.lastName, c.companyName, c.dni, c.taxId, c.email, c.phone, c.address, c.city, c.province, c.postalCode, c.planType, c.collaboratorName ?? "Directo", c.lastServiceDate ?? "",
     ]);
     exportCsv("clientes.csv", headers, rows);
   };
@@ -200,7 +200,7 @@ export default function Clients() {
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{c.clientType === "Empresa" ? c.taxId : c.dni}</td>
                   <td className="px-5 py-3">
-                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.name}</p>
+                    <p className="font-medium text-card-foreground">{c.clientType === "Empresa" ? c.companyName : c.fullName}</p>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
                   </td>
                   <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate">{c.address}</td>

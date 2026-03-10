@@ -180,7 +180,7 @@ export default function ServiceCreate() {
 
   // ── Derived data ──
   const selectedClient = clients.find((c) => c.id === clientId);
-  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
+  const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.fullName) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);
 
   const handleClientChange = (id: string) => {
@@ -192,7 +192,7 @@ export default function ServiceCreate() {
       setServiceCity(client.city);
       setServiceProvince(client.province);
       setServicePostalCode(client.postalCode);
-      setServiceContactName(client.clientType === "Empresa" ? client.name : client.name);
+      setServiceContactName(client.fullName);
       setServicePhone(client.phone);
       setServiceEmail(client.email);
       if (client.collaboratorId) {
@@ -487,7 +487,7 @@ export default function ServiceCreate() {
                             onSelect={() => handleClientChange(c.id)}
                           >
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.name}</span>
+                              <span className="text-sm font-medium">{c.clientType === "Empresa" ? c.companyName : c.fullName}</span>
                               <span className="text-xs text-muted-foreground">{c.phone} · {c.address}, {c.city}</span>
                             </div>
                           </CommandItem>

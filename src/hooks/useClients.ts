@@ -6,6 +6,7 @@ export interface DbClient {
   id: string;
   clientType: "Particular" | "Empresa";
   name: string;
+  lastName: string;
   companyName: string;
   dni: string;
   taxId: string;
@@ -20,13 +21,18 @@ export interface DbClient {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  /** Computed full name for display */
+  fullName: string;
 }
 
 function mapRow(r: any): DbClient {
+  const name = r.name ?? "";
+  const lastName = r.last_name ?? "";
   return {
     id: r.id,
     clientType: r.client_type ?? "Particular",
-    name: r.name,
+    name,
+    lastName,
     companyName: r.company_name ?? "",
     dni: r.dni,
     taxId: r.tax_id ?? "",
@@ -41,6 +47,7 @@ function mapRow(r: any): DbClient {
     collaboratorName: r.collaborator_name,
     planType: r.plan_type,
     lastServiceDate: r.last_service_date,
+    fullName: [name, lastName].filter(Boolean).join(" "),
   };
 }
 
@@ -62,7 +69,7 @@ export function useCreateClient() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (input: Omit<DbClient, "id"> & { id?: string }) => {
+    mutationFn: async (input: Omit<DbClient, "id" | "fullName"> & { id?: string }) => {
       // Generate ID if not provided
       let id = input.id;
       if (!id) {
@@ -79,6 +86,7 @@ export function useCreateClient() {
         id,
         client_type: input.clientType,
         name: input.name,
+        last_name: input.lastName,
         company_name: input.companyName,
         dni: input.dni,
         tax_id: input.taxId,
@@ -93,7 +101,7 @@ export function useCreateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
-      });
+      } as any);
       if (error) throw error;
       return id;
     },
@@ -109,10 +117,11 @@ export function useUpdateClient() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (input: DbClient) => {
+    mutationFn: async (input: Omit<DbClient, "fullName">) => {
       const { error } = await supabase.from("clients").update({
         client_type: input.clientType,
         name: input.name,
+        last_name: input.lastName,
         company_name: input.companyName,
         dni: input.dni,
         tax_id: input.taxId,
@@ -127,7 +136,7 @@ export function useUpdateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
-      }).eq("id", input.id);
+      } as any).eq("id", input.id);
       if (error) throw error;
     },
     onSuccess: () => {
