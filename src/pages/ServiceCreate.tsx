@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X } from "lucide-react";
+import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
