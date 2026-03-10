@@ -245,6 +245,17 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
             </Select>
           </div>
           <div className="space-y-1.5">
+            <Label>Origen</Label>
+            <Select value={form.origin} onValueChange={(v) => upd("origin", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {activeOrigins.map((o) => (
+                  <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Colaborador</Label>
             <Select value={form.collaboratorId ?? "none"} onValueChange={handleCollaboratorChange}>
               <SelectTrigger><SelectValue placeholder="Sin colaborador" /></SelectTrigger>
