@@ -1183,10 +1183,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedUrgency && "border-primary text-primary")}>
             <AlertTriangle className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Urgencia" />
+            <SelectValue>{selectedUrgency ?? <span className="text-muted-foreground">Urgencia</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todas las urgencias</SelectItem>
+            <SelectItem value="__all__">Urgencia: Todas</SelectItem>
             <SelectItem value="Estándar">Estándar</SelectItem>
             <SelectItem value="24h">24h</SelectItem>
             <SelectItem value="Inmediato">Inmediato</SelectItem>
