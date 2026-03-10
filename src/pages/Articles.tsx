@@ -106,6 +106,7 @@ export default function Articles() {
             <SelectItem value="Fontanería/Agua">Fontanería/Agua</SelectItem>
             <SelectItem value="Electricidad/Luz">Electricidad/Luz</SelectItem>
             <SelectItem value="Clima">Clima</SelectItem>
+            <SelectItem value="Carpintería_Metálica">Carpintería Metálica</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -219,6 +220,7 @@ export default function Articles() {
                     <SelectItem value="Fontanería/Agua">Fontanería/Agua</SelectItem>
                     <SelectItem value="Electricidad/Luz">Electricidad/Luz</SelectItem>
                     <SelectItem value="Clima">Clima</SelectItem>
+                    <SelectItem value="Carpintería_Metálica">Carpintería Metálica</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

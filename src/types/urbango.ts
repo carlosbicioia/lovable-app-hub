@@ -5,7 +5,7 @@ export type CollaboratorCategory = "Administrador" | "Corredor" | "Gestoría" | 
 export type ServiceOrigin = "App" | "B2B" | "Directo" | "API_Externa";
 export type ServiceStatus = "Pendiente_Contacto" | "Pte_Asignacion" | "Asignado" | "Agendado" | "En_Curso" | "Finalizado" | "Liquidado";
 export type UrgencyLevel = "Estándar" | "24h" | "Inmediato";
-export type Specialty = "Fontanería/Agua" | "Electricidad/Luz" | "Clima";
+export type Specialty = "Fontanería/Agua" | "Electricidad/Luz" | "Clima" | "Carpintería_Metálica";
 
 export interface Client {
   id: string;
