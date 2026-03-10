@@ -26,9 +26,11 @@ export default function ServiceOriginsTab() {
 
   const [newName, setNewName] = useState("");
   const [newShowCollab, setNewShowCollab] = useState(false);
+  const [newIsAssistance, setNewIsAssistance] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editShowCollab, setEditShowCollab] = useState(false);
+  const [editIsAssistance, setEditIsAssistance] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ServiceOriginRow | null>(null);
 
   const handleCreate = () => {
