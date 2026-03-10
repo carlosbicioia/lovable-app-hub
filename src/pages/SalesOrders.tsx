@@ -2,22 +2,30 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { FileText, Search, Filter } from "lucide-react";
+import { FileText, Search, Filter, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { useSalesOrders } from "@/hooks/useSalesOrders";
+import { useSalesOrders, useUpdateSalesOrder, SalesOrder } from "@/hooks/useSalesOrders";
+import { useBulkSelect } from "@/hooks/useBulkSelect";
+import { BulkActionBar } from "@/components/shared/BulkActionBar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SalesOrders() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: orders = [], isLoading } = useSalesOrders();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sending, setSending] = useState(false);
 
   const filtered = orders.filter((o) => {
     const matchSearch =
@@ -29,8 +37,92 @@ export default function SalesOrders() {
     return matchSearch && matchStatus;
   });
 
+  const { selectedIds, selectedItems, toggle, toggleAll, clear, allSelected, someSelected, count } =
+    useBulkSelect(filtered);
+
   const totalPendiente = orders.filter((o) => o.status === "Pendiente").reduce((s, o) => s + o.total, 0);
   const totalLiquidada = orders.filter((o) => o.status === "Liquidada").reduce((s, o) => s + o.total, 0);
+
+  const sendToHolded = async () => {
+    const pendingOrders = selectedItems.filter((o) => !o.sentToHolded);
+    if (pendingOrders.length === 0) {
+      toast.warning("Todas las órdenes seleccionadas ya fueron enviadas a Holded");
+      return;
+    }
+
+    setSending(true);
+    try {
+      // Build payload for edge function
+      const services = pendingOrders.map((o) => ({
+        id: o.serviceId,
+        clientName: o.clientName,
+        clientId: "",
+        address: o.clientAddress,
+        budgetTotal: o.total,
+        specialty: "",
+        description: "",
+      }));
+
+      const budgets = pendingOrders.map((o) => ({
+        id: o.budgetId,
+        serviceId: o.serviceId,
+        clientName: o.clientName,
+        lines: o.lines.map((l) => ({
+          concept: l.concept,
+          description: l.description || "",
+          units: l.units,
+          costPrice: l.costPrice,
+          margin: l.margin,
+          taxRate: l.taxRate,
+        })),
+      }));
+
+      const { data, error } = await supabase.functions.invoke("export-holded", {
+        body: { services, budgets, type: "invoice" },
+      });
+
+      if (error) throw error;
+
+      // Mark orders as sent + set service to Liquidado
+      const successResults = (data?.results || []).filter((r: any) => !r.error);
+      const now = new Date().toISOString();
+
+      for (const result of successResults) {
+        const order = pendingOrders.find((o) => o.serviceId === result.serviceId);
+        if (!order) continue;
+
+        // Update sales order: mark sent
+        await supabase.from("sales_orders").update({
+          sent_to_holded: true,
+          sent_to_holded_at: now,
+          holded_doc_id: result.holdedInvoiceId || null,
+          status: "Liquidada",
+        }).eq("id", order.id);
+
+        // Update service status to Liquidado
+        await supabase.from("services").update({
+          status: "Liquidado",
+        }).eq("id", order.serviceId);
+      }
+
+      const failedCount = (data?.results || []).filter((r: any) => r.error).length;
+
+      if (successResults.length > 0) {
+        toast.success(`${successResults.length} orden(es) enviada(s) a Holded y servicio(s) liquidado(s)`);
+      }
+      if (failedCount > 0) {
+        toast.error(`${failedCount} orden(es) fallaron al enviar`);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["sales_orders"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      clear();
+    } catch (err: any) {
+      toast.error(err.message || "Error al enviar a Holded");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -85,6 +177,21 @@ export default function SalesOrders() {
         </Select>
       </div>
 
+      {/* Bulk action bar */}
+      {count > 0 && (
+        <BulkActionBar count={count} onClear={clear}>
+          <Button
+            size="sm"
+            onClick={sendToHolded}
+            disabled={sending}
+            className="gap-2"
+          >
+            <Send className="w-4 h-4" />
+            {sending ? "Enviando..." : `Enviar a Holded (${selectedItems.filter(o => !o.sentToHolded).length})`}
+          </Button>
+        </BulkActionBar>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
@@ -101,6 +208,14 @@ export default function SalesOrders() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleAll}
+                      aria-label="Seleccionar todas"
+                      {...(someSelected ? { "data-state": "indeterminate" } : {})}
+                    />
+                  </TableHead>
                   <TableHead>Nº Orden</TableHead>
                   <TableHead>Presupuesto</TableHead>
                   <TableHead>Servicio</TableHead>
@@ -115,15 +230,21 @@ export default function SalesOrders() {
                 {filtered.map((o) => (
                   <TableRow
                     key={o.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/servicios/${o.serviceId}`)}
+                    className={cn("cursor-pointer hover:bg-muted/50", selectedIds.has(o.id) && "bg-primary/5")}
                   >
-                    <TableCell className="font-medium">{o.id}</TableCell>
-                    <TableCell className="text-muted-foreground">{o.budgetId}</TableCell>
-                    <TableCell className="text-muted-foreground">{o.serviceId}</TableCell>
-                    <TableCell>{o.clientName}</TableCell>
-                    <TableCell className="text-right font-medium">{o.total.toFixed(2)} €</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(o.id)}
+                        onCheckedChange={() => toggle(o.id)}
+                        aria-label={`Seleccionar ${o.id}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium" onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.id}</TableCell>
+                    <TableCell className="text-muted-foreground" onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.budgetId}</TableCell>
+                    <TableCell className="text-muted-foreground" onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.serviceId}</TableCell>
+                    <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.clientName}</TableCell>
+                    <TableCell className="text-right font-medium" onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.total.toFixed(2)} €</TableCell>
+                    <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>
                       <Badge
                         variant="outline"
                         className={cn(
@@ -136,14 +257,14 @@ export default function SalesOrders() {
                         {o.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>
                       {o.sentToHolded ? (
                         <Badge variant="outline" className="text-[10px] bg-info/15 text-info border-info/30">Enviada</Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="text-muted-foreground text-sm" onClick={() => navigate(`/servicios/${o.serviceId}`)}>
                       {format(new Date(o.createdAt), "dd MMM yyyy", { locale: es })}
                     </TableCell>
                   </TableRow>
