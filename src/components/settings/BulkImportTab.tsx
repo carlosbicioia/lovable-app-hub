@@ -33,7 +33,10 @@ const entities: EntityConfig[] = [
       { header: "cif", dbField: "tax_id", required: false },
       { header: "email", dbField: "email", required: false },
       { header: "telefono", dbField: "phone", required: false },
-      { header: "direccion", dbField: "address", required: false },
+      { header: "calle", dbField: "address", required: false },
+      { header: "numero", dbField: "street_number", required: false },
+      { header: "piso", dbField: "floor", required: false },
+      { header: "adicional", dbField: "address_extra", required: false },
       { header: "ciudad", dbField: "city", required: false },
       { header: "provincia", dbField: "province", required: false },
       { header: "contacto", dbField: "contact_person", required: false },
@@ -43,8 +46,8 @@ const entities: EntityConfig[] = [
       { header: "notas", dbField: "notes", required: false },
     ],
     sampleRows: [
-      ["Fontanería López SL", "B12345678", "info@fontanerialopez.es", "912345678", "C/ Mayor 10", "Madrid", "Madrid", "Juan López", "ES12 1234 5678 90 1234567890", "Contado", "30", "Proveedor habitual"],
-      ["Electricidad Norte SA", "A87654321", "ventas@elecnorte.es", "934567890", "Av. Diagonal 100", "Barcelona", "Barcelona", "María García", "", "Transferencia", "60", ""],
+      ["Fontanería López SL", "B12345678", "info@fontanerialopez.es", "912345678", "C/ Mayor", "10", "2ºA", "", "Madrid", "Madrid", "Juan López", "ES12 1234 5678 90 1234567890", "Contado", "30", "Proveedor habitual"],
+      ["Electricidad Norte SA", "A87654321", "ventas@elecnorte.es", "934567890", "Av. Diagonal", "100", "", "Local 3", "Barcelona", "Barcelona", "María García", "", "Transferencia", "60", ""],
     ],
   },
   {
