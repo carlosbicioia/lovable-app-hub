@@ -1,4 +1,34 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+
+const DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
+
+function validateDni(value: string): { valid: boolean; message?: string } {
+  const v = value.trim().toUpperCase();
+  if (!v) return { valid: false };
+
+  // NIE: starts with X, Y, Z
+  const nieMatch = v.match(/^([XYZ])(\d{7})([A-Z])$/);
+  if (nieMatch) {
+    const prefix = { X: "0", Y: "1", Z: "2" }[nieMatch[1]] ?? "0";
+    const num = parseInt(prefix + nieMatch[2], 10);
+    const expected = DNI_LETTERS[num % 23];
+    return expected === nieMatch[3]
+      ? { valid: true }
+      : { valid: false, message: `Letra incorrecta, debería ser ${expected}` };
+  }
+
+  // DNI: 8 digits + letter
+  const dniMatch = v.match(/^(\d{8})([A-Z])$/);
+  if (dniMatch) {
+    const num = parseInt(dniMatch[1], 10);
+    const expected = DNI_LETTERS[num % 23];
+    return expected === dniMatch[2]
+      ? { valid: true }
+      : { valid: false, message: `Letra incorrecta, debería ser ${expected}` };
+  }
+
+  return { valid: false, message: "Formato inválido (ej: 12345678A o X1234567A)" };
+}
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -150,7 +180,11 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
               </div>
               <div className="space-y-1.5">
                 <Label>DNI {!dniOptional && "*"}</Label>
-                <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A" />
+                <Input value={form.dni} onChange={(e) => upd("dni", e.target.value)} placeholder="12345678A"
+                  className={form.dni.trim() ? (validateDni(form.dni).valid ? "border-success" : "border-destructive") : ""} />
+                {form.dni.trim() && !validateDni(form.dni).valid && validateDni(form.dni).message && (
+                  <p className="text-xs text-destructive">{validateDni(form.dni).message}</p>
+                )}
               </div>
             </>
           )}

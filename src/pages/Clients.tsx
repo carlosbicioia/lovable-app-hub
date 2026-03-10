@@ -101,7 +101,20 @@ export default function Clients() {
     if (isAssistanceClient) {
       return !!form.name.trim();
     }
-    return !!(form.name.trim() && form.dni.trim());
+    if (!form.name.trim() || !form.dni.trim()) return false;
+    // Validate DNI format
+    const dniLetters = "TRWAGMYFPDXBNJZSQVHLCKE";
+    const v = form.dni.trim().toUpperCase();
+    const nieMatch = v.match(/^([XYZ])(\d{7})([A-Z])$/);
+    if (nieMatch) {
+      const prefix = { X: "0", Y: "1", Z: "2" }[nieMatch[1]] ?? "0";
+      return dniLetters[parseInt(prefix + nieMatch[2], 10) % 23] === nieMatch[3];
+    }
+    const dniMatch = v.match(/^(\d{8})([A-Z])$/);
+    if (dniMatch) {
+      return dniLetters[parseInt(dniMatch[1], 10) % 23] === dniMatch[2];
+    }
+    return false;
   };
 
   const handleCreate = async () => {
