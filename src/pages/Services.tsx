@@ -234,17 +234,17 @@ export default function Services() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Servicios</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">{services.length} servicios · {filtered.length} mostrados</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-display font-bold text-foreground">Servicios</h1>
+          <p className="text-muted-foreground text-xs md:text-sm mt-0.5">{services.length} servicios · {filtered.length} mostrados</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={() => { const event = new CustomEvent("open-voice-assistant"); window.dispatchEvent(event); }} className="gap-1.5 hidden sm:inline-flex">
             <Mic className="w-3.5 h-3.5" /> Alex
           </Button>
           <Button onClick={() => navigate("/servicios/nuevo")} size="sm">
-            <Plus className="w-4 h-4 mr-1.5" /> Nuevo Servicio
+            <Plus className="w-4 h-4 mr-1.5" /> <span className="hidden sm:inline">Nuevo Servicio</span><span className="sm:hidden">Nuevo</span>
           </Button>
         </div>
       </div>
