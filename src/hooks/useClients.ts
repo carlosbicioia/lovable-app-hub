@@ -139,6 +139,7 @@ export function useUpdateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
+        origin: input.origin,
       } as any).eq("id", input.id);
       if (error) throw error;
     },
