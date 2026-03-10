@@ -130,15 +130,23 @@ export default function ClientFormDialog({ open, onOpenChange, form, setForm, on
                 <Input value={form.taxId} onChange={(e) => upd("taxId", e.target.value)} placeholder="B12345678" />
               </div>
               <div className="space-y-1.5">
-                <Label>Persona de contacto</Label>
-                <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre del contacto" />
+                <Label>Nombre de contacto</Label>
+                <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Apellidos de contacto</Label>
+                <Input value={form.lastName} onChange={(e) => upd("lastName", e.target.value)} placeholder="Apellidos" />
               </div>
             </>
           ) : (
             <>
               <div className="space-y-1.5">
                 <Label>Nombre *</Label>
-                <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre completo" />
+                <Input value={form.name} onChange={(e) => upd("name", e.target.value)} placeholder="Nombre" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Apellidos *</Label>
+                <Input value={form.lastName} onChange={(e) => upd("lastName", e.target.value)} placeholder="Apellidos" />
               </div>
               <div className="space-y-1.5">
                 <Label>DNI {!dniOptional && "*"}</Label>
