@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { useBranches } from "@/hooks/useBranches";
 import PostalCodeFields from "@/components/shared/PostalCodeFields";
+import AddressFields from "@/components/shared/AddressFields";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

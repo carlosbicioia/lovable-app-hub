@@ -31,7 +31,8 @@ const emptyClient = (): ClientFormData => ({
 const clientToForm = (c: DbClient): ClientFormData => ({
   clientType: c.clientType,
   name: c.name, lastName: c.lastName, companyName: c.companyName, dni: c.dni, taxId: c.taxId, email: c.email, phone: c.phone,
-  address: c.address, postalCode: c.postalCode, city: c.city, province: c.province,
+  address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra,
+  postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
   planType: c.planType, lastServiceDate: c.lastServiceDate, origin: c.origin,
 });
