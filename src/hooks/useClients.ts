@@ -6,6 +6,7 @@ export interface DbClient {
   id: string;
   clientType: "Particular" | "Empresa";
   name: string;
+  lastName: string;
   companyName: string;
   dni: string;
   taxId: string;
@@ -20,6 +21,8 @@ export interface DbClient {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  /** Computed full name for display */
+  fullName: string;
 }
 
 function mapRow(r: any): DbClient {
