@@ -31,7 +31,13 @@ import Suppliers from "@/pages/Suppliers";
 import ServiceCreate from "@/pages/ServiceCreate";
 import ServiceEdit from "@/pages/ServiceEdit";
 import Settings from "@/pages/Settings";
-import Reports from "@/pages/Reports";
+import ReportsIndex from "@/pages/reports/ReportsIndex";
+import ServicesReport from "@/pages/reports/ServicesReport";
+import OperatorsReport from "@/pages/reports/OperatorsReport";
+import FinancialReport from "@/pages/reports/FinancialReport";
+import ClientsReport from "@/pages/reports/ClientsReport";
+import PurchasesReport from "@/pages/reports/PurchasesReport";
+import BudgetsReport from "@/pages/reports/BudgetsReport";
 import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
 import ResetPassword from "@/pages/ResetPassword";
@@ -100,7 +106,19 @@ function AppRoutes() {
         <Route path="/ordenes-venta" element={<SalesOrders />} />
         <Route path="/calendario" element={<CalendarView />} />
         {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
-        {isAdminOrGestor ? <Route path="/informes" element={<Reports />} /> : <Route path="/informes" element={<AccessDenied />} />}
+        {isAdminOrGestor ? (
+          <>
+            <Route path="/informes" element={<ReportsIndex />} />
+            <Route path="/informes/servicios" element={<ServicesReport />} />
+            <Route path="/informes/operarios" element={<OperatorsReport />} />
+            <Route path="/informes/financiero" element={<FinancialReport />} />
+            <Route path="/informes/clientes" element={<ClientsReport />} />
+            <Route path="/informes/compras" element={<PurchasesReport />} />
+            <Route path="/informes/presupuestos" element={<BudgetsReport />} />
+          </>
+        ) : (
+          <Route path="/informes/*" element={<AccessDenied />} />
+        )}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />
       </Route>
