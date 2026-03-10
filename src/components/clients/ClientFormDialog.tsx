@@ -61,6 +61,7 @@ export interface ClientFormData {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  origin: string;
 }
 
 interface Props {
