@@ -121,6 +121,7 @@ export function useUpdateClient() {
       const { error } = await supabase.from("clients").update({
         client_type: input.clientType,
         name: input.name,
+        last_name: input.lastName,
         company_name: input.companyName,
         dni: input.dni,
         tax_id: input.taxId,
@@ -135,7 +136,7 @@ export function useUpdateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
-      }).eq("id", input.id);
+      } as any).eq("id", input.id);
       if (error) throw error;
     },
     onSuccess: () => {
