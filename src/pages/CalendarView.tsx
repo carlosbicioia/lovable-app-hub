@@ -1160,6 +1160,9 @@ export default function CalendarView() {
             <SelectItem value="Clima">
               <span className="flex items-center gap-1.5">{specialtyIcon["Clima"]} Clima</span>
             </SelectItem>
+            <SelectItem value="Carpintería_Metálica">
+              <span className="flex items-center gap-1.5">{specialtyIcon["Carpintería_Metálica"]} Carpintería Met.</span>
+            </SelectItem>
           </SelectContent>
         </Select>
 
