@@ -1118,7 +1118,6 @@ export default function CalendarView() {
             <User className="w-3.5 h-3.5 mr-1 shrink-0" />
             <SelectValue>{selectedOperatorId ? allOps.find(o => o.id === selectedOperatorId)?.name : <span className="text-muted-foreground">Operario</span>}</SelectValue>
           </SelectTrigger>
-          </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Operario: Todos</SelectItem>
             {allOps.map((op) => (
