@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, Plus, Trash2, Pencil, Save, X } from "lucide-react";
+import SupplierAutocomplete from "./SupplierAutocomplete";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useServiceMaterialsUsed,
