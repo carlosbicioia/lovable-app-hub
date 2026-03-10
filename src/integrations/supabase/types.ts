@@ -1290,6 +1290,7 @@ export type Database = {
           holded_doc_id: string | null
           id: string
           notes: string
+          pdf_path: string | null
           sent_to_holded: boolean
           sent_to_holded_at: string | null
           service_id: string
@@ -1306,6 +1307,7 @@ export type Database = {
           holded_doc_id?: string | null
           id: string
           notes?: string
+          pdf_path?: string | null
           sent_to_holded?: boolean
           sent_to_holded_at?: string | null
           service_id: string
@@ -1322,6 +1324,7 @@ export type Database = {
           holded_doc_id?: string | null
           id?: string
           notes?: string
+          pdf_path?: string | null
           sent_to_holded?: boolean
           sent_to_holded_at?: string | null
           service_id?: string
