@@ -71,12 +71,14 @@ const specialtyIcon: Record<string, React.ReactNode> = {
   "Fontanería/Agua": <Droplets className="w-4 h-4" />,
   "Electricidad/Luz": <Zap className="w-4 h-4" />,
   Clima: <Wind className="w-4 h-4" />,
+  Carpintería_Metálica: <Hammer className="w-4 h-4" />,
 };
 
 const specialtyColor: Record<string, string> = {
   "Fontanería/Agua": "bg-info/15 text-info border-info/30",
   "Electricidad/Luz": "bg-warning/15 text-warning border-warning/30",
   Clima: "bg-success/15 text-success border-success/30",
+  Carpintería_Metálica: "bg-orange-500/15 text-orange-600 border-orange-500/30",
 };
 
 const statusConfig: Record<OperatorStatus, { label: string; className: string }> = {
