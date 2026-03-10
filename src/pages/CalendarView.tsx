@@ -1200,10 +1200,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[150px] h-8 text-xs", selectedOrigin && "border-primary text-primary")}>
             <Globe className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Origen" />
+            <SelectValue>{selectedOrigin ? selectedOrigin.replace(/_/g, " ") : <span className="text-muted-foreground">Origen</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los orígenes</SelectItem>
+            <SelectItem value="__all__">Origen: Todos</SelectItem>
             <SelectItem value="App">App</SelectItem>
             <SelectItem value="B2B">B2B</SelectItem>
             <SelectItem value="Directo">Directo</SelectItem>
