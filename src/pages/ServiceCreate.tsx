@@ -1000,7 +1000,27 @@ export default function ServiceCreate() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      {/* New Client Dialog */}
+      <ClientFormDialog
+        open={showNewClientDialog}
+        onOpenChange={(v) => { if (!v) { setShowNewClientDialog(false); setNewClientForm(emptyClientForm); } }}
+        form={newClientForm}
+        setForm={setNewClientForm}
+        onSave={async () => {
+          try {
+            const newId = await createClient.mutateAsync(newClientForm);
+            setShowNewClientDialog(false);
+            setNewClientForm(emptyClientForm);
+            await refetchClients();
+            if (newId) handleClientChange(newId);
+          } catch {}
+        }}
+        collaborators={collaborators.map(c => ({ id: c.id, companyName: c.companyName }))}
+        title="Nuevo Cliente"
+        saveLabel="Crear Cliente"
+        dniOptional
+      />
     </>
   );
 }
