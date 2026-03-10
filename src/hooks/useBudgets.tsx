@@ -7,6 +7,7 @@ interface BudgetContextValue {
   budgets: Budget[];
   loading: boolean;
   addBudget: (budget: Budget) => Promise<void>;
+  updateBudget: (budget: Budget) => Promise<void>;
   updateBudgetStatus: (budgetId: string, status: BudgetStatus) => Promise<void>;
   getBudget: (id: string) => Budget | undefined;
   refetch: () => Promise<void>;
