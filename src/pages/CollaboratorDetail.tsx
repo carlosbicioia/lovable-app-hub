@@ -64,7 +64,8 @@ export default function CollaboratorDetail() {
   const [form, setForm] = useState({
     companyName: "", category: "Administrador" as CollaboratorCategory,
     email: "", phone: "", contactPerson: "",
-    taxId: "", address: "", city: "", province: "", postalCode: "",
+    taxId: "", address: "", streetNumber: "", floor: "", addressExtra: "",
+    city: "", province: "", postalCode: "",
     website: "", notes: "",
   });
   const [saving, setSaving] = useState(false);
