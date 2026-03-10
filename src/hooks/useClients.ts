@@ -21,6 +21,7 @@ export interface DbClient {
   collaboratorName: string | null;
   planType: string;
   lastServiceDate: string | null;
+  origin: string;
   /** Computed full name for display */
   fullName: string;
 }
