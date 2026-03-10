@@ -30,20 +30,18 @@ export function useVoiceAssistant() {
   const [alexText, setAlexText] = useState("");
 
   const recognitionRef = useRef<any>(null);
-  const isListeningRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
   const shouldListenRef = useRef(false);
-  const resultIndexRef = useRef(0);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const accumulatedTextRef = useRef("");
+  const handleUserInputRef = useRef<(text: string) => void>(() => {});
   const { refetch } = useServices();
   const navigate = useNavigate();
 
-  // Keep messagesRef in sync
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
-  // Find a Spanish male voice
   const getSpanishVoice = useCallback(() => {
     const voices = window.speechSynthesis.getVoices();
     const esEsMale = voices.find(
@@ -56,7 +54,6 @@ export function useVoiceAssistant() {
     return es || null;
   }, []);
 
-  // Preload voices
   useEffect(() => {
     window.speechSynthesis.getVoices();
     const handler = () => window.speechSynthesis.getVoices();
@@ -64,18 +61,12 @@ export function useVoiceAssistant() {
     return () => window.speechSynthesis.removeEventListener("voiceschanged", handler);
   }, []);
 
-  // Speak text
   const speak = useCallback(
     (text: string): Promise<void> => {
       return new Promise((resolve) => {
         window.speechSynthesis.cancel();
-
-        // Chrome bug: long utterances get cut off. Split into sentences.
         const chunks = text.match(/[^.!?]+[.!?]*/g) || [text];
-
-        let remaining = chunks.length;
-        if (remaining === 0) { resolve(); return; }
-
+        if (chunks.length === 0) { resolve(); return; }
         setIsSpeaking(true);
 
         const speakChunk = (i: number) => {
@@ -97,14 +88,12 @@ export function useVoiceAssistant() {
           };
           window.speechSynthesis.speak(utterance);
         };
-
         speakChunk(0);
       });
     },
     [getSpanishVoice]
   );
 
-  // Generate service ID
   const generateServiceId = useCallback(async () => {
     const { data: settings } = await supabase
       .from("company_settings")
@@ -126,7 +115,6 @@ export function useVoiceAssistant() {
     return `${prefix}${String(nextNum).padStart(3, "0")}`;
   }, []);
 
-  // Create service in DB
   const createService = useCallback(
     async (data: ServiceData) => {
       try {
@@ -180,22 +168,19 @@ export function useVoiceAssistant() {
     return text.replace(/###SERVICE_DATA###[\s\S]*?###END_SERVICE_DATA###/, "").trim();
   }, []);
 
-  // Stop recognition
   const stopListening = useCallback(() => {
-    isListeningRef.current = false;
     shouldListenRef.current = false;
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
+    accumulatedTextRef.current = "";
     try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
     setIsListening(false);
   }, []);
 
-  // Start recognition - fixed to properly handle results
   const startListening = useCallback(() => {
-    // Stop any existing recognition first
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
       recognitionRef.current = null;
@@ -215,12 +200,13 @@ export function useVoiceAssistant() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
+    accumulatedTextRef.current = "";
+
     recognition.onstart = () => {
-      isListeningRef.current = true;
       setIsListening(true);
       console.log("[Alex] Micrófono activo");
     };
@@ -228,17 +214,18 @@ export function useVoiceAssistant() {
     recognition.onend = () => {
       console.log("[Alex] Recognition ended, shouldListen:", shouldListenRef.current);
       setIsListening(false);
-      isListeningRef.current = false;
+      // Auto-restart if we should still be listening
       if (shouldListenRef.current) {
         setTimeout(() => {
           if (shouldListenRef.current) {
+            console.log("[Alex] Reiniciando reconocimiento...");
             try {
               recognition.start();
             } catch (e) {
-              console.log("[Alex] Could not restart recognition:", e);
+              console.log("[Alex] No se pudo reiniciar:", e);
             }
           }
-        }, 500);
+        }, 300);
       }
     };
 
@@ -246,7 +233,7 @@ export function useVoiceAssistant() {
       let finalText = "";
       let interimText = "";
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
           finalText += result[0].transcript;
@@ -255,14 +242,34 @@ export function useVoiceAssistant() {
         }
       }
 
-      setTranscript(finalText || interimText);
+      // Show what the user is saying (interim or final)
+      const displayTranscript = finalText || interimText;
+      if (displayTranscript) {
+        setTranscript(displayTranscript);
+      }
 
+      // When we get final text, accumulate and set a silence timer
       if (finalText) {
-        console.log("[Alex] Final transcript:", finalText);
-        shouldListenRef.current = false;
-        try { recognition.stop(); } catch {}
-        recognitionRef.current = null;
-        handleUserInput(finalText.trim());
+        accumulatedTextRef.current = finalText;
+        console.log("[Alex] Texto acumulado:", accumulatedTextRef.current);
+
+        // Clear existing silence timer
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+
+        // Wait 1.5s of silence before sending
+        silenceTimerRef.current = setTimeout(() => {
+          const textToSend = accumulatedTextRef.current.trim();
+          if (textToSend) {
+            console.log("[Alex] Enviando texto:", textToSend);
+            shouldListenRef.current = false;
+            accumulatedTextRef.current = "";
+            try { recognition.stop(); } catch {}
+            recognitionRef.current = null;
+            handleUserInputRef.current(textToSend);
+          }
+        }, 1500);
       }
     };
 
@@ -277,13 +284,12 @@ export function useVoiceAssistant() {
           variant: "destructive",
         });
       }
+      // For 'no-speech', 'aborted', 'network' etc., onend will fire and auto-restart
     };
 
     recognitionRef.current = recognition;
     shouldListenRef.current = true;
 
-    // Start recognition directly — do NOT wrap in async getUserMedia
-    // The browser gesture requirement demands synchronous invocation
     try {
       recognition.start();
     } catch (e) {
@@ -291,7 +297,7 @@ export function useVoiceAssistant() {
     }
   }, []);
 
-  // Handle user input - uses refs for messages
+  // handleUserInput uses refs to avoid stale closures
   const handleUserInput = useCallback(
     async (userText: string) => {
       const userMsg: Message = { role: "user", content: userText };
@@ -316,10 +322,8 @@ export function useVoiceAssistant() {
         setAlexText(displayText);
         setIsProcessing(false);
 
-        // Speak the response
         await speak(displayText);
 
-        // If service data found, create it
         if (serviceData) {
           const serviceId = await createService(serviceData);
           if (serviceId) {
@@ -329,7 +333,6 @@ export function useVoiceAssistant() {
             }, 2000);
           }
         } else {
-          // Resume listening
           startListening();
         }
       } catch (err: any) {
@@ -344,19 +347,23 @@ export function useVoiceAssistant() {
     [speak, createService, parseServiceData, cleanDisplayText, navigate, startListening]
   );
 
+  // Keep the ref in sync so startListening's closure always calls the latest version
+  useEffect(() => {
+    handleUserInputRef.current = handleUserInput;
+  }, [handleUserInput]);
+
   const stopSpeaking = useCallback(() => {
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
   }, []);
 
-  // Start conversation
   const startConversation = useCallback(async () => {
     setMessages([]);
     setAlexText("");
     setTranscript("");
     setOpen(true);
 
-    // Warm-up TTS synchronously within user gesture to unlock audio
+    // Warm-up TTS
     const warmUp = new SpeechSynthesisUtterance("");
     warmUp.volume = 0;
     warmUp.lang = "es-ES";
@@ -397,12 +404,11 @@ export function useVoiceAssistant() {
     setTranscript("");
   }, [stopListening, stopSpeaking]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       shouldListenRef.current = false;
-      isListeningRef.current = false;
-      recognitionRef.current?.stop();
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      try { recognitionRef.current?.stop(); } catch {}
       window.speechSynthesis.cancel();
     };
   }, []);
