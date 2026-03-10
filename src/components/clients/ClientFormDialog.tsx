@@ -82,8 +82,10 @@ interface Props {
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional, isAssistanceAvailable, isAssistance, onAssistanceChange }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
+  const { data: serviceOrigins = [] } = useServiceOrigins();
   const activePlans = plans.filter((p) => p.active);
   const activeBranches = branches.filter((b) => b.active);
+  const activeOrigins = serviceOrigins.filter((o) => o.active);
 
   // Resolve current branch from clusterId
   const currentBranchId = useMemo(() => {
