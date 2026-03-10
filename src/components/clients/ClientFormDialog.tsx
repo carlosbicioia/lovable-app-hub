@@ -40,6 +40,7 @@ interface Props {
   collaborators: { id: string; companyName: string }[];
   title: string;
   saveLabel: string;
+  dniOptional?: boolean;
 }
 
 export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
