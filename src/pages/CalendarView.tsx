@@ -1162,10 +1162,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[170px] h-8 text-xs", selectedStatus && "border-primary text-primary")}>
             <PlayCircle className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Estado" />
+            <SelectValue>{selectedStatus ? selectedStatus.replace(/_/g, " ") : <span className="text-muted-foreground">Estado</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los estados</SelectItem>
+            <SelectItem value="__all__">Estado: Todos</SelectItem>
             <SelectItem value="Pendiente_Contacto">Pendiente contacto</SelectItem>
             <SelectItem value="Pte_Asignacion">Pte. Asignación</SelectItem>
             <SelectItem value="Asignado">Asignado</SelectItem>
