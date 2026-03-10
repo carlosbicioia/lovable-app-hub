@@ -103,6 +103,7 @@ export function useCreateClient() {
         collaborator_name: input.collaboratorName,
         plan_type: input.planType,
         last_service_date: input.lastServiceDate,
+        origin: input.origin,
       } as any);
       if (error) throw error;
       return id;
