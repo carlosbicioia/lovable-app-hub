@@ -192,9 +192,23 @@ export default function ServiceInfoCards({ service }: Props) {
     }
   };
 
+  const [showSkipReasonPrompt, setShowSkipReasonPrompt] = useState(false);
+  const [skipReason, setSkipReason] = useState("");
+
   const handleFinalizeWithoutSalesOrder = () => {
     setShowFinalizadoPrompt(false);
-    handleUpdate("status", "Finalizado");
+    setShowSkipReasonPrompt(true);
+  };
+
+  const handleConfirmSkipReason = async () => {
+    if (!skipReason.trim()) {
+      toast.error("Debes indicar un motivo");
+      return;
+    }
+    setShowSkipReasonPrompt(false);
+    await handleUpdate("status", "Finalizado");
+    await updateService(service.id, { skip_sales_order_reason: skipReason.trim() } as any);
+    setSkipReason("");
   };
 
   const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
