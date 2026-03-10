@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useState } from "react";
+import PdfUpload from "@/components/shared/PdfUpload";
 import {
   AlertDialog,
   AlertDialogAction,
