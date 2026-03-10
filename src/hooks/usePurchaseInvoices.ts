@@ -21,6 +21,7 @@ export interface PurchaseInvoiceLine {
 export interface PurchaseInvoice {
   id: string;
   invoiceNumber: string;
+  supplierInvoiceNumber: string;
   supplierId: string | null;
   supplierName: string;
   invoiceDate: string | null;
