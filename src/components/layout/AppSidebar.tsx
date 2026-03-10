@@ -34,6 +34,7 @@ const navItems = [
   { to: "/articulos", label: "Artículos", icon: Package },
   { to: "/operarios", label: "Operarios", icon: HardHat },
   { to: "/colaboradores", label: "Colaboradores", icon: Handshake },
+  { to: "/informes", label: "Informes", icon: BarChart3 },
 ];
 
 const configItems = [
