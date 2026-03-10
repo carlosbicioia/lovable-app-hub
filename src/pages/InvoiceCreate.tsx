@@ -141,7 +141,10 @@ export default function InvoiceCreate() {
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
 
-        if (data.invoice_number) setInvoiceNumber(data.invoice_number);
+        if (data.invoice_number) {
+          setSupplierInvoiceNumber(data.invoice_number);
+          if (!invoiceNumber) setInvoiceNumber(data.invoice_number);
+        }
         if (data.supplier_name) {
           setSupplierName(data.supplier_name);
           const match = suppliers.find(
