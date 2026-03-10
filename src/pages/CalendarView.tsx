@@ -49,6 +49,7 @@ import {
   AlertTriangle,
   Globe,
   Building2,
+  MapPin,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
