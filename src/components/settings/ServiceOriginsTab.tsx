@@ -65,14 +65,18 @@ export default function ServiceOriginsTab() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add new */}
-        <div className="flex items-end gap-3">
-          <div className="flex-1 space-y-1.5">
+        <div className="flex items-end gap-3 flex-wrap">
+          <div className="flex-1 space-y-1.5 min-w-[160px]">
             <Label>Nombre</Label>
             <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ej: Teléfono" onKeyDown={(e) => e.key === "Enter" && handleCreate()} />
           </div>
           <div className="flex items-center gap-2 pb-0.5">
             <Switch checked={newShowCollab} onCheckedChange={setNewShowCollab} id="new-collab" />
             <Label htmlFor="new-collab" className="text-xs whitespace-nowrap"><Users className="w-3 h-3 inline mr-1" />Colaborador</Label>
+          </div>
+          <div className="flex items-center gap-2 pb-0.5">
+            <Switch checked={newIsAssistance} onCheckedChange={setNewIsAssistance} id="new-assist" />
+            <Label htmlFor="new-assist" className="text-xs whitespace-nowrap"><HeartPulse className="w-3 h-3 inline mr-1" />Asistencia</Label>
           </div>
           <Button size="sm" onClick={handleCreate} disabled={!newName.trim()} className="gap-1"><Plus className="w-4 h-4" /> Añadir</Button>
         </div>
