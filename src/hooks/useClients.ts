@@ -117,7 +117,7 @@ export function useUpdateClient() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (input: DbClient) => {
+    mutationFn: async (input: Omit<DbClient, "fullName">) => {
       const { error } = await supabase.from("clients").update({
         client_type: input.clientType,
         name: input.name,
