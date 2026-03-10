@@ -275,6 +275,7 @@ export default function InvoiceCreate() {
             setSelectedOcId("");
             setLines([emptyLine()]);
             setInvoiceNumber("");
+            setSupplierInvoiceNumber("");
             setSupplierName("");
             setSupplierId(null);
             setNotes("");
