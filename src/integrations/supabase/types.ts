@@ -1718,6 +1718,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_start_scheduled_services: { Args: never; Returns: number }
       get_user_collaborator_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {

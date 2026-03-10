@@ -20,10 +20,10 @@ interface Props {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado", "En_Curso"],
-  Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado", "En_Curso"],
-  Asignado: ["Pte_Asignacion", "Agendado", "En_Curso"],
-  Agendado: ["Asignado", "En_Curso", "Finalizado"],
+  Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado"],
+  Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado"],
+  Asignado: ["Pte_Asignacion", "Agendado"],
+  Agendado: ["Asignado"],
   En_Curso: ["Agendado", "Finalizado"],
   Finalizado: ["En_Curso", "Liquidado"],
   Liquidado: [],
