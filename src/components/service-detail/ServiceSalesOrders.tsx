@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useState } from "react";
+import PdfUpload from "@/components/shared/PdfUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -200,8 +201,18 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
                         </table>
                       </div>
                     )}
+                    {/* PDF */}
+                    <div className="mt-2">
+                      <PdfUpload
+                        currentPdfUrl={order.pdfPath}
+                        folder="purchase-docs"
+                        onUploaded={(url) => updateOrder.mutate({ id: order.id, pdf_path: url })}
+                        onRemoved={() => updateOrder.mutate({ id: order.id, pdf_path: null })}
+                        compact
+                      />
+                    </div>
 
-                    {/* Actions */}
+
                     {!isLiquidada && (
                       <div className="flex gap-2 pt-3">
                         {!order.sentToHolded ? (

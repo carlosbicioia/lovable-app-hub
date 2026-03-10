@@ -1,0 +1,1 @@
+ALTER TABLE public.sales_orders ADD COLUMN pdf_path text DEFAULT NULL;
