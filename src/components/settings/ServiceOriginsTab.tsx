@@ -51,7 +51,7 @@ export default function ServiceOriginsTab() {
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
-    updateOrigin.mutate({ id: editingId, name: editName.trim(), show_collaborator: editShowCollab });
+    updateOrigin.mutate({ id: editingId, name: editName.trim(), show_collaborator: editShowCollab, is_assistance: editIsAssistance });
     setEditingId(null);
   };
 

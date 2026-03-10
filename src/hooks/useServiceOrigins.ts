@@ -29,7 +29,7 @@ export function useServiceOrigins() {
 export function useCreateServiceOrigin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: Pick<ServiceOriginRow, "name" | "show_collaborator" | "sort_order">) => {
+    mutationFn: async (row: Pick<ServiceOriginRow, "name" | "show_collaborator" | "is_assistance" | "sort_order">) => {
       const { error } = await supabase.from("service_origins").insert(row);
       if (error) throw error;
     },
