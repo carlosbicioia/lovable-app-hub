@@ -1428,6 +1428,7 @@ export type Database = {
           signature_url: string | null
           signed_at: string | null
           signed_by: string | null
+          skip_sales_order_reason: string | null
           specialty: string
           status: string
           updated_at: string
@@ -1467,6 +1468,7 @@ export type Database = {
           signature_url?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          skip_sales_order_reason?: string | null
           specialty?: string
           status?: string
           updated_at?: string
@@ -1506,6 +1508,7 @@ export type Database = {
           signature_url?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          skip_sales_order_reason?: string | null
           specialty?: string
           status?: string
           updated_at?: string
