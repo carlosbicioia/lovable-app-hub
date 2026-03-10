@@ -43,7 +43,7 @@ interface Props {
   dniOptional?: boolean;
 }
 
-export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel }: Props) {
+export default function ClientFormDialog({ open, onOpenChange, form, setForm, onSave, collaborators, title, saveLabel, dniOptional }: Props) {
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: branches = [] } = useBranches();
   const activePlans = plans.filter((p) => p.active);
