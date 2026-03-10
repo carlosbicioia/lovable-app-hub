@@ -1277,6 +1277,45 @@ export type Database = {
         }
         Relationships: []
       }
+      service_materials_used: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          material: string
+          model: string
+          notes: string
+          purchase_date: string | null
+          service_id: string
+          sort_order: number
+          supplier_name: string
+        }
+        Insert: {
+          brand?: string
+          created_at?: string
+          id?: string
+          material?: string
+          model?: string
+          notes?: string
+          purchase_date?: string | null
+          service_id: string
+          sort_order?: number
+          supplier_name?: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          material?: string
+          model?: string
+          notes?: string
+          purchase_date?: string | null
+          service_id?: string
+          sort_order?: number
+          supplier_name?: string
+        }
+        Relationships: []
+      }
       service_media: {
         Row: {
           caption: string | null
