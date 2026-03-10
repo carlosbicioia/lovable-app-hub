@@ -140,6 +140,7 @@ export default function ServiceOriginsTab() {
                   <GripVertical className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                   <span className="flex-1 font-medium text-sm">{o.name}</span>
                   {o.show_collaborator && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full"><Users className="w-3 h-3 inline mr-1" />Colaborador</span>}
+                  {o.is_assistance && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full"><HeartPulse className="w-3 h-3 inline mr-1" />Asistencia</span>}
                   <Switch checked={o.active} onCheckedChange={(v) => updateOrigin.mutate({ id: o.id, active: v })} />
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(o)}><Pencil className="w-3.5 h-3.5" /></Button>
                   <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(o)}><Trash2 className="w-3.5 h-3.5" /></Button>
