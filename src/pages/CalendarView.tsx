@@ -1218,10 +1218,10 @@ export default function CalendarView() {
         >
           <SelectTrigger className={cn("w-[180px] h-8 text-xs", selectedCollaboratorId && "border-primary text-primary")}>
             <Building2 className="w-3.5 h-3.5 mr-1 shrink-0" />
-            <SelectValue placeholder="Colaborador" />
+            <SelectValue>{selectedCollaboratorId ? collaborators.find(c => c.id === selectedCollaboratorId)?.companyName : <span className="text-muted-foreground">Colaborador</span>}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los colaboradores</SelectItem>
+            <SelectItem value="__all__">Colaborador: Todos</SelectItem>
             {collaborators.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>
             ))}
