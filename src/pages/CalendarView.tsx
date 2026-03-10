@@ -972,9 +972,11 @@ export default function CalendarView() {
   const [selectedUrgency, setSelectedUrgency] = useState<UrgencyLevel | null>(null);
   const [selectedOrigin, setSelectedOrigin] = useState<ServiceOrigin | null>(null);
   const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const { services, refetch } = useServices();
   const { data: allOps = [] } = useOperators();
   const { collaborators } = useCollaborators();
+  const { data: branches = [] } = useBranches();
   _operatorsCache = allOps;
   const { toast } = useToast();
   const routerNavigate = useNavigate();
