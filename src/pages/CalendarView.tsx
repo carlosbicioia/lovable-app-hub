@@ -1120,7 +1120,7 @@ export default function CalendarView() {
           </SelectTrigger>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">Todos los operarios</SelectItem>
+            <SelectItem value="__all__">Operario: Todos</SelectItem>
             {allOps.map((op) => (
               <SelectItem key={op.id} value={op.id}>
                 <span className="flex items-center gap-2">
