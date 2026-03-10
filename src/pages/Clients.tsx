@@ -236,8 +236,8 @@ export default function Clients() {
         </div>
       </div>
 
-      <ClientFormDialog open={createOpen} onOpenChange={setCreateOpen} form={form} setForm={setForm} onSave={handleCreate} collaborators={collaborators} title="Nuevo Cliente" saveLabel="Crear cliente" />
-      <ClientFormDialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)} form={form} setForm={setForm} onSave={handleEdit} collaborators={collaborators} title={`Editar ${editTarget?.id ?? ""}`} saveLabel="Guardar cambios" />
+      <ClientFormDialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) setIsAssistanceClient(false); }} form={form} setForm={setForm} onSave={handleCreate} collaborators={collaborators} title="Nuevo Cliente" saveLabel="Crear cliente" dniOptional={isAssistanceClient} isAssistanceAvailable={hasAssistanceOrigin} isAssistance={isAssistanceClient} onAssistanceChange={setIsAssistanceClient} />
+      <ClientFormDialog open={!!editTarget} onOpenChange={(open) => { if (!open) { setEditTarget(null); setIsAssistanceClient(false); } }} form={form} setForm={setForm} onSave={handleEdit} collaborators={collaborators} title={`Editar ${editTarget?.id ?? ""}`} saveLabel="Guardar cambios" dniOptional={isAssistanceClient} isAssistanceAvailable={hasAssistanceOrigin} isAssistance={isAssistanceClient} onAssistanceChange={setIsAssistanceClient} />
     </div>
   );
 }
