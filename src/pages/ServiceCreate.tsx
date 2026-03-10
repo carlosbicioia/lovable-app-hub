@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X } from "lucide-react";
+import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { useClients } from "@/hooks/useClients";
+import { useClients, useCreateClient } from "@/hooks/useClients";
 import { useCollaborators } from "@/hooks/useCollaborators";
+import ClientFormDialog, { ClientFormData } from "@/components/clients/ClientFormDialog";
 import { useOperators } from "@/hooks/useOperators";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,8 +46,19 @@ const PENDING_SERVICE_KEY = "pendingServiceCreate";
 export default function ServiceCreate() {
   const { refetch } = useServices();
   const { budgets } = useBudgets();
-  const { data: clients = [] } = useClients();
+  const { data: clients = [], refetch: refetchClients } = useClients();
+  const createClient = useCreateClient();
   const { collaborators } = useCollaborators();
+
+  // ── New client dialog state ──
+  const emptyClientForm: ClientFormData = {
+    clientType: "Particular", name: "", lastName: "", companyName: "",
+    dni: "", taxId: "", email: "", phone: "", address: "", postalCode: "",
+    city: "", province: "", clusterId: "", collaboratorId: null,
+    collaboratorName: null, planType: "Ninguno", lastServiceDate: null, origin: "Directo",
+  };
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false);
+  const [newClientForm, setNewClientForm] = useState<ClientFormData>(emptyClientForm);
   const { data: allOperators = [] } = useOperators();
   const { data: dbSpecialties = [] } = useSpecialties();
   const activeSpecialties = dbSpecialties.filter(s => s.active);
@@ -468,7 +480,12 @@ export default function ServiceCreate() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Client searchable selector */}
             <div className="space-y-2">
-              <Label>Cliente *</Label>
+              <div className="flex items-center justify-between">
+                <Label>Cliente *</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-6 gap-1 text-xs px-2" onClick={() => setShowNewClientDialog(true)}>
+                  <Plus className="h-3 w-3" /> Nuevo
+                </Button>
+              </div>
               <Popover open={clientOpen} onOpenChange={setClientOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -483,7 +500,14 @@ export default function ServiceCreate() {
                   <Command>
                     <CommandInput placeholder="Nombre, DNI, teléfono..." />
                     <CommandList>
-                      <CommandEmpty>No se encontraron clientes</CommandEmpty>
+                      <CommandEmpty>
+                        <div className="flex flex-col items-center gap-2 py-2">
+                          <span className="text-sm text-muted-foreground">No se encontraron clientes</span>
+                          <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); setClientOpen(false); setShowNewClientDialog(true); }}>
+                            <Plus className="h-3.5 w-3.5" /> Crear cliente
+                          </Button>
+                        </div>
+                      </CommandEmpty>
                       <CommandGroup>
                         {clients.map((c) => (
                            <CommandItem
@@ -976,6 +1000,27 @@ export default function ServiceCreate() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Client Dialog */}
+      <ClientFormDialog
+        open={showNewClientDialog}
+        onOpenChange={(v) => { if (!v) { setShowNewClientDialog(false); setNewClientForm(emptyClientForm); } }}
+        form={newClientForm}
+        setForm={setNewClientForm}
+        onSave={async () => {
+          try {
+            const newId = await createClient.mutateAsync(newClientForm);
+            setShowNewClientDialog(false);
+            setNewClientForm(emptyClientForm);
+            await refetchClients();
+            if (newId) handleClientChange(newId);
+          } catch {}
+        }}
+        collaborators={collaborators.map(c => ({ id: c.id, companyName: c.companyName }))}
+        title="Nuevo Cliente"
+        saveLabel="Crear Cliente"
+        dniOptional
+      />
     </div>
     </>
   );
