@@ -153,8 +153,8 @@ export default function Suppliers() {
         }}
         onExport={() => {
           const sel = filtered.filter((s) => selectedIds.has(s.id));
-          const headers = ["Nombre", "CIF/NIF", "Contacto", "Email", "Teléfono", "Ciudad", "Cond. Pago", "Estado"];
-          const csvRows = sel.map((s) => [s.name, s.taxId, s.contactPerson, s.email, s.phone, s.city, `${s.paymentTerms} ${s.dueDays}d`, s.active ? "Activo" : "Inactivo"]);
+          const headers = ["Nombre", "CIF/NIF", "Contacto", "Email", "Teléfono", "Calle", "Número", "Piso", "Adicional", "Ciudad", "Cond. Pago", "Estado"];
+          const csvRows = sel.map((s) => [s.name, s.taxId, s.contactPerson, s.email, s.phone, s.address, s.streetNumber, s.floor, s.addressExtra, s.city, `${s.paymentTerms} ${s.dueDays}d`, s.active ? "Activo" : "Inactivo"]);
           exportCsv("proveedores.csv", headers, csvRows);
         }}
       />
