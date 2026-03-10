@@ -181,7 +181,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <BudgetContext.Provider value={{ budgets, loading, addBudget, updateBudgetStatus, getBudget, refetch: fetchBudgets }}>
+    <BudgetContext.Provider value={{ budgets, loading, addBudget, updateBudget, updateBudgetStatus, getBudget, refetch: fetchBudgets }}>
       {children}
     </BudgetContext.Provider>
   );
