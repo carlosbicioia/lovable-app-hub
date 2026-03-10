@@ -114,6 +114,9 @@ export default function ServiceCreate() {
   // ── Description & Location ──
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [streetNumber, setStreetNumber] = useState("");
+  const [floor, setFloor] = useState("");
+  const [addressExtra, setAddressExtra] = useState("");
   const [serviceCity, setServiceCity] = useState("");
   const [serviceProvince, setServiceProvince] = useState("");
   const [servicePostalCode, setServicePostalCode] = useState("");
