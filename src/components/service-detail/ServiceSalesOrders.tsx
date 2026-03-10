@@ -25,12 +25,10 @@ interface Props {
   serviceId: string;
 }
 
-function calcLineTotal(l: { units: number; costPrice: number; margin: number; taxRate: number }) {
-  const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
-  const sub = Math.round(salePrice * l.units * 100) / 100;
-  const tax = Math.round(sub * (l.taxRate / 100) * 100) / 100;
-  return sub + tax;
-}
+const statusCfg: Record<string, { label: string; cls: string }> = {
+  Pendiente: { label: "Pendiente", cls: "bg-warning/15 text-warning border-warning/30" },
+  Liquidada: { label: "Liquidada", cls: "bg-success/15 text-success border-success/30" },
+};
 
 export default function ServiceSalesOrders({ serviceId }: Props) {
   const { data: orders = [], isLoading } = useSalesOrders(serviceId);
@@ -38,6 +36,9 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
   const { updateService } = useServices();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [confirmLiquidate, setConfirmLiquidate] = useState<string | null>(null);
+
+  const totalPendiente = orders.filter((o) => o.status === "Pendiente").reduce((s, o) => s + o.total, 0);
+  const totalLiquidada = orders.filter((o) => o.status === "Liquidada").reduce((s, o) => s + o.total, 0);
 
   const handleSendToHolded = async (order: typeof orders[0]) => {
     setSendingId(order.id);
@@ -57,9 +58,7 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
         status: "Liquidada",
       });
 
-      // Auto-liquidate the service
       await updateService(order.serviceId, { status: "Liquidado" });
-
       toast.success("Orden enviada a Holded — servicio liquidado");
     } catch (err: any) {
       toast.error(err.message || "Error al enviar a Holded");
@@ -90,29 +89,31 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
     );
   }
 
-  if (orders.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="w-4 h-4 text-muted-foreground" /> Órdenes de Venta
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <FileText className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Sin órdenes de venta</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Se generan al finalizar un presupuesto aprobado
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <>
+    <div className="space-y-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Órdenes</p>
+            <p className="text-2xl font-bold text-foreground">{orders.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pendiente</p>
+            <p className="text-2xl font-bold text-warning">€{totalPendiente.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Liquidado</p>
+            <p className="text-2xl font-bold text-success">€{totalLiquidada.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Orders list */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -120,101 +121,116 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
             <Badge variant="secondary" className="ml-auto text-xs">{orders.length}</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {orders.map((order) => {
-            const isLiquidada = order.status === "Liquidada";
-            return (
-              <div
-                key={order.id}
-                className={cn(
-                  "rounded-lg border p-4 space-y-3",
-                  isLiquidada ? "border-success/30 bg-success/5" : "border-border"
-                )}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm text-card-foreground">{order.id}</span>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[10px]",
-                        isLiquidada
-                          ? "bg-success/15 text-success border-success/30"
-                          : "bg-warning/15 text-warning border-warning/30"
-                      )}
-                    >
-                      {isLiquidada ? "Liquidada" : "Pendiente"}
-                    </Badge>
-                    {order.sentToHolded && (
-                      <Badge variant="outline" className="text-[10px] bg-info/15 text-info border-info/30">
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Enviada
-                      </Badge>
+        <CardContent>
+          {orders.length === 0 ? (
+            <div className="text-center py-10">
+              <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm font-medium text-foreground">Sin órdenes de venta</p>
+              <p className="text-xs text-muted-foreground mt-1">Se generan al finalizar un presupuesto aprobado</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {orders.map((order) => {
+                const isLiquidada = order.status === "Liquidada";
+                const sc = statusCfg[order.status] || statusCfg.Pendiente;
+                return (
+                  <div
+                    key={order.id}
+                    className={cn(
+                      "border rounded-lg p-4 hover:bg-muted/50 transition-colors",
+                      isLiquidada ? "border-success/30 bg-success/5" : "border-border"
                     )}
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(order.createdAt), "dd MMM yyyy", { locale: es })}
-                  </span>
-                </div>
-
-                {/* Lines summary */}
-                <div className="text-sm space-y-1">
-                  {order.lines.map((l) => {
-                    const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
-                    const sub = Math.round(salePrice * l.units * 100) / 100;
-                    return (
-                      <div key={l.id} className="flex justify-between text-muted-foreground">
-                        <span>{l.concept} × {l.units}</span>
-                        <span>{sub.toFixed(2)} €</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Total */}
-                <div className="flex justify-between items-center border-t border-border pt-2">
-                  <span className="text-sm font-semibold text-card-foreground">Total</span>
-                  <span className="text-sm font-bold text-card-foreground">{order.total.toFixed(2)} €</span>
-                </div>
-
-                {/* Holded info */}
-                {order.sentToHolded && order.sentToHoldedAt && (
-                  <p className="text-[11px] text-muted-foreground">
-                    Enviada a Holded el {format(new Date(order.sentToHoldedAt), "dd MMM yyyy · HH:mm", { locale: es })}
-                  </p>
-                )}
-
-                {/* Actions */}
-                {!isLiquidada && (
-                  <div className="flex gap-2 pt-1">
-                    {!order.sentToHolded ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleSendToHolded(order)}
-                        disabled={sendingId === order.id}
-                      >
-                        {sendingId === order.id ? (
-                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        ) : (
-                          <Send className="w-3.5 h-3.5 mr-1.5" />
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-sm font-semibold text-foreground">{order.id}</span>
+                        <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>
+                          {sc.label}
+                        </span>
+                        {order.sentToHolded && (
+                          <Badge variant="outline" className="text-[10px] bg-info/15 text-info border-info/30">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Enviada
+                          </Badge>
                         )}
-                        Enviar a Holded
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => setConfirmLiquidate(order.id)}
-                      >
-                        <Lock className="w-3.5 h-3.5 mr-1.5" />
-                        Liquidar
-                      </Button>
+                      </div>
+                      <span className="text-lg font-bold text-foreground">€{order.total.toFixed(2)}</span>
+                    </div>
+
+                    {/* Meta */}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                      <span>{order.clientName}</span>
+                      <span>Ppto: {order.budgetId}</span>
+                      <span>{format(new Date(order.createdAt), "d MMM yyyy", { locale: es })}</span>
+                    </div>
+
+                    {/* Holded info */}
+                    {order.sentToHolded && order.sentToHoldedAt && (
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        Enviada a Holded el {format(new Date(order.sentToHoldedAt), "dd MMM yyyy · HH:mm", { locale: es })}
+                      </p>
+                    )}
+
+                    {/* Lines table */}
+                    {order.lines.length > 0 && (
+                      <div className="bg-muted/30 rounded-md overflow-hidden mt-3">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left px-3 py-2 text-muted-foreground font-medium">Concepto</th>
+                              <th className="text-center px-3 py-2 text-muted-foreground font-medium">Uds.</th>
+                              <th className="text-right px-3 py-2 text-muted-foreground font-medium">PVP ud.</th>
+                              <th className="text-right px-3 py-2 text-muted-foreground font-medium">Subtotal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {order.lines.map((l) => {
+                              const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                              const sub = Math.round(salePrice * l.units * 100) / 100;
+                              return (
+                                <tr key={l.id} className="border-b border-border/50 last:border-0">
+                                  <td className="px-3 py-1.5 text-foreground">{l.concept}</td>
+                                  <td className="px-3 py-1.5 text-center text-muted-foreground">{l.units}</td>
+                                  <td className="px-3 py-1.5 text-right text-muted-foreground">€{salePrice.toFixed(2)}</td>
+                                  <td className="px-3 py-1.5 text-right font-medium text-foreground">€{sub.toFixed(2)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    {!isLiquidada && (
+                      <div className="flex gap-2 pt-3">
+                        {!order.sentToHolded ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSendToHolded(order)}
+                            disabled={sendingId === order.id}
+                          >
+                            {sendingId === order.id ? (
+                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                              <Send className="w-3.5 h-3.5 mr-1.5" />
+                            )}
+                            Enviar a Holded
+                          </Button>
+                        ) : (
+                          <Button size="sm" onClick={() => setConfirmLiquidate(order.id)}>
+                            <Lock className="w-3.5 h-3.5 mr-1.5" />
+                            Liquidar
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -235,6 +251,6 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
