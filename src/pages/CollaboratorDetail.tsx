@@ -359,9 +359,22 @@ export default function CollaboratorDetail() {
               <div className="space-y-1.5">
                 <Label>Dirección</Label>
                 {editing ? (
-                  <Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-6">
+                      <Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder="Calle" />
+                    </div>
+                    <div className="col-span-2">
+                      <Input value={form.streetNumber} onChange={(e) => setForm((f) => ({ ...f, streetNumber: e.target.value }))} placeholder="Nº" />
+                    </div>
+                    <div className="col-span-2">
+                      <Input value={form.floor} onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))} placeholder="Piso" />
+                    </div>
+                    <div className="col-span-2">
+                      <Input value={form.addressExtra} onChange={(e) => setForm((f) => ({ ...f, addressExtra: e.target.value }))} placeholder="Esc..." />
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-sm text-foreground">{collaborator.address || "—"}</p>
+                  <p className="text-sm text-foreground">{[collaborator.address, collaborator.streetNumber, collaborator.floor, collaborator.addressExtra].filter(Boolean).join(", ") || "—"}</p>
                 )}
               </div>
               <div className="grid grid-cols-3 gap-4">
