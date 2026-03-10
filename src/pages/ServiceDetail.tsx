@@ -71,7 +71,8 @@ export default function ServiceDetail() {
   };
 
   const sla = getSlaStatus();
-  const financialCount = (linkedBudget ? 1 : 0) + linkedOrders.length + salesOrders.length;
+  const purchaseCount = linkedOrders.length;
+  const salesCount = (linkedBudget ? 1 : 0) + salesOrders.length;
 
   const handleDeleteService = async () => {
     try {
