@@ -104,33 +104,35 @@ export default function ServiceSidebar({ service }: Props) {
         </CardContent>
       </Card>
 
-      {/* Collaborator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-muted-foreground" /> Colaborador
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin colaborador" },
-              ...collaborators.map((c) => ({
-                value: c.id,
-                label: c.companyName,
-                subtitle: c.contactPerson,
-                searchText: `${c.email} ${c.phone}`,
-              })),
-            ]}
-            value={service.collaboratorId ?? "none"}
-            onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar colaborador…"
-            searchPlaceholder="Buscar colaborador…"
-            emptyText="Sin colaboradores"
-            disabled={savingField === "collaborator_id"}
-          />
-        </CardContent>
-      </Card>
+      {/* Collaborator - only for origins with show_collaborator */}
+      {showCollaborator && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-muted-foreground" /> Colaborador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SearchableSelect
+              options={[
+                { value: "none", label: "Sin colaborador" },
+                ...collaborators.map((c) => ({
+                  value: c.id,
+                  label: c.companyName,
+                  subtitle: c.contactPerson,
+                  searchText: `${c.email} ${c.phone}`,
+                })),
+              ]}
+              value={service.collaboratorId ?? "none"}
+              onValueChange={(v) => handleUpdate("collaborator_id", v === "none" ? null : v)}
+              placeholder="Seleccionar colaborador…"
+              searchPlaceholder="Buscar colaborador…"
+              emptyText="Sin colaboradores"
+              disabled={savingField === "collaborator_id"}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Operator */}
       <Card>
