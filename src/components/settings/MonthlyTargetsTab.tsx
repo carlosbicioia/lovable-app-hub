@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-type MetricKey = "targetRevenue" | "targetServices" | "targetNps" | "targetMargin" | "targetMaxCosts" | "targetNewClients" | "targetAvgResponseHours" | "avgPricePerService";
+type MetricKey = "targetRevenue" | "targetServices" | "targetNps" | "targetMargin" | "targetMaxCosts" | "targetNewClients" | "targetAvgResponseHours" | "targetOperators" | "avgPricePerService";
 
 interface MetricRow {
   key: MetricKey;
@@ -31,6 +31,7 @@ const metricRows: MetricRow[] = [
   { key: "targetMargin", label: "Margen objetivo", group: "Rendimiento", format: v => `${v}%`, color: "hsl(142 71% 45%)", editable: true, max: 100 },
   { key: "targetServices", label: "Nº servicios", format: v => String(v), color: "hsl(var(--primary))", editable: true, step: 1 },
   { key: "avgPricePerService", label: "Precio medio / servicio", format: v => v > 0 ? `${v.toLocaleString()}€` : "—", color: "hsl(200 80% 50%)", editable: false, computed: t => t.targetServices > 0 ? Math.round(t.targetRevenue / t.targetServices) : 0 },
+  { key: "targetOperators", label: "Nº industriales", group: "Equipo", format: v => String(v), color: "hsl(25 95% 53%)", editable: true, step: 1 },
   { key: "targetNps", label: "NPS medio", format: v => v.toFixed(1), color: "hsl(45 93% 47%)", editable: true, step: 0.1, max: 10 },
   { key: "targetNewClients", label: "Nuevos clientes", group: "Clientes", format: v => String(v), color: "hsl(262 83% 58%)", editable: true, step: 1 },
   { key: "targetAvgResponseHours", label: "Tiempo respuesta", format: v => `${v}h`, color: "hsl(var(--muted-foreground))", editable: true, step: 0.5 },
@@ -49,6 +50,7 @@ const defaultTarget = (month: string): Omit<MonthlyTarget, "id"> & { id?: string
   targetMaxCosts: 0,
   targetNewClients: 0,
   targetAvgResponseHours: 12,
+  targetOperators: 0,
   notes: "",
 });
 
@@ -128,6 +130,7 @@ export default function MonthlyTargetsTab() {
         targetMaxCosts: updated.targetMaxCosts,
         targetNewClients: updated.targetNewClients,
         targetAvgResponseHours: updated.targetAvgResponseHours,
+        targetOperators: updated.targetOperators,
         notes: updated.notes || "",
       } as any,
       { onSuccess: () => setEditingCell(null) }

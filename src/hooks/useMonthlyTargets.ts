@@ -12,6 +12,7 @@ export interface MonthlyTarget {
   targetMaxCosts: number;
   targetNewClients: number;
   targetAvgResponseHours: number;
+  targetOperators: number;
   notes: string;
 }
 
@@ -26,6 +27,7 @@ function mapRow(row: any): MonthlyTarget {
     targetMaxCosts: Number(row.target_max_costs),
     targetNewClients: Number(row.target_new_clients),
     targetAvgResponseHours: Number(row.target_avg_response_hours),
+    targetOperators: Number(row.target_operators),
     notes: row.notes,
   };
 }
@@ -57,6 +59,7 @@ export function useUpsertMonthlyTarget() {
         target_max_costs: target.targetMaxCosts,
         target_new_clients: target.targetNewClients,
         target_avg_response_hours: target.targetAvgResponseHours,
+        target_operators: target.targetOperators,
         notes: target.notes,
       };
 
