@@ -130,6 +130,7 @@ export default function MonthlyTargetsTab() {
         targetMaxCosts: updated.targetMaxCosts,
         targetNewClients: updated.targetNewClients,
         targetAvgResponseHours: updated.targetAvgResponseHours,
+        targetOperators: updated.targetOperators,
         notes: updated.notes || "",
       } as any,
       { onSuccess: () => setEditingCell(null) }
