@@ -12,7 +12,7 @@ import {
   Building2, Users, Shield, FileText, Bell, Palette, Mail, KeyRound,
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat, GripVertical,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
-  Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
+  Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog, Target,
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database, MapPin,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -37,6 +37,7 @@ import BulkImportTab from "@/components/settings/BulkImportTab";
 import SubscriptionPlansTab from "@/components/settings/SubscriptionPlansTab";
 import BranchesTab from "@/components/settings/BranchesTab";
 import ServiceOriginsTab from "@/components/settings/ServiceOriginsTab";
+import MonthlyTargetsTab from "@/components/settings/MonthlyTargetsTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
@@ -694,6 +695,7 @@ export default function Settings() {
     {
       group: "Operaciones",
       items: [
+        { value: "targets", label: "Objetivos", icon: Target },
         { value: "protocol", label: "Protocolo", icon: Wrench },
         { value: "industrial", label: "Especialidades", icon: HardHat },
         { value: "origins", label: "Orígenes", icon: Cog },
@@ -1217,6 +1219,11 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ===== OBJETIVOS ===== */}
+        <TabsContent value="targets" className="space-y-6 mt-4">
+          <MonthlyTargetsTab />
         </TabsContent>
 
         {/* ===== PROTOCOLO ===== */}

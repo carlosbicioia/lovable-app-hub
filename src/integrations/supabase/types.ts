@@ -688,6 +688,51 @@ export type Database = {
           },
         ]
       }
+      monthly_targets: {
+        Row: {
+          created_at: string
+          id: string
+          month: string
+          notes: string
+          target_avg_response_hours: number
+          target_margin: number
+          target_max_costs: number
+          target_new_clients: number
+          target_nps: number
+          target_revenue: number
+          target_services: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: string
+          notes?: string
+          target_avg_response_hours?: number
+          target_margin?: number
+          target_max_costs?: number
+          target_new_clients?: number
+          target_nps?: number
+          target_revenue?: number
+          target_services?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string
+          target_avg_response_hours?: number
+          target_margin?: number
+          target_max_costs?: number
+          target_new_clients?: number
+          target_nps?: number
+          target_revenue?: number
+          target_services?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       municipalities: {
         Row: {
           id: string
