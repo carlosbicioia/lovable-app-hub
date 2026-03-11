@@ -1221,6 +1221,11 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        {/* ===== OBJETIVOS ===== */}
+        <TabsContent value="targets" className="space-y-6 mt-4">
+          <MonthlyTargetsTab />
+        </TabsContent>
+
         {/* ===== PROTOCOLO ===== */}
         <TabsContent value="protocol" className="space-y-6 mt-4">
           <Card>
