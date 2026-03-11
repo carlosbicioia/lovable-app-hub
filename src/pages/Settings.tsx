@@ -695,6 +695,7 @@ export default function Settings() {
     {
       group: "Operaciones",
       items: [
+        { value: "targets", label: "Objetivos", icon: Target },
         { value: "protocol", label: "Protocolo", icon: Wrench },
         { value: "industrial", label: "Especialidades", icon: HardHat },
         { value: "origins", label: "Orígenes", icon: Cog },
