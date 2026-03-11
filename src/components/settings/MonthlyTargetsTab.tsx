@@ -146,14 +146,13 @@ export default function MonthlyTargetsTab() {
   const hasAnyData = useMemo(() => months.some(m => targetMap[m].targetRevenue > 0), [months, targetMap]);
 
   const startEdit = (month: string, key: MetricKey) => {
-    if (isAllBranches) return; // Can't edit aggregated view
     const t = targetMap[month];
     setEditingCell({ month, key });
     setEditValue(String(t[key as keyof typeof t]));
   };
 
   const saveEdit = () => {
-    if (!editingCell || isAllBranches) return;
+    if (!editingCell) return;
     const t = targetMap[editingCell.month];
     const numVal = Number(editValue);
     const updated = { ...t, [editingCell.key]: numVal };
@@ -203,9 +202,8 @@ export default function MonthlyTargetsTab() {
               <Target className="w-4 h-4 text-primary" /> Objetivos Mensuales
             </CardTitle>
             <CardDescription>
-              {isAllBranches
-                ? "Vista consolidada de todas las sedes (solo lectura)"
-                : "Haz clic en cualquier celda para editarla"}
+              Haz clic en cualquier celda para editarla
+              {isAllBranches && activeBranches.length > 0 && " (vista consolidada)"}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -309,7 +307,7 @@ export default function MonthlyTargetsTab() {
                       const isCurrent = m === currentMonth;
                       const hasId = "id" in t && t.id && t.id !== "__agg__";
                       const isEmpty = val === 0 && !hasId;
-                      const canEdit = row.editable && !isAllBranches;
+                      const canEdit = row.editable;
 
                       if (isEditing) {
                         return (
