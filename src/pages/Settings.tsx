@@ -37,6 +37,7 @@ import BulkImportTab from "@/components/settings/BulkImportTab";
 import SubscriptionPlansTab from "@/components/settings/SubscriptionPlansTab";
 import BranchesTab from "@/components/settings/BranchesTab";
 import ServiceOriginsTab from "@/components/settings/ServiceOriginsTab";
+import MonthlyTargetsTab from "@/components/settings/MonthlyTargetsTab";
 
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
