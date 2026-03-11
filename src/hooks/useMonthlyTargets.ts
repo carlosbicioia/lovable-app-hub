@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export interface MonthlyTarget {
   id: string;
   month: string;
+  branchId: string | null;
   targetRevenue: number;
   targetServices: number;
   targetNps: number;
@@ -20,6 +21,7 @@ function mapRow(row: any): MonthlyTarget {
   return {
     id: row.id,
     month: row.month,
+    branchId: row.branch_id,
     targetRevenue: Number(row.target_revenue),
     targetServices: Number(row.target_services),
     targetNps: Number(row.target_nps),
@@ -50,8 +52,9 @@ export function useUpsertMonthlyTarget() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (target: Omit<MonthlyTarget, "id"> & { id?: string }) => {
-      const payload = {
+      const payload: any = {
         month: target.month,
+        branch_id: target.branchId,
         target_revenue: target.targetRevenue,
         target_services: target.targetServices,
         target_nps: target.targetNps,
@@ -63,10 +66,18 @@ export function useUpsertMonthlyTarget() {
         notes: target.notes,
       };
 
-      const { error } = await supabase
-        .from("monthly_targets")
-        .upsert({ ...payload, ...(target.id ? { id: target.id } : {}) }, { onConflict: "month" });
-      if (error) throw error;
+      if (target.id) {
+        const { error } = await supabase
+          .from("monthly_targets")
+          .update(payload)
+          .eq("id", target.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("monthly_targets")
+          .insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["monthly_targets"] });
