@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, MessageSquare, LogOut, Menu } from "lucide-react";
+import { Search, MessageSquare, LogOut, Menu, MonitorPlay } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ChatPanel from "@/components/chat/ChatPanel";
 import NotificationsPopover from "@/components/layout/NotificationsPopover";
