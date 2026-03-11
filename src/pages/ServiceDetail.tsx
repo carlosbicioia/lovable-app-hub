@@ -352,6 +352,9 @@ export default function ServiceDetail() {
                     {salesOrders.length}
                   </span>
                 </TabsTrigger>
+                <TabsTrigger value="resumen" className="gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5" /> Resumen económico
+                </TabsTrigger>
               </TabsList>
 
               {/* Presupuestos sub-tab */}
