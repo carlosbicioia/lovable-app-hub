@@ -152,7 +152,7 @@ export default function MonthlyTargetsTab() {
   };
 
   const saveEdit = () => {
-    if (!editingCell || isAllBranches) return;
+    if (!editingCell) return;
     const t = targetMap[editingCell.month];
     const numVal = Number(editValue);
     const updated = { ...t, [editingCell.key]: numVal };
