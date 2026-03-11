@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-type MetricKey = "targetRevenue" | "targetServices" | "targetNps" | "targetMargin" | "targetMaxCosts" | "targetNewClients" | "targetAvgResponseHours";
+type MetricKey = "targetRevenue" | "targetServices" | "targetNps" | "targetMargin" | "targetMaxCosts" | "targetNewClients" | "targetAvgResponseHours" | "avgPricePerService";
 
 interface MetricRow {
   key: MetricKey;
@@ -22,6 +22,7 @@ interface MetricRow {
   editable: boolean;
   step?: number;
   max?: number;
+  computed?: (t: { targetRevenue: number; targetServices: number }) => number;
 }
 
 const metricRows: MetricRow[] = [
@@ -29,6 +30,7 @@ const metricRows: MetricRow[] = [
   { key: "targetMaxCosts", label: "Costes máximos", format: v => `${v.toLocaleString()}€`, color: "hsl(var(--destructive))", editable: false },
   { key: "targetMargin", label: "Margen objetivo", group: "Rendimiento", format: v => `${v}%`, color: "hsl(142 71% 45%)", editable: true, max: 100 },
   { key: "targetServices", label: "Nº servicios", format: v => String(v), color: "hsl(var(--primary))", editable: true, step: 1 },
+  { key: "avgPricePerService", label: "Precio medio / servicio", format: v => v > 0 ? `${v.toLocaleString()}€` : "—", color: "hsl(200 80% 50%)", editable: false, computed: t => t.targetServices > 0 ? Math.round(t.targetRevenue / t.targetServices) : 0 },
   { key: "targetNps", label: "NPS medio", format: v => v.toFixed(1), color: "hsl(45 93% 47%)", editable: true, step: 0.1, max: 10 },
   { key: "targetNewClients", label: "Nuevos clientes", group: "Clientes", format: v => String(v), color: "hsl(262 83% 58%)", editable: true, step: 1 },
   { key: "targetAvgResponseHours", label: "Tiempo respuesta", format: v => `${v}h`, color: "hsl(var(--muted-foreground))", editable: true, step: 0.5 },
@@ -230,7 +232,7 @@ export default function MonthlyTargetsTab() {
                     </TableCell>
                     {months.map(m => {
                       const t = targetMap[m];
-                      const val = t[row.key] as number;
+                      const val = row.computed ? row.computed(t) : (t[row.key as keyof typeof t] as number);
                       const isEditing = editingCell?.month === m && editingCell.key === row.key;
                       const isCurrent = m === currentMonth;
                       const isEmpty = val === 0 && !("id" in t && t.id);
