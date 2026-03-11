@@ -232,7 +232,7 @@ export default function MonthlyTargetsTab() {
                     </TableCell>
                     {months.map(m => {
                       const t = targetMap[m];
-                      const val = t[row.key] as number;
+                      const val = row.computed ? row.computed(t) : (t[row.key as keyof typeof t] as number);
                       const isEditing = editingCell?.month === m && editingCell.key === row.key;
                       const isCurrent = m === currentMonth;
                       const isEmpty = val === 0 && !("id" in t && t.id);
