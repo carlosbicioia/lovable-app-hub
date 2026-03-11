@@ -458,6 +458,98 @@ export default function ServiceDetail() {
               <TabsContent value="ordenes">
                 <ServiceSalesOrders serviceId={service.id} />
               </TabsContent>
+
+              {/* Resumen económico sub-tab */}
+              <TabsContent value="resumen">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-muted-foreground" /> Resumen económico
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {/* Importe presupuestado */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe presupuestado</p>
+                        <p className="text-2xl font-bold text-foreground">
+                          {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                        </p>
+                      </div>
+
+                      {/* Total OV pendiente */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">OV Pendiente</p>
+                        <p className="text-2xl font-bold text-warning">
+                          €{salesOrders.filter(o => o.status === "Pendiente").reduce((s, o) => s + o.total, 0).toFixed(2)}
+                        </p>
+                      </div>
+
+                      {/* Total OV liquidada */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">OV Liquidada</p>
+                        <p className="text-2xl font-bold text-success">
+                          €{salesOrders.filter(o => o.status === "Liquidada").reduce((s, o) => s + o.total, 0).toFixed(2)}
+                        </p>
+                      </div>
+
+                      {/* Horas reales */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
+                        <p className="text-2xl font-bold text-foreground">
+                          {service.realHours != null ? `${service.realHours}h` : "—"}
+                        </p>
+                      </div>
+
+                      {/* Coste/hora */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste / hora</p>
+                        <p className="text-2xl font-bold text-foreground">
+                          {service.budgetTotal && service.realHours
+                            ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                            : "—"}
+                        </p>
+                        {service.budgetTotal && service.realHours && (
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Importe / horas reales</p>
+                        )}
+                      </div>
+
+                      {/* NPS */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">NPS</p>
+                        {service.nps !== null ? (
+                          <p className={cn(
+                            "text-2xl font-bold",
+                            service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
+                          )}>
+                            {service.nps}/10
+                          </p>
+                        ) : (
+                          <p className="text-2xl font-bold text-muted-foreground">—</p>
+                        )}
+                      </div>
+
+                      {/* Estado presupuesto */}
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estado presupuesto</p>
+                        <p className="text-lg font-semibold text-foreground">
+                          {linkedBudget ? linkedBudget.status : "Sin presupuesto"}
+                        </p>
+                      </div>
+
+                      {/* Margen medio */}
+                      {linkedBudget && linkedBudget.lines.length > 0 && (
+                        <div className="rounded-lg border border-border p-4">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Margen medio</p>
+                          <p className="text-2xl font-bold text-foreground">
+                            {(linkedBudget.lines.reduce((s, l) => s + l.margin, 0) / linkedBudget.lines.length).toFixed(1)}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>
