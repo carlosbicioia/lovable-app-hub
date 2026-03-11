@@ -40,6 +40,7 @@ import PurchasesReport from "@/pages/reports/PurchasesReport";
 import BudgetsReport from "@/pages/reports/BudgetsReport";
 import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
+import TvDashboard from "@/pages/TvDashboard";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "@/pages/AccessDenied";
