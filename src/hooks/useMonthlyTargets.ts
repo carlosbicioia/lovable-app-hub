@@ -59,6 +59,7 @@ export function useUpsertMonthlyTarget() {
         target_max_costs: target.targetMaxCosts,
         target_new_clients: target.targetNewClients,
         target_avg_response_hours: target.targetAvgResponseHours,
+        target_operators: target.targetOperators,
         notes: target.notes,
       };
 
