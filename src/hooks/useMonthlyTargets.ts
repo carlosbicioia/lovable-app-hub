@@ -66,7 +66,7 @@ export function useUpsertMonthlyTarget() {
         notes: target.notes,
       };
 
-      if (target.id) {
+      if (target.id && target.id !== "__agg__") {
         const { error } = await supabase
           .from("monthly_targets")
           .update(payload)
@@ -75,7 +75,7 @@ export function useUpsertMonthlyTarget() {
       } else {
         const { error } = await supabase
           .from("monthly_targets")
-          .insert(payload);
+          .upsert(payload, { onConflict: "month,branch_id", ignoreDuplicates: false });
         if (error) throw error;
       }
     },
