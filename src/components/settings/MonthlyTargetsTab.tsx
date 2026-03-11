@@ -307,7 +307,7 @@ export default function MonthlyTargetsTab() {
                       const isCurrent = m === currentMonth;
                       const hasId = "id" in t && t.id && t.id !== "__agg__";
                       const isEmpty = val === 0 && !hasId;
-                      const canEdit = row.editable && !isAllBranches;
+                      const canEdit = row.editable;
 
                       if (isEditing) {
                         return (
