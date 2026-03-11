@@ -12,6 +12,7 @@ export interface MonthlyTarget {
   targetMaxCosts: number;
   targetNewClients: number;
   targetAvgResponseHours: number;
+  targetOperators: number;
   notes: string;
 }
 
