@@ -146,10 +146,9 @@ export default function MonthlyTargetsTab() {
   const hasAnyData = useMemo(() => months.some(m => targetMap[m].targetRevenue > 0), [months, targetMap]);
 
   const startEdit = (month: string, key: MetricKey) => {
-    if (isAllBranches) return; // Can't edit aggregated view
     const t = targetMap[month];
     setEditingCell({ month, key });
-    setEditValue(String(t[key as keyof typeof t]));
+    setEditValue(String(row.computed ? row.computed(t) : (t[key as keyof typeof t] as number)));
   };
 
   const saveEdit = () => {
