@@ -67,6 +67,14 @@ export default function TopBar() {
             )}
           </button>
           <NotificationsPopover />
+          <Link
+            to="/tv"
+            target="_blank"
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
+            title="Modo cine (TV Dashboard)"
+          >
+            <MonitorPlay className="w-5 h-5" />
+          </Link>
           <Link to="/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-lg transition-colors group">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-primary/20 transition-all">
               {avatarUrl ? (
