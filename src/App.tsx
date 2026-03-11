@@ -81,6 +81,16 @@ function AppRoutes() {
     );
   }
 
+  // Pantalla/TV role → cinema dashboard only
+  if (roles.includes("pantalla")) {
+    return (
+      <Routes>
+        <Route path="/" element={<TvDashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
   // Full app for admin/gestor/operario
   return (
     <Routes>
