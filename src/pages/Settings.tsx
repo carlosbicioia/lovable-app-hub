@@ -43,6 +43,7 @@ const roles = [
   { value: "gestor", label: "Gestor", desc: "Gestión de servicios, presupuestos y clientes" },
   { value: "operario", label: "Operario", desc: "Solo acceso a sus servicios asignados" },
   { value: "lectura", label: "Solo lectura", desc: "Visualización sin edición" },
+  { value: "pantalla", label: "Pantalla TV", desc: "Solo ve el panel de KPIs en modo cine" },
 ];
 
 const ShieldCheck = ({ className }: { className?: string }) => (
