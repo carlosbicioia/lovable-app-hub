@@ -202,9 +202,8 @@ export default function MonthlyTargetsTab() {
               <Target className="w-4 h-4 text-primary" /> Objetivos Mensuales
             </CardTitle>
             <CardDescription>
-              {isAllBranches
-                ? "Vista consolidada de todas las sedes (solo lectura)"
-                : "Haz clic en cualquier celda para editarla"}
+              Haz clic en cualquier celda para editarla
+              {isAllBranches && activeBranches.length > 0 && " (vista consolidada)"}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
