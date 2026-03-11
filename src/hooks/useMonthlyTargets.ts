@@ -27,6 +27,7 @@ function mapRow(row: any): MonthlyTarget {
     targetMaxCosts: Number(row.target_max_costs),
     targetNewClients: Number(row.target_new_clients),
     targetAvgResponseHours: Number(row.target_avg_response_hours),
+    targetOperators: Number(row.target_operators),
     notes: row.notes,
   };
 }
