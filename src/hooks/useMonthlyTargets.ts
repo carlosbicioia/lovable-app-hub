@@ -73,10 +73,30 @@ export function useUpsertMonthlyTarget() {
           .eq("id", target.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        // Check if a row already exists for this month+branch
+        let query = supabase
           .from("monthly_targets")
-          .upsert(payload, { onConflict: "month,branch_id", ignoreDuplicates: false });
-        if (error) throw error;
+          .select("id")
+          .eq("month", target.month);
+        if (target.branchId) {
+          query = query.eq("branch_id", target.branchId);
+        } else {
+          query = query.is("branch_id", null);
+        }
+        const { data: existing } = await query.maybeSingle();
+
+        if (existing) {
+          const { error } = await supabase
+            .from("monthly_targets")
+            .update(payload)
+            .eq("id", existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("monthly_targets")
+            .insert(payload);
+          if (error) throw error;
+        }
       }
     },
     onSuccess: () => {
