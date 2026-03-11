@@ -12,7 +12,7 @@ import {
   Building2, Users, Shield, FileText, Bell, Palette, Mail, KeyRound,
   Plus, Trash2, Upload, Clock, Wrench, Loader2, HardHat, GripVertical,
   Pencil, Droplets, Zap, Wind, Percent, Flame, ThermometerSun,
-  Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog,
+  Paintbrush, Hammer, Cable, Lock, Pipette, Gauge, Cog, Target,
   ShieldCheck as ShieldCheckIcon, Fan, Plug, Construction, Database, MapPin,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
