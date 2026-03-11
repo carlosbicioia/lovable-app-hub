@@ -148,7 +148,7 @@ export default function MonthlyTargetsTab() {
   const startEdit = (month: string, key: MetricKey) => {
     const t = targetMap[month];
     setEditingCell({ month, key });
-    setEditValue(String(row.computed ? row.computed(t) : (t[key as keyof typeof t] as number)));
+    setEditValue(String(t[key as keyof typeof t]));
   };
 
   const saveEdit = () => {
