@@ -699,6 +699,7 @@ export type Database = {
           target_max_costs: number
           target_new_clients: number
           target_nps: number
+          target_operators: number
           target_revenue: number
           target_services: number
           updated_at: string
@@ -713,6 +714,7 @@ export type Database = {
           target_max_costs?: number
           target_new_clients?: number
           target_nps?: number
+          target_operators?: number
           target_revenue?: number
           target_services?: number
           updated_at?: string
@@ -727,6 +729,7 @@ export type Database = {
           target_max_costs?: number
           target_new_clients?: number
           target_nps?: number
+          target_operators?: number
           target_revenue?: number
           target_services?: number
           updated_at?: string
