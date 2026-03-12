@@ -29,6 +29,7 @@ import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { logServiceAction } from "@/hooks/useServiceAuditLog";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
