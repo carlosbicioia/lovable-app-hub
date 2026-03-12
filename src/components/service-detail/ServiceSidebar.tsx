@@ -198,7 +198,7 @@ export default function ServiceSidebar({ service }: Props) {
             <p className="text-sm text-muted-foreground text-center py-2">Sin técnicos asignados</p>
           )}
           {/* Add operator */}
-          {addableOperators.length > 0 && (
+          {addableOperators.length > 0 && !isFinalized && (
             <SearchableSelect
               options={addableOperators.map((o) => ({
                 value: o.id,
