@@ -151,7 +151,7 @@ export default function ServiceSidebar({ service }: Props) {
               placeholder="Seleccionar colaborador…"
               searchPlaceholder="Buscar colaborador…"
               emptyText="Sin colaboradores"
-              disabled={savingField === "collaborator_id"}
+              disabled={savingField === "collaborator_id" || isFinalized}
             />
           </CardContent>
         </Card>
