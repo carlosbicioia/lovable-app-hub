@@ -101,6 +101,7 @@ export default function ServiceDetail() {
       const { error } = await supabase.from("budgets").delete().eq("id", linkedBudget.id);
       if (error) throw error;
       await updateService(service.id, { service_type: "Reparación_Directa" });
+      await logServiceAction(service.id, "Presupuesto eliminado");
       await refetchBudgets();
       toast.success("Presupuesto eliminado. El servicio ha pasado a Reparación Directa.");
     } catch (err: any) {
