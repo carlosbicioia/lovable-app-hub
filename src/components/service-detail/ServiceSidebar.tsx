@@ -157,31 +157,58 @@ export default function ServiceSidebar({ service }: Props) {
         </Card>
       )}
 
-      {/* Operator */}
+      {/* Operators (multi-assign) */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" /> Técnico asignado
+            <User className="w-4 h-4 text-muted-foreground" /> Técnicos asignados
+            <Badge variant="secondary" className="text-[10px] h-5 ml-auto">
+              {assignedOperators.length}
+            </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin asignar" },
-              ...operatorOptions.map((o) => ({
+        <CardContent className="space-y-2">
+          {/* Assigned operators list */}
+          {assignedOperators.map((op) => (
+            <div key={op.id} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded-md bg-muted/50">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: `hsl(${op.color})` }} />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-card-foreground truncate">{op.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{op.specialty}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={() => handleRemoveOperator(op.id)}
+                disabled={savingField === "operators"}
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ))}
+          {assignedOperators.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-2">Sin técnicos asignados</p>
+          )}
+          {/* Add operator */}
+          {addableOperators.length > 0 && (
+            <SearchableSelect
+              options={addableOperators.map((o) => ({
                 value: o.id,
                 label: o.name,
                 subtitle: o.specialty,
                 searchText: `${o.dni} ${o.email}`,
-              })),
-            ]}
-            value={service.operatorId ?? "none"}
-            onValueChange={(v) => handleUpdate("operator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar técnico…"
-            searchPlaceholder="Buscar técnico…"
-            emptyText="Sin técnicos disponibles"
-            disabled={savingField === "operator_id"}
-          />
+              }))}
+              value=""
+              onValueChange={(v) => v && handleAddOperator(v)}
+              placeholder="Añadir técnico…"
+              searchPlaceholder="Buscar técnico…"
+              emptyText="Sin técnicos disponibles"
+              disabled={savingField === "operators"}
+            />
+          )}
         </CardContent>
       </Card>
 
