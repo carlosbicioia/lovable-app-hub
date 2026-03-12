@@ -277,7 +277,8 @@ export default function ServiceDetail() {
               comments={service.internalComments ?? []}
               variant="internal"
               initialText={service.internalNotes ?? ""}
-              onTextChange={(text) => updateService(service.id, { internal_notes: text })}
+              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { internal_notes: text })}
+              readOnly={isFinalized}
             />
             <ServiceComments
               title="Notas para el colaborador"
@@ -285,7 +286,8 @@ export default function ServiceDetail() {
               comments={service.managerComments ?? []}
               variant="manager"
               initialText={service.collaboratorNotes ?? ""}
-              onTextChange={(text) => updateService(service.id, { collaborator_notes: text })}
+              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { collaborator_notes: text })}
+              readOnly={isFinalized}
             />
           </TabsContent>
 
