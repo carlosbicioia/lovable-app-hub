@@ -30,6 +30,8 @@ export default function ServiceSidebar({ service }: Props) {
   const { updateService } = useServices();
   const { data: branches = [] } = useBranches();
   const { data: serviceOrigins = [] } = useServiceOrigins();
+  const { data: serviceOps = [] } = useServiceOperatorsForService(service.id);
+  const setServiceOperators = useSetServiceOperators();
   const showCollaborator = serviceOrigins.find(o => o.name === service.origin)?.show_collaborator ?? false;
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
@@ -37,18 +39,36 @@ export default function ServiceSidebar({ service }: Props) {
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
 
   const availableOperators = operators.filter((o) => o.status === "Activo" && o.available);
-  const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
-  const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
-    ? [currentOp, ...availableOperators]
-    : availableOperators;
+  const assignedOpIds = serviceOps.map((so) => so.operatorId);
+
+  // For the "add operator" dropdown, exclude already assigned ones
+  const addableOperators = availableOperators.filter((o) => !assignedOpIds.includes(o.id));
+  // Include currently assigned but unavailable operators in display
+  const assignedOperators = assignedOpIds
+    .map((id) => operators.find((o) => o.id === id))
+    .filter(Boolean) as typeof operators;
+
+  const handleAddOperator = async (opId: string) => {
+    const op = operators.find((o) => o.id === opId);
+    if (!op) return;
+    setSavingField("operators");
+    const newOps = [...serviceOps.map((so) => ({ id: so.operatorId, name: so.operatorName })), { id: op.id, name: op.name }];
+    await setServiceOperators.mutateAsync({ serviceId: service.id, operators: newOps });
+    setSavingField(null);
+  };
+
+  const handleRemoveOperator = async (opId: string) => {
+    setSavingField("operators");
+    const newOps = serviceOps
+      .filter((so) => so.operatorId !== opId)
+      .map((so) => ({ id: so.operatorId, name: so.operatorName }));
+    await setServiceOperators.mutateAsync({ serviceId: service.id, operators: newOps });
+    setSavingField(null);
+  };
 
   const handleUpdate = async (field: string, value: string | null) => {
     setSavingField(field);
     const updates: Record<string, any> = { [field]: value };
-    if (field === "operator_id") {
-      const op = operators.find((o) => o.id === value);
-      updates.operator_name = op?.name ?? null;
-    }
     if (field === "collaborator_id") {
       const col = collaborators.find((c) => c.id === value);
       updates.collaborator_name = col?.companyName ?? null;
