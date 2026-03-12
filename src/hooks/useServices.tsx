@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
+import { logServiceAction } from "@/hooks/useServiceAuditLog";
 
 /** Fetch all rows bypassing the 1000 row default limit */
 async function fetchAllServices(pageSize = 1000) {
