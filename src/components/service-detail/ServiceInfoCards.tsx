@@ -261,7 +261,7 @@ export default function ServiceInfoCards({ service }: Props) {
           })}
         </div>
         {isLocked && (
-          <p className="text-[10px] text-muted-foreground mt-2 text-center">🔒 Servicio liquidado — no se puede modificar</p>
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">🔒 Servicio {service.status === "Liquidado" ? "liquidado" : "finalizado"} — no se puede modificar</p>
         )}
       </div>
 

@@ -178,14 +178,16 @@ export default function ServiceMaterials({ serviceId, readOnly }: Props) {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(m)}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(m)}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
+                          {!readOnly && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(m)}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(m)}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

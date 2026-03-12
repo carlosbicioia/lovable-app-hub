@@ -75,7 +75,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                   )}
                 />
               </div>
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleItem(check.id)}>
+              <div className={cn("flex-1 min-w-0", !readOnly && "cursor-pointer")} onClick={() => !readOnly && toggleItem(check.id)}>
                 <p className={cn(
                   "text-sm font-medium transition-colors",
                   isDone ? "text-card-foreground" : "text-muted-foreground"

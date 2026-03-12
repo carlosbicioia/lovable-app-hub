@@ -174,6 +174,12 @@ export default function ServiceEdit() {
     );
   }
 
+  const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
+  if (isFinalized) {
+    navigate(`/servicios/${service.id}`);
+    return null;
+  }
+
   const selectedClient = clients.find((c) => c.id === clientId);
   const clientDisplayName = selectedClient ? (selectedClient.clientType === "Empresa" ? selectedClient.companyName : selectedClient.name) : "";
   const selectedOperator = allOperators.find((o) => o.id === operatorId);

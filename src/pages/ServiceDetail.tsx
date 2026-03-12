@@ -183,10 +183,14 @@ export default function ServiceDetail() {
                   <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
-                <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
-              </DropdownMenuItem>
+              {!isFinalized && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
+                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
