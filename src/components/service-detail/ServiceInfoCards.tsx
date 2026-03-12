@@ -58,6 +58,11 @@ export default function ServiceInfoCards({ service }: Props) {
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
   const createSalesOrder = useCreateSalesOrder();
+  const { checkedItems: protocolChecked } = useProtocolChecks(service.id);
+  const { data: protocolSteps = [] } = useEnabledProtocolSteps();
+  const protocolTotal = protocolSteps.length;
+  const protocolDone = protocolSteps.filter((s) => protocolChecked.has(s.stepId)).length;
+  const protocolComplete = protocolTotal > 0 && protocolDone === protocolTotal;
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
