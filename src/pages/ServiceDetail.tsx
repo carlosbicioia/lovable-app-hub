@@ -266,7 +266,7 @@ export default function ServiceDetail() {
             <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
-            <ServiceMaterials serviceId={service.id} />
+            <ServiceMaterials serviceId={service.id} readOnly={isFinalized} />
           </TabsContent>
 
           {/* Tab 3: NOTAS */}
