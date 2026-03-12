@@ -106,6 +106,9 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "services" }, () => {
         fetchServices();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_operators" }, () => {
+        fetchServices();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
