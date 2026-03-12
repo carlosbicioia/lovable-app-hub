@@ -239,6 +239,7 @@ function ServiceChip({
           <p className="font-semibold">{service.id} – {service.clientName}</p>
           <p className="text-xs"><span className="text-muted-foreground">Tipo:</span> {service.serviceType === "Presupuesto" ? "Con presupuesto" : "Reparación directa"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Operarios:</span> {service.operators.length > 0 ? service.operators.map(o => o.name).join(", ") : service.operatorName ?? "Sin asignar"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
           {service.address && (
             <p className="text-xs"><span className="text-muted-foreground">Dirección:</span> {service.address}</p>
