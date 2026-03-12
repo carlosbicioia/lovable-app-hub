@@ -1393,6 +1393,33 @@ export type Database = {
         }
         Relationships: []
       }
+      service_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          service_id: string
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          service_id: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          service_id?: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_materials_used: {
         Row: {
           brand: string

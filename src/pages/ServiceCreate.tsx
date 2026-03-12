@@ -34,6 +34,7 @@ import ClientFormDialog, { ClientFormData } from "@/components/clients/ClientFor
 import { useOperators } from "@/hooks/useOperators";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logServiceAction } from "@/hooks/useServiceAuditLog";
 import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import type { ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
@@ -448,6 +449,7 @@ export default function ServiceCreate() {
       }
 
       sessionStorage.removeItem(PENDING_SERVICE_KEY);
+      await logServiceAction(serviceId, "Servicio creado");
       await refetch();
 
       toast({

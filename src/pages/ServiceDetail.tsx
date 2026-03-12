@@ -3,7 +3,7 @@ import { useServices } from "@/hooks/useServices";
 import { useBudgets } from "@/hooks/useBudgets";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, FileText, Pencil, Clock, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon, ClipboardList, MessageSquare, Image, BarChart3, User, MapPin, Phone, Building2, Copy } from "lucide-react";
+import { ArrowLeft, FileText, Pencil, Clock, Euro, Trash2, MoreVertical, Loader2, ShoppingCart, AlertTriangle as AlertTriangleIcon, ClipboardList, MessageSquare, Image, BarChart3, User, MapPin, Phone, Building2, Copy, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -20,6 +20,7 @@ import ServicePurchases from "@/components/service-detail/ServicePurchases";
 import ServiceSalesOrders from "@/components/service-detail/ServiceSalesOrders";
 import { useSalesOrders } from "@/hooks/useSalesOrders";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
+import ServiceHistory from "@/components/service-detail/ServiceHistory";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -28,6 +29,7 @@ import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { logServiceAction } from "@/hooks/useServiceAuditLog";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -84,6 +86,7 @@ export default function ServiceDetail() {
       await supabase.from("service_media").delete().eq("service_id", service.id);
       const { error } = await supabase.from("services").delete().eq("id", service.id);
       if (error) throw error;
+      await logServiceAction(service.id, "Servicio eliminado");
       toast.success("Servicio eliminado correctamente");
       navigate("/servicios");
     } catch (err: any) {
@@ -98,6 +101,7 @@ export default function ServiceDetail() {
       const { error } = await supabase.from("budgets").delete().eq("id", linkedBudget.id);
       if (error) throw error;
       await updateService(service.id, { service_type: "Reparación_Directa" });
+      await logServiceAction(service.id, "Presupuesto eliminado");
       await refetchBudgets();
       toast.success("Presupuesto eliminado. El servicio ha pasado a Reparación Directa.");
     } catch (err: any) {
@@ -221,6 +225,9 @@ export default function ServiceDetail() {
               {salesCount > 0 && (
                 <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{salesCount}</span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs gap-1 h-8">
+              <History className="w-3 h-3" /> Historial
             </TabsTrigger>
           </TabsList>
 
@@ -564,6 +571,11 @@ export default function ServiceDetail() {
                 </Card>
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          {/* Tab 6: HISTORIAL */}
+          <TabsContent value="history" className="space-y-4 mt-3">
+            <ServiceHistory serviceId={service.id} />
           </TabsContent>
         </Tabs>
 
