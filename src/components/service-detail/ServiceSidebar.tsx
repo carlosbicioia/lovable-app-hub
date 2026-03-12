@@ -241,7 +241,7 @@ export default function ServiceSidebar({ service }: Props) {
               placeholder="Seleccionar sede…"
               searchPlaceholder="Buscar sede…"
               emptyText="Sin sedes configuradas"
-              disabled={savingField === "branch_id"}
+              disabled={savingField === "branch_id" || isFinalized}
             />
           </CardContent>
         </Card>
