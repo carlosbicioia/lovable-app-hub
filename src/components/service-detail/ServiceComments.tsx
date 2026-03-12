@@ -12,9 +12,10 @@ interface Props {
   initialText?: string;
   onTextChange?: (text: string) => void;
   onAddComment?: (text: string) => void;
+  readOnly?: boolean;
 }
 
-export default function ServiceComments({ title, description, variant, initialText = "", onTextChange }: Props) {
+export default function ServiceComments({ title, description, variant, initialText = "", onTextChange, readOnly }: Props) {
   const Icon = variant === "internal" ? Lock : Eye;
   const [text, setText] = useState(initialText);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -46,9 +47,11 @@ export default function ServiceComments({ title, description, variant, initialTe
           onChange={(e) => handleChange(e.target.value)}
           placeholder={variant === "internal" ? "Añadir comentario interno..." : "Información para compartir con el colaborador..."}
           rows={3}
+          disabled={readOnly}
           className={cn(
             "resize-none text-sm",
-            variant === "internal" ? "border-warning/20 focus-visible:ring-warning/30" : "border-info/20 focus-visible:ring-info/30"
+            variant === "internal" ? "border-warning/20 focus-visible:ring-warning/30" : "border-info/20 focus-visible:ring-info/30",
+            readOnly && "opacity-60 cursor-not-allowed"
           )}
         />
       </CardContent>

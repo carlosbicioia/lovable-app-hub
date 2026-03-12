@@ -151,7 +151,7 @@ export default function ServiceSidebar({ service }: Props) {
               placeholder="Seleccionar colaborador…"
               searchPlaceholder="Buscar colaborador…"
               emptyText="Sin colaboradores"
-              disabled={savingField === "collaborator_id"}
+              disabled={savingField === "collaborator_id" || isFinalized}
             />
           </CardContent>
         </Card>
@@ -178,22 +178,24 @@ export default function ServiceSidebar({ service }: Props) {
                   <p className="text-[11px] text-muted-foreground">{op.specialty}</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={() => handleRemoveOperator(op.id)}
-                disabled={savingField === "operators"}
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
+              {!isFinalized && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemoveOperator(op.id)}
+                  disabled={savingField === "operators"}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           ))}
           {assignedOperators.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-2">Sin técnicos asignados</p>
           )}
           {/* Add operator */}
-          {addableOperators.length > 0 && (
+          {addableOperators.length > 0 && !isFinalized && (
             <SearchableSelect
               options={addableOperators.map((o) => ({
                 value: o.id,
@@ -236,7 +238,7 @@ export default function ServiceSidebar({ service }: Props) {
               placeholder="Seleccionar sede…"
               searchPlaceholder="Buscar sede…"
               emptyText="Sin sedes configuradas"
-              disabled={savingField === "branch_id"}
+              disabled={savingField === "branch_id" || isFinalized}
             />
           </CardContent>
         </Card>
@@ -253,7 +255,7 @@ export default function ServiceSidebar({ service }: Props) {
           <Select
             value={service.serviceType}
             onValueChange={(v) => handleUpdate("service_type", v)}
-            disabled={savingField === "service_type" || !!linkedBudget}
+            disabled={savingField === "service_type" || !!linkedBudget || isFinalized}
           >
             <SelectTrigger className="w-full">
               <SelectValue />

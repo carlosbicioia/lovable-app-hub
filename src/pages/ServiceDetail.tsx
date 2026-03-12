@@ -42,6 +42,7 @@ export default function ServiceDetail() {
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
   const linkedOrders = allPurchaseOrders;
+  const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
 
   if (servicesLoading) {
     return (
@@ -162,10 +163,12 @@ export default function ServiceDetail() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/servicios/${service.id}/editar`)}>
-                <Pencil className="w-4 h-4 mr-2" /> Modificar servicio
-              </DropdownMenuItem>
-              {service.serviceType === "Presupuesto" && !linkedBudget && (
+              {!isFinalized && (
+                <DropdownMenuItem onClick={() => navigate(`/servicios/${service.id}/editar`)}>
+                  <Pencil className="w-4 h-4 mr-2" /> Modificar servicio
+                </DropdownMenuItem>
+              )}
+              {!isFinalized && service.serviceType === "Presupuesto" && !linkedBudget && (
                 <DropdownMenuItem onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
                   <FileText className="w-4 h-4 mr-2" /> Crear presupuesto
                 </DropdownMenuItem>
@@ -175,13 +178,19 @@ export default function ServiceDetail() {
                   <FileText className="w-4 h-4 mr-2" /> Ver presupuesto
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
-                <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
-                <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
-              </DropdownMenuItem>
+              {!isFinalized && (
+                <DropdownMenuItem onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                  <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
+                </DropdownMenuItem>
+              )}
+              {!isFinalized && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
+                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -219,7 +228,7 @@ export default function ServiceDetail() {
           <TabsContent value="overview" className="space-y-4 mt-3">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-4">
-                <ServiceDescription service={service} onUpdate={(updates) => updateService(service.id, updates)} />
+                <ServiceDescription service={service} onUpdate={isFinalized ? undefined : (updates) => updateService(service.id, updates)} />
 
                 {/* Quick KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -260,10 +269,10 @@ export default function ServiceDetail() {
 
           {/* Tab 2: OPERATIVA */}
           <TabsContent value="operations" className="space-y-4 mt-3">
-            <ServiceProtocolChecklist service={service} />
+            <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
-            <ServiceMaterials serviceId={service.id} />
+            <ServiceMaterials serviceId={service.id} readOnly={isFinalized} />
           </TabsContent>
 
           {/* Tab 3: NOTAS */}
@@ -274,7 +283,8 @@ export default function ServiceDetail() {
               comments={service.internalComments ?? []}
               variant="internal"
               initialText={service.internalNotes ?? ""}
-              onTextChange={(text) => updateService(service.id, { internal_notes: text })}
+              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { internal_notes: text })}
+              readOnly={isFinalized}
             />
             <ServiceComments
               title="Notas para el colaborador"
@@ -282,7 +292,8 @@ export default function ServiceDetail() {
               comments={service.managerComments ?? []}
               variant="manager"
               initialText={service.collaboratorNotes ?? ""}
-              onTextChange={(text) => updateService(service.id, { collaborator_notes: text })}
+              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { collaborator_notes: text })}
+              readOnly={isFinalized}
             />
           </TabsContent>
 
@@ -295,9 +306,11 @@ export default function ServiceDetail() {
                   <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{purchaseCount}</span>
                 )}
               </h3>
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
-                <ShoppingCart className="w-3 h-3 mr-1" /> Nueva orden
-              </Button>
+              {!isFinalized && (
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                  <ShoppingCart className="w-3 h-3 mr-1" /> Nueva orden
+                </Button>
+              )}
             </div>
             <ServicePurchases serviceId={service.id} />
           </TabsContent>

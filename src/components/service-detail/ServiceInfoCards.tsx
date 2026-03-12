@@ -214,7 +214,7 @@ export default function ServiceInfoCards({ service }: Props) {
 
   const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
 
-  const isLocked = service.status === "Liquidado";
+  const isLocked = service.status === "Liquidado" || service.status === "Finalizado";
   const currentIdx = STATUS_PIPELINE.findIndex(p => p.key === service.status);
 
   return (
@@ -261,7 +261,7 @@ export default function ServiceInfoCards({ service }: Props) {
           })}
         </div>
         {isLocked && (
-          <p className="text-[10px] text-muted-foreground mt-2 text-center">🔒 Servicio liquidado — no se puede modificar</p>
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">🔒 Servicio {service.status === "Liquidado" ? "liquidado" : "finalizado"} — no se puede modificar</p>
         )}
       </div>
 

@@ -22,9 +22,10 @@ import { es } from "date-fns/locale";
 
 interface Props {
   serviceId: string;
+  readOnly?: boolean;
 }
 
-export default function ServiceMaterials({ serviceId }: Props) {
+export default function ServiceMaterials({ serviceId, readOnly }: Props) {
   const { data: materials = [], isLoading } = useServiceMaterialsUsed(serviceId);
   const createMat = useCreateServiceMaterial();
   const updateMat = useUpdateServiceMaterial();
@@ -85,7 +86,7 @@ export default function ServiceMaterials({ serviceId }: Props) {
           <CardTitle className="text-base flex items-center gap-2">
             <Package className="w-4 h-4 text-muted-foreground" /> Materiales utilizados
           </CardTitle>
-          {!showNew && (
+          {!showNew && !readOnly && (
             <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowNew(true)}>
               <Plus className="w-3.5 h-3.5" /> Añadir
             </Button>
@@ -177,14 +178,16 @@ export default function ServiceMaterials({ serviceId }: Props) {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(m)}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(m)}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
+                          {!readOnly && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(m)}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(m)}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

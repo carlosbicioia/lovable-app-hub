@@ -9,9 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   service: Service;
+  readOnly?: boolean;
 }
 
-export default function ServiceProtocolChecklist({ service }: Props) {
+export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
 
@@ -66,14 +67,15 @@ export default function ServiceProtocolChecklist({ service }: Props) {
               <div className="mt-0.5 shrink-0">
                 <Checkbox
                   checked={isDone}
-                  onCheckedChange={() => toggleItem(check.id)}
+                  onCheckedChange={() => !readOnly && toggleItem(check.id)}
+                  disabled={readOnly}
                   className={cn(
                     "transition-colors",
                     isDone ? "data-[state=checked]:bg-success data-[state=checked]:border-success" : ""
                   )}
                 />
               </div>
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleItem(check.id)}>
+              <div className={cn("flex-1 min-w-0", !readOnly && "cursor-pointer")} onClick={() => !readOnly && toggleItem(check.id)}>
                 <p className={cn(
                   "text-sm font-medium transition-colors",
                   isDone ? "text-card-foreground" : "text-muted-foreground"
