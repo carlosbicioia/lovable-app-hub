@@ -1473,6 +1473,30 @@ export type Database = {
           },
         ]
       }
+      service_operators: {
+        Row: {
+          created_at: string
+          id: string
+          operator_id: string
+          operator_name: string
+          service_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          operator_id: string
+          operator_name?: string
+          service_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          operator_id?: string
+          operator_name?: string
+          service_id?: string
+        }
+        Relationships: []
+      }
       service_origins: {
         Row: {
           active: boolean
