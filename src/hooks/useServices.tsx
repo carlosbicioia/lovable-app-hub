@@ -2,24 +2,37 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { supabase } from "@/integrations/supabase/client";
 import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
 
-/** Fetch all rows from a table bypassing the 1000 row default limit */
-async function fetchAllRows<T = any>(
-  table: string,
-  orderCol: string,
-  ascending: boolean = true,
-  pageSize = 1000
-): Promise<T[]> {
-  const all: T[] = [];
+/** Fetch all rows bypassing the 1000 row default limit */
+async function fetchAllServices(pageSize = 1000) {
+  const all: any[] = [];
   let from = 0;
   while (true) {
     const { data, error } = await supabase
-      .from(table)
+      .from("services")
       .select("*")
-      .order(orderCol, { ascending })
+      .order("received_at", { ascending: false })
       .range(from, from + pageSize - 1);
     if (error) throw error;
     if (!data || data.length === 0) break;
-    all.push(...(data as T[]));
+    all.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
+async function fetchAllServiceOperators(pageSize = 1000) {
+  const all: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("service_operators")
+      .select("*")
+      .order("created_at")
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
     if (data.length < pageSize) break;
     from += pageSize;
   }
