@@ -453,6 +453,15 @@ export default function ServiceInfoCards({ service }: Props) {
                         return sum + sub + Math.round(sub * (l.tax_rate / 100) * 100) / 100;
                       }, 0).toFixed(2)
                     }</p>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="font-medium text-card-foreground">Protocolo:</span>
+                      <span className={cn(
+                        "font-semibold",
+                        protocolComplete ? "text-success" : "text-warning"
+                      )}>
+                        {protocolDone}/{protocolTotal} {protocolComplete ? "✓ Completo" : "⚠ Pendiente"}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
