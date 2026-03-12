@@ -86,7 +86,7 @@ export default function ServiceMaterials({ serviceId, readOnly }: Props) {
           <CardTitle className="text-base flex items-center gap-2">
             <Package className="w-4 h-4 text-muted-foreground" /> Materiales utilizados
           </CardTitle>
-          {!showNew && (
+          {!showNew && !readOnly && (
             <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowNew(true)}>
               <Plus className="w-3.5 h-3.5" /> Añadir
             </Button>
