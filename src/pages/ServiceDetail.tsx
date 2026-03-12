@@ -42,6 +42,7 @@ export default function ServiceDetail() {
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
   const linkedOrders = allPurchaseOrders;
+  const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
 
   if (servicesLoading) {
     return (
