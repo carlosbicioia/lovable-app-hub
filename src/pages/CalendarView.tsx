@@ -213,7 +213,7 @@ function ServiceChip({
           <span className="flex items-center gap-1">
             {specialtyIcon[service.specialty]}
             <span className="truncate">
-              {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service.operatorName ?? "Sin asignar"}
+              {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service._displayOperatorName ?? service.operatorName ?? "Sin asignar"}
             </span>
           </span>
           {isSpanning && (
