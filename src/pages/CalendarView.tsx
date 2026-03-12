@@ -313,7 +313,7 @@ function DayView({
   const operators = selectedOperatorId
     ? allOps.filter((op) => op.id === selectedOperatorId)
     : allOps;
-  const unassigned = scheduledServices.filter((s) => !s.operatorId);
+  const unassigned = scheduledServices.filter((s) => s.operators.length === 0 && !s.operatorId);
 
   // ── Hour range selection state ──
   const [selecting, setSelecting] = useState(false);
