@@ -569,6 +569,11 @@ export default function ServiceDetail() {
               </TabsContent>
             </Tabs>
           </TabsContent>
+
+          {/* Tab 6: HISTORIAL */}
+          <TabsContent value="history" className="space-y-4 mt-3">
+            <ServiceHistory serviceId={service.id} />
+          </TabsContent>
         </Tabs>
 
         {/* Delete confirmation dialog */}
