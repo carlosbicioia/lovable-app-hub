@@ -306,9 +306,11 @@ export default function ServiceDetail() {
                   <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">{purchaseCount}</span>
                 )}
               </h3>
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
-                <ShoppingCart className="w-3 h-3 mr-1" /> Nueva orden
-              </Button>
+              {!isFinalized && (
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                  <ShoppingCart className="w-3 h-3 mr-1" /> Nueva orden
+                </Button>
+              )}
             </div>
             <ServicePurchases serviceId={service.id} />
           </TabsContent>
