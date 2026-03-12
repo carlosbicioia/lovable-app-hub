@@ -22,9 +22,10 @@ import { es } from "date-fns/locale";
 
 interface Props {
   serviceId: string;
+  readOnly?: boolean;
 }
 
-export default function ServiceMaterials({ serviceId }: Props) {
+export default function ServiceMaterials({ serviceId, readOnly }: Props) {
   const { data: materials = [], isLoading } = useServiceMaterialsUsed(serviceId);
   const createMat = useCreateServiceMaterial();
   const updateMat = useUpdateServiceMaterial();
