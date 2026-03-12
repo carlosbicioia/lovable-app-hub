@@ -214,7 +214,7 @@ export default function ServiceInfoCards({ service }: Props) {
 
   const statusLabel = (s: string) => STATUS_PIPELINE.find(p => p.key === s)?.label ?? s;
 
-  const isLocked = service.status === "Liquidado";
+  const isLocked = service.status === "Liquidado" || service.status === "Finalizado";
   const currentIdx = STATUS_PIPELINE.findIndex(p => p.key === service.status);
 
   return (
