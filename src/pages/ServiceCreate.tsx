@@ -449,6 +449,7 @@ export default function ServiceCreate() {
       }
 
       sessionStorage.removeItem(PENDING_SERVICE_KEY);
+      await logServiceAction(serviceId, "Servicio creado");
       await refetch();
 
       toast({
