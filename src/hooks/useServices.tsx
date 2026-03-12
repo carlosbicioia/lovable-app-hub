@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
+import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
 
-function mapDbToService(row: any): Service {
+function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]>): Service {
+  const ops = operatorsMap.get(row.id) ?? [];
   return {
     id: row.id,
     clientId: row.client_id,
     clientName: row.client_name,
     operatorId: row.operator_id,
     operatorName: row.operator_name,
+    operators: ops,
     collaboratorId: row.collaborator_id,
     collaboratorName: row.collaborator_name,
     clusterId: row.cluster_id,
@@ -69,16 +71,27 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       // Auto-start scheduled services that have reached their scheduled time
       await supabase.rpc("auto_start_scheduled_services");
 
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("received_at", { ascending: false });
+      const [{ data, error }, { data: soData, error: soError }] = await Promise.all([
+        supabase.from("services").select("*").order("received_at", { ascending: false }),
+        supabase.from("service_operators").select("*").order("created_at"),
+      ]);
       if (error) {
         console.error("Error fetching services:", error);
         setLoading(false);
         return;
       }
-      if (data) setServices(data.map(mapDbToService));
+
+      // Build operators map
+      const opsMap = new Map<string, ServiceOperatorRef[]>();
+      if (soData) {
+        for (const row of soData) {
+          const arr = opsMap.get(row.service_id) ?? [];
+          arr.push({ id: row.operator_id, name: row.operator_name });
+          opsMap.set(row.service_id, arr);
+        }
+      }
+
+      if (data) setServices(data.map((r) => mapDbToService(r, opsMap)));
     } catch (err) {
       console.error("Unexpected error fetching services:", err);
     }
@@ -91,6 +104,9 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
     const channel = supabase
       .channel("services-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "services" }, () => {
+        fetchServices();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_operators" }, () => {
         fetchServices();
       })
       .subscribe();

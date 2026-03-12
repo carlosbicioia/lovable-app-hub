@@ -84,12 +84,18 @@ export interface ServiceMaterial {
   pvp: number | null; // if known, use this; otherwise costPrice * 1.30
 }
 
+export interface ServiceOperatorRef {
+  id: string;
+  name: string;
+}
+
 export interface Service {
   id: string;
   clientId: string;
   clientName: string;
   operatorId: string | null;
   operatorName: string | null;
+  operators: ServiceOperatorRef[];
   collaboratorId: string | null;
   collaboratorName: string | null;
   clusterId: string;

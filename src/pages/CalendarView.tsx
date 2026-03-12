@@ -74,6 +74,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Service, Operator, Specialty, ServiceStatus, ServiceOrigin, UrgencyLevel } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
+
+// Extended service type for calendar display with multi-operator support
+type CalendarService = Service & {
+  _displayOperatorId?: string | null;
+  _displayOperatorName?: string | null;
+};
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -179,12 +185,12 @@ function ServiceChip({
   showTime = false,
   spanHeight,
 }: {
-  service: Service;
+  service: CalendarService;
   showTime?: boolean;
   spanHeight?: number;
 }) {
   const navigate = useNavigate();
-  const colors = getOperatorColor(service.operatorId);
+  const colors = getOperatorColor(service._displayOperatorId ?? service.operatorId);
 
   const timeStr = service.scheduledAt
     ? format(new Date(service.scheduledAt), "HH:mm") +
@@ -213,7 +219,7 @@ function ServiceChip({
           <span className="flex items-center gap-1">
             {specialtyIcon[service.specialty]}
             <span className="truncate">
-              {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service.operatorName ?? "Sin asignar"}
+              {showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service._displayOperatorName ?? service.operatorName ?? "Sin asignar"}
             </span>
           </span>
           {isSpanning && (
@@ -233,6 +239,7 @@ function ServiceChip({
           <p className="font-semibold">{service.id} – {service.clientName}</p>
           <p className="text-xs"><span className="text-muted-foreground">Tipo:</span> {service.serviceType === "Presupuesto" ? "Con presupuesto" : "Reparación directa"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
+          <p className="text-xs"><span className="text-muted-foreground">Operarios:</span> {service.operators.length > 0 ? service.operators.map(o => o.name).join(", ") : service.operatorName ?? "Sin asignar"}</p>
           <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
           {service.address && (
             <p className="text-xs"><span className="text-muted-foreground">Dirección:</span> {service.address}</p>
@@ -307,7 +314,7 @@ function DayView({
   const operators = selectedOperatorId
     ? allOps.filter((op) => op.id === selectedOperatorId)
     : allOps;
-  const unassigned = scheduledServices.filter((s) => !s.operatorId);
+  const unassigned = scheduledServices.filter((s) => s.operators.length === 0 && !s.operatorId);
 
   // ── Hour range selection state ──
   const [selecting, setSelecting] = useState(false);
@@ -395,9 +402,10 @@ function DayView({
               {String(hour).padStart(2, "0")}:00
             </div>
             {operators.map((op) => {
+              // Show services where this operator is in the operators array (multi-operator)
               const opServices = scheduledServices.filter(
-                (s) => s.operatorId === op.id && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
-              );
+                (s) => (s.operators.some((o) => o.id === op.id) || s.operatorId === op.id) && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
+              ).map((s): CalendarService => ({ ...s, _displayOperatorId: op.id, _displayOperatorName: op.name }));
               return (
                 <DroppableCell key={op.id} date={date} onDropService={onDropService} className="relative p-0 border-r border-border last:border-r-0" style={{ overflow: 'visible' }}>
                   {opServices.map((s) => {
@@ -942,7 +950,7 @@ function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: {
       {allOps.map((op) => {
         const assignedCount = services.filter(
           (s) =>
-            s.operatorId === op.id &&
+            (s.operators.some((o) => o.id === op.id) || s.operatorId === op.id) &&
             s.scheduledAt &&
             days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
         ).length;
@@ -1011,7 +1019,7 @@ export default function CalendarView() {
   const filteredServices = useMemo(() => {
     if (!hasAnyFilter) return undefined;
     return services.filter((s) => {
-      if (selectedOperatorId && s.operatorId !== selectedOperatorId) return false;
+      if (selectedOperatorId && !s.operators.some((o) => o.id === selectedOperatorId) && s.operatorId !== selectedOperatorId) return false;
       if (selectedSpecialty && s.specialty !== selectedSpecialty) return false;
       if (selectedStatus && s.status !== selectedStatus) return false;
       if (selectedUrgency && s.urgency !== selectedUrgency) return false;

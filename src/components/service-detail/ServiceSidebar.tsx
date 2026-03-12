@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText, Wrench } from "lucide-react";
+import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText, Wrench, X, Plus } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useOperators } from "@/hooks/useOperators";
@@ -7,6 +7,7 @@ import { useCollaborators } from "@/hooks/useCollaborators";
 import { useServices } from "@/hooks/useServices";
 import { useBranches } from "@/hooks/useBranches";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
+import { useServiceOperatorsForService, useSetServiceOperators } from "@/hooks/useServiceOperators";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   service: Service;
@@ -27,6 +30,8 @@ export default function ServiceSidebar({ service }: Props) {
   const { updateService } = useServices();
   const { data: branches = [] } = useBranches();
   const { data: serviceOrigins = [] } = useServiceOrigins();
+  const { data: serviceOps = [] } = useServiceOperatorsForService(service.id);
+  const setServiceOperators = useSetServiceOperators();
   const showCollaborator = serviceOrigins.find(o => o.name === service.origin)?.show_collaborator ?? false;
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
@@ -34,18 +39,36 @@ export default function ServiceSidebar({ service }: Props) {
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
 
   const availableOperators = operators.filter((o) => o.status === "Activo" && o.available);
-  const currentOp = service.operatorId ? operators.find((o) => o.id === service.operatorId) : null;
-  const operatorOptions = currentOp && !availableOperators.find((o) => o.id === currentOp.id)
-    ? [currentOp, ...availableOperators]
-    : availableOperators;
+  const assignedOpIds = serviceOps.map((so) => so.operatorId);
+
+  // For the "add operator" dropdown, exclude already assigned ones
+  const addableOperators = availableOperators.filter((o) => !assignedOpIds.includes(o.id));
+  // Include currently assigned but unavailable operators in display
+  const assignedOperators = assignedOpIds
+    .map((id) => operators.find((o) => o.id === id))
+    .filter(Boolean) as typeof operators;
+
+  const handleAddOperator = async (opId: string) => {
+    const op = operators.find((o) => o.id === opId);
+    if (!op) return;
+    setSavingField("operators");
+    const newOps = [...serviceOps.map((so) => ({ id: so.operatorId, name: so.operatorName })), { id: op.id, name: op.name }];
+    await setServiceOperators.mutateAsync({ serviceId: service.id, operators: newOps });
+    setSavingField(null);
+  };
+
+  const handleRemoveOperator = async (opId: string) => {
+    setSavingField("operators");
+    const newOps = serviceOps
+      .filter((so) => so.operatorId !== opId)
+      .map((so) => ({ id: so.operatorId, name: so.operatorName }));
+    await setServiceOperators.mutateAsync({ serviceId: service.id, operators: newOps });
+    setSavingField(null);
+  };
 
   const handleUpdate = async (field: string, value: string | null) => {
     setSavingField(field);
     const updates: Record<string, any> = { [field]: value };
-    if (field === "operator_id") {
-      const op = operators.find((o) => o.id === value);
-      updates.operator_name = op?.name ?? null;
-    }
     if (field === "collaborator_id") {
       const col = collaborators.find((c) => c.id === value);
       updates.collaborator_name = col?.companyName ?? null;
@@ -134,31 +157,58 @@ export default function ServiceSidebar({ service }: Props) {
         </Card>
       )}
 
-      {/* Operator */}
+      {/* Operators (multi-assign) */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" /> Técnico asignado
+            <User className="w-4 h-4 text-muted-foreground" /> Técnicos asignados
+            <Badge variant="secondary" className="text-[10px] h-5 ml-auto">
+              {assignedOperators.length}
+            </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <SearchableSelect
-            options={[
-              { value: "none", label: "Sin asignar" },
-              ...operatorOptions.map((o) => ({
+        <CardContent className="space-y-2">
+          {/* Assigned operators list */}
+          {assignedOperators.map((op) => (
+            <div key={op.id} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded-md bg-muted/50">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: `hsl(${op.color})` }} />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-card-foreground truncate">{op.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{op.specialty}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={() => handleRemoveOperator(op.id)}
+                disabled={savingField === "operators"}
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ))}
+          {assignedOperators.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-2">Sin técnicos asignados</p>
+          )}
+          {/* Add operator */}
+          {addableOperators.length > 0 && (
+            <SearchableSelect
+              options={addableOperators.map((o) => ({
                 value: o.id,
                 label: o.name,
                 subtitle: o.specialty,
                 searchText: `${o.dni} ${o.email}`,
-              })),
-            ]}
-            value={service.operatorId ?? "none"}
-            onValueChange={(v) => handleUpdate("operator_id", v === "none" ? null : v)}
-            placeholder="Seleccionar técnico…"
-            searchPlaceholder="Buscar técnico…"
-            emptyText="Sin técnicos disponibles"
-            disabled={savingField === "operator_id"}
-          />
+              }))}
+              value=""
+              onValueChange={(v) => v && handleAddOperator(v)}
+              placeholder="Añadir técnico…"
+              searchPlaceholder="Buscar técnico…"
+              emptyText="Sin técnicos disponibles"
+              disabled={savingField === "operators"}
+            />
+          )}
         </CardContent>
       </Card>
 
