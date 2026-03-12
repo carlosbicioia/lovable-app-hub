@@ -178,12 +178,17 @@ export default function ServiceSidebar({ service }: Props) {
                   <p className="text-[11px] text-muted-foreground">{op.specialty}</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={() => handleRemoveOperator(op.id)}
-                disabled={savingField === "operators"}
+              {!isFinalized && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemoveOperator(op.id)}
+                  disabled={savingField === "operators"}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              )}
               >
                 <X className="w-3.5 h-3.5" />
               </Button>
