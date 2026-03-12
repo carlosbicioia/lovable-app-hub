@@ -21,6 +21,7 @@ import ServiceSalesOrders from "@/components/service-detail/ServiceSalesOrders";
 import { useSalesOrders } from "@/hooks/useSalesOrders";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import ServiceHistory from "@/components/service-detail/ServiceHistory";
+import ProtocolBreadcrumb from "@/components/service-detail/ProtocolBreadcrumb";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -233,6 +234,9 @@ export default function ServiceDetail() {
 
           {/* Tab 1: RESUMEN */}
           <TabsContent value="overview" className="space-y-4 mt-3">
+            {/* Protocol breadcrumb */}
+            <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-4">
                 <ServiceDescription service={service} onUpdate={isFinalized ? undefined : (updates) => updateService(service.id, updates)} />
