@@ -109,8 +109,8 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       await supabase.rpc("auto_start_scheduled_services");
 
       const [data, soData] = await Promise.all([
-        fetchAllRows("services", "received_at", false),
-        fetchAllRows("service_operators", "created_at", true),
+        fetchAllServices(),
+        fetchAllServiceOperators(),
       ]);
       const error = null;
       if (error) {
