@@ -184,7 +184,7 @@ function ServiceChip({
   spanHeight?: number;
 }) {
   const navigate = useNavigate();
-  const colors = getOperatorColor(service.operatorId);
+  const colors = getOperatorColor(service._displayOperatorId ?? service.operatorId);
 
   const timeStr = service.scheduledAt
     ? format(new Date(service.scheduledAt), "HH:mm") +
