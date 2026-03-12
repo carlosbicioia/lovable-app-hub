@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText, Wrench } from "lucide-react";
+import { User, MapPin, Building2, Clock, AlertTriangle, PenLine, CheckCircle2, FileText, Wrench, X, Plus } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useOperators } from "@/hooks/useOperators";
@@ -7,6 +7,7 @@ import { useCollaborators } from "@/hooks/useCollaborators";
 import { useServices } from "@/hooks/useServices";
 import { useBranches } from "@/hooks/useBranches";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
+import { useServiceOperatorsForService, useSetServiceOperators } from "@/hooks/useServiceOperators";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   service: Service;
