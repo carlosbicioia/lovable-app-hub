@@ -168,7 +168,7 @@ export default function ServiceDetail() {
                   <Pencil className="w-4 h-4 mr-2" /> Modificar servicio
                 </DropdownMenuItem>
               )}
-              {service.serviceType === "Presupuesto" && !linkedBudget && (
+              {!isFinalized && service.serviceType === "Presupuesto" && !linkedBudget && (
                 <DropdownMenuItem onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
                   <FileText className="w-4 h-4 mr-2" /> Crear presupuesto
                 </DropdownMenuItem>
