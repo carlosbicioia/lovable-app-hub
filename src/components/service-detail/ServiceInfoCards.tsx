@@ -116,6 +116,11 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
       return;
     }
+    // Block finalization if protocol is incomplete
+    if (newStatus === "Finalizado" && protocolTotal > 0 && !protocolComplete) {
+      toast.error(`No se puede finalizar: el protocolo de gestión está incompleto (${protocolDone}/${protocolTotal}).`);
+      return;
+    }
     // Special flow: En_Curso → Finalizado with budget
     if (newStatus === "Finalizado" && service.status === "En_Curso" && hasBudget && budgetData) {
       setShowFinalizadoPrompt(true);
