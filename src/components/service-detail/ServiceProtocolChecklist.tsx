@@ -9,9 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   service: Service;
+  readOnly?: boolean;
 }
 
-export default function ServiceProtocolChecklist({ service }: Props) {
+export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
 
