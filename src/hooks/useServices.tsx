@@ -163,7 +163,31 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       .from("services")
       .update(updates)
       .eq("id", id);
-    if (!error) await fetchServices();
+    if (!error) {
+      // Build audit description
+      const fieldLabels: Record<string, string> = {
+        status: "Estado", operator_id: "Operario", operator_name: "Operario",
+        scheduled_at: "Fecha programada", scheduled_end_at: "Fin programado",
+        contacted_at: "Fecha contacto", description: "Descripción",
+        internal_notes: "Notas internas", collaborator_notes: "Notas colaborador",
+        claim_status: "Estado reclamación", urgency: "Urgencia",
+        specialty: "Especialidad", service_type: "Tipo servicio",
+        budget_status: "Estado presupuesto", budget_total: "Importe presupuesto",
+        nps: "NPS", real_hours: "Horas reales", diagnosis_complete: "Diagnóstico completo",
+        address: "Dirección", contact_name: "Contacto", contact_phone: "Teléfono contacto",
+        origin: "Origen", service_category: "Categoría",
+        collaborator_id: "Colaborador", client_name: "Cliente",
+        skip_sales_order_reason: "Motivo sin orden de venta",
+      };
+      const fields = Object.keys(updates)
+        .filter(k => k !== "updated_at")
+        .map(k => fieldLabels[k] || k);
+      if (fields.length > 0) {
+        const action = `Modificado: ${fields.join(", ")}`;
+        logServiceAction(id, action);
+      }
+      await fetchServices();
+    }
     return { error };
   }, [fetchServices]);
 
