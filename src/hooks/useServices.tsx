@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus } from "@/types/urbango";
+import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
 
-function mapDbToService(row: any): Service {
+function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]>): Service {
+  const ops = operatorsMap.get(row.id) ?? [];
   return {
     id: row.id,
     clientId: row.client_id,
     clientName: row.client_name,
     operatorId: row.operator_id,
     operatorName: row.operator_name,
+    operators: ops,
     collaboratorId: row.collaborator_id,
     collaboratorName: row.collaborator_name,
     clusterId: row.cluster_id,
