@@ -15,6 +15,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useProtocolChecks } from "@/hooks/useProtocolChecks";
+import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 
 interface Props {
   service: Service;
@@ -56,6 +58,11 @@ export default function ServiceInfoCards({ service }: Props) {
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
   const createSalesOrder = useCreateSalesOrder();
+  const { checkedItems: protocolChecked } = useProtocolChecks(service.id);
+  const { data: protocolSteps = [] } = useEnabledProtocolSteps();
+  const protocolTotal = protocolSteps.length;
+  const protocolDone = protocolSteps.filter((s) => protocolChecked.has(s.stepId)).length;
+  const protocolComplete = protocolTotal > 0 && protocolDone === protocolTotal;
   const [saving, setSaving] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
@@ -107,6 +114,11 @@ export default function ServiceInfoCards({ service }: Props) {
     const allowed = VALID_TRANSITIONS[service.status] || [];
     if (!allowed.includes(newStatus)) {
       toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
+      return;
+    }
+    // Block finalization if protocol is incomplete
+    if (newStatus === "Finalizado" && protocolTotal > 0 && !protocolComplete) {
+      toast.error(`No se puede finalizar: el protocolo de gestión está incompleto (${protocolDone}/${protocolTotal}).`);
       return;
     }
     // Special flow: En_Curso → Finalizado with budget
@@ -441,6 +453,15 @@ export default function ServiceInfoCards({ service }: Props) {
                         return sum + sub + Math.round(sub * (l.tax_rate / 100) * 100) / 100;
                       }, 0).toFixed(2)
                     }</p>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="font-medium text-card-foreground">Protocolo:</span>
+                      <span className={cn(
+                        "font-semibold",
+                        protocolComplete ? "text-success" : "text-warning"
+                      )}>
+                        {protocolDone}/{protocolTotal} {protocolComplete ? "✓ Completo" : "⚠ Pendiente"}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
