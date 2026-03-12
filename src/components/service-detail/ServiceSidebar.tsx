@@ -258,7 +258,7 @@ export default function ServiceSidebar({ service }: Props) {
           <Select
             value={service.serviceType}
             onValueChange={(v) => handleUpdate("service_type", v)}
-            disabled={savingField === "service_type" || !!linkedBudget}
+            disabled={savingField === "service_type" || !!linkedBudget || isFinalized}
           >
             <SelectTrigger className="w-full">
               <SelectValue />
