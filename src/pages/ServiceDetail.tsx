@@ -163,9 +163,11 @@ export default function ServiceDetail() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/servicios/${service.id}/editar`)}>
-                <Pencil className="w-4 h-4 mr-2" /> Modificar servicio
-              </DropdownMenuItem>
+              {!isFinalized && (
+                <DropdownMenuItem onClick={() => navigate(`/servicios/${service.id}/editar`)}>
+                  <Pencil className="w-4 h-4 mr-2" /> Modificar servicio
+                </DropdownMenuItem>
+              )}
               {service.serviceType === "Presupuesto" && !linkedBudget && (
                 <DropdownMenuItem onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
                   <FileText className="w-4 h-4 mr-2" /> Crear presupuesto
