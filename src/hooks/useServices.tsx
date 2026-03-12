@@ -2,6 +2,43 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { supabase } from "@/integrations/supabase/client";
 import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
 
+/** Fetch all rows bypassing the 1000 row default limit */
+async function fetchAllServices(pageSize = 1000) {
+  const all: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .order("received_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
+async function fetchAllServiceOperators(pageSize = 1000) {
+  const all: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("service_operators")
+      .select("*")
+      .order("created_at")
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
 function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]>): Service {
   const ops = operatorsMap.get(row.id) ?? [];
   return {
@@ -71,10 +108,11 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       // Auto-start scheduled services that have reached their scheduled time
       await supabase.rpc("auto_start_scheduled_services");
 
-      const [{ data, error }, { data: soData, error: soError }] = await Promise.all([
-        supabase.from("services").select("*").order("received_at", { ascending: false }),
-        supabase.from("service_operators").select("*").order("created_at"),
+      const [data, soData] = await Promise.all([
+        fetchAllServices(),
+        fetchAllServiceOperators(),
       ]);
+      const error = null;
       if (error) {
         console.error("Error fetching services:", error);
         setLoading(false);
