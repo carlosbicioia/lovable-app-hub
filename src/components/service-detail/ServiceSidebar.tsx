@@ -188,6 +188,7 @@ export default function ServiceSidebar({ service }: Props) {
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
+              )}
             </div>
           ))}
           {assignedOperators.length === 0 && (
