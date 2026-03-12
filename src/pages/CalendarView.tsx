@@ -1018,7 +1018,7 @@ export default function CalendarView() {
   const filteredServices = useMemo(() => {
     if (!hasAnyFilter) return undefined;
     return services.filter((s) => {
-      if (selectedOperatorId && s.operatorId !== selectedOperatorId) return false;
+      if (selectedOperatorId && !s.operators.some((o) => o.id === selectedOperatorId) && s.operatorId !== selectedOperatorId) return false;
       if (selectedSpecialty && s.specialty !== selectedSpecialty) return false;
       if (selectedStatus && s.status !== selectedStatus) return false;
       if (selectedUrgency && s.urgency !== selectedUrgency) return false;
