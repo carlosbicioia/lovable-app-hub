@@ -86,6 +86,7 @@ export default function ServiceDetail() {
       await supabase.from("service_media").delete().eq("service_id", service.id);
       const { error } = await supabase.from("services").delete().eq("id", service.id);
       if (error) throw error;
+      await logServiceAction(service.id, "Servicio eliminado");
       toast.success("Servicio eliminado correctamente");
       navigate("/servicios");
     } catch (err: any) {
