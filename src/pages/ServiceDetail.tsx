@@ -222,7 +222,7 @@ export default function ServiceDetail() {
           <TabsContent value="overview" className="space-y-4 mt-3">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-4">
-                <ServiceDescription service={service} onUpdate={(updates) => updateService(service.id, updates)} />
+                <ServiceDescription service={service} onUpdate={isFinalized ? undefined : (updates) => updateService(service.id, updates)} />
 
                 {/* Quick KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
