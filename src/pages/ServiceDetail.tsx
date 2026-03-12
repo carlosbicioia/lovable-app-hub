@@ -234,6 +234,9 @@ export default function ServiceDetail() {
 
           {/* Tab 1: RESUMEN */}
           <TabsContent value="overview" className="space-y-4 mt-3">
+            {/* Protocol breadcrumb */}
+            <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-4">
                 <ServiceDescription service={service} onUpdate={isFinalized ? undefined : (updates) => updateService(service.id, updates)} />
