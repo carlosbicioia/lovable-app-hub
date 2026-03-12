@@ -185,7 +185,7 @@ function ServiceChip({
   showTime = false,
   spanHeight,
 }: {
-  service: Service;
+  service: CalendarService;
   showTime?: boolean;
   spanHeight?: number;
 }) {
