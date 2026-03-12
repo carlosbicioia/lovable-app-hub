@@ -12,9 +12,10 @@ interface Props {
   initialText?: string;
   onTextChange?: (text: string) => void;
   onAddComment?: (text: string) => void;
+  readOnly?: boolean;
 }
 
-export default function ServiceComments({ title, description, variant, initialText = "", onTextChange }: Props) {
+export default function ServiceComments({ title, description, variant, initialText = "", onTextChange, readOnly }: Props) {
   const Icon = variant === "internal" ? Lock : Eye;
   const [text, setText] = useState(initialText);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
