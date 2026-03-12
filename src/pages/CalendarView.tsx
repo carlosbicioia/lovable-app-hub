@@ -74,6 +74,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Service, Operator, Specialty, ServiceStatus, ServiceOrigin, UrgencyLevel } from "@/types/urbango";
 import { useNavigate } from "react-router-dom";
+
+// Extended service type for calendar display with multi-operator support
+type CalendarService = Service & {
+  _displayOperatorId?: string | null;
+  _displayOperatorName?: string | null;
+};
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
