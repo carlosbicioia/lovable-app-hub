@@ -949,7 +949,7 @@ function OperatorSummary({ date, view, selectedOperatorId, onSelectOperator }: {
       {allOps.map((op) => {
         const assignedCount = services.filter(
           (s) =>
-            s.operatorId === op.id &&
+            (s.operators.some((o) => o.id === op.id) || s.operatorId === op.id) &&
             s.scheduledAt &&
             days.some((d) => isSameDay(new Date(s.scheduledAt!), d))
         ).length;
