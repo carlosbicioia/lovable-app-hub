@@ -178,9 +178,11 @@ export default function ServiceDetail() {
                   <FileText className="w-4 h-4 mr-2" /> Ver presupuesto
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
-                <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
-              </DropdownMenuItem>
+              {!isFinalized && (
+                <DropdownMenuItem onClick={() => navigate(`/compras/nueva?serviceId=${service.id}`)}>
+                  <ShoppingCart className="w-4 h-4 mr-2" /> Nueva orden de compra
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
                 <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
