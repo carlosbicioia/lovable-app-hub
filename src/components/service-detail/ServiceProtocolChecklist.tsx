@@ -67,7 +67,8 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
               <div className="mt-0.5 shrink-0">
                 <Checkbox
                   checked={isDone}
-                  onCheckedChange={() => toggleItem(check.id)}
+                  onCheckedChange={() => !readOnly && toggleItem(check.id)}
+                  disabled={readOnly}
                   className={cn(
                     "transition-colors",
                     isDone ? "data-[state=checked]:bg-success data-[state=checked]:border-success" : ""
