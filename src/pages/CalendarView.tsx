@@ -401,9 +401,10 @@ function DayView({
               {String(hour).padStart(2, "0")}:00
             </div>
             {operators.map((op) => {
+              // Show services where this operator is in the operators array (multi-operator)
               const opServices = scheduledServices.filter(
-                (s) => s.operatorId === op.id && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
-              );
+                (s) => (s.operators.some((o) => o.id === op.id) || s.operatorId === op.id) && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
+              ).map((s): CalendarService => ({ ...s, _displayOperatorId: op.id, _displayOperatorName: op.name }));
               return (
                 <DroppableCell key={op.id} date={date} onDropService={onDropService} className="relative p-0 border-r border-border last:border-r-0" style={{ overflow: 'visible' }}>
                   {opServices.map((s) => {
