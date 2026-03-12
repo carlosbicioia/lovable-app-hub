@@ -71,16 +71,27 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       // Auto-start scheduled services that have reached their scheduled time
       await supabase.rpc("auto_start_scheduled_services");
 
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("received_at", { ascending: false });
+      const [{ data, error }, { data: soData, error: soError }] = await Promise.all([
+        supabase.from("services").select("*").order("received_at", { ascending: false }),
+        supabase.from("service_operators").select("*").order("created_at"),
+      ]);
       if (error) {
         console.error("Error fetching services:", error);
         setLoading(false);
         return;
       }
-      if (data) setServices(data.map(mapDbToService));
+
+      // Build operators map
+      const opsMap = new Map<string, ServiceOperatorRef[]>();
+      if (soData) {
+        for (const row of soData) {
+          const arr = opsMap.get(row.service_id) ?? [];
+          arr.push({ id: row.operator_id, name: row.operator_name });
+          opsMap.set(row.service_id, arr);
+        }
+      }
+
+      if (data) setServices(data.map((r) => mapDbToService(r, opsMap)));
     } catch (err) {
       console.error("Unexpected error fetching services:", err);
     }
