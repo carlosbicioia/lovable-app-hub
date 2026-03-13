@@ -179,6 +179,7 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
         origin: "Origen", service_category: "Categoría",
         collaborator_id: "Colaborador", client_name: "Cliente",
         skip_sales_order_reason: "Motivo sin orden de venta",
+        assistance_service_number: "Nº Servicio Asistencia",
       };
       const fields = Object.keys(updates)
         .filter(k => k !== "updated_at")
