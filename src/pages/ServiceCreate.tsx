@@ -567,6 +567,17 @@ export default function ServiceCreate() {
                 </Select>
               </div>
             )}
+
+            {activeOrigins.find(o => o.name === origin)?.is_assistance && (
+              <div className="space-y-2">
+                <Label>Nº Servicio Asistencia</Label>
+                <Input
+                  value={assistanceServiceNumber}
+                  onChange={(e) => setAssistanceServiceNumber(e.target.value)}
+                  placeholder="Número de referencia externo"
+                />
+              </div>
+            )}
           </div>
 
           {/* Assigned branch */}
