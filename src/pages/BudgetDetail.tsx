@@ -7,6 +7,7 @@ import { es } from "date-fns/locale";
 import type { BudgetStatus } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import CompanyLogo from "@/components/shared/CompanyLogo";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
