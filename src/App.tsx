@@ -41,6 +41,7 @@ import BudgetsReport from "@/pages/reports/BudgetsReport";
 import Auth from "@/pages/Auth";
 import CollaboratorPortal from "@/pages/CollaboratorPortal";
 import TvDashboard from "@/pages/TvDashboard";
+import AdvancedDashboard from "@/pages/AdvancedDashboard";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "@/pages/AccessDenied";
@@ -96,6 +97,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
+        {isAdminOrGestor ? <Route path="/dashboard-avanzado" element={<AdvancedDashboard />} /> : <Route path="/dashboard-avanzado" element={<AccessDenied />} />}
         <Route path="/clientes" element={<Clients />} />
         {isAdminOrGestor ? <Route path="/colaboradores" element={<Collaborators />} /> : <Route path="/colaboradores" element={<AccessDenied />} />}
         {isAdminOrGestor ? <Route path="/colaboradores/:id" element={<CollaboratorDetail />} /> : <Route path="/colaboradores/:id" element={<AccessDenied />} />}
@@ -122,13 +124,21 @@ function AppRoutes() {
             <Route path="/informes" element={<ReportsIndex />} />
             <Route path="/informes/servicios" element={<ServicesReport />} />
             <Route path="/informes/operarios" element={<OperatorsReport />} />
-            <Route path="/informes/financiero" element={<FinancialReport />} />
+            {isAdmin ? <Route path="/informes/financiero" element={<FinancialReport />} /> : <Route path="/informes/financiero" element={<AccessDenied />} />}
             <Route path="/informes/clientes" element={<ClientsReport />} />
             <Route path="/informes/compras" element={<PurchasesReport />} />
             <Route path="/informes/presupuestos" element={<BudgetsReport />} />
           </>
         ) : (
-          <Route path="/informes/*" element={<AccessDenied />} />
+          <>
+            <Route path="/informes" element={<ReportsIndex />} />
+            <Route path="/informes/servicios" element={<ServicesReport />} />
+            <Route path="/informes/operarios" element={<AccessDenied />} />
+            <Route path="/informes/financiero" element={<AccessDenied />} />
+            <Route path="/informes/clientes" element={<ClientsReport />} />
+            <Route path="/informes/compras" element={<AccessDenied />} />
+            <Route path="/informes/presupuestos" element={<AccessDenied />} />
+          </>
         )}
         {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
         <Route path="/perfil" element={<Profile />} />

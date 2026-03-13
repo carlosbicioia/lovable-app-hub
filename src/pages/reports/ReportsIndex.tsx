@@ -2,12 +2,13 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Wrench, HardHat, DollarSign, Users, ShoppingCart, FileText,
-  Sparkles, Send, Loader2, Download, ArrowRight,
+  Sparkles, Send, Loader2, Download, ArrowRight, Lock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const REPORT_SECTIONS = [
   {
@@ -36,6 +37,7 @@ const REPORT_SECTIONS = [
     path: "/informes/financiero",
     gradient: "from-warning/20 to-warning/5",
     iconBg: "bg-warning/10 text-warning",
+    adminOnly: true,
   },
   {
     id: "clientes",
@@ -68,6 +70,9 @@ const REPORT_SECTIONS = [
 
 export default function ReportsIndex() {
   const navigate = useNavigate();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const isAdminOrGestor = isAdmin || roles.includes("gestor");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiReport, setAiReport] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -137,7 +142,9 @@ export default function ReportsIndex() {
 
       {/* Report cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {REPORT_SECTIONS.map((r) => (
+        {REPORT_SECTIONS
+          .filter((r) => !(r as any).adminOnly || isAdmin)
+          .map((r) => (
           <Card
             key={r.id}
             className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/30 overflow-hidden"

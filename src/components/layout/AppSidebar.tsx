@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard-avanzado", label: "Dashboard Avanzado", icon: BarChart3, adminOnly: true },
   { to: "/servicios", label: "Servicios", icon: Wrench },
   { to: "/calendario", label: "Calendario", icon: Calendar },
   { to: "/presupuestos", label: "Presupuestos", icon: FileText },
@@ -105,7 +106,8 @@ export default function AppSidebar() {
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
         {navItems
           .filter((item) => {
-            if (item.to === "/operarios" || item.to === "/colaboradores" || item.to === "/informes") return isAdminOrGestor;
+            if ((item as any).adminOnly) return isAdminOrGestor;
+            if (item.to === "/operarios" || item.to === "/colaboradores") return isAdminOrGestor;
             return true;
           })
           .map(renderNavItem)}
