@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Building2, Star, Pencil, Trash2, Users, Wrench, Settings, Upload, Plus, X, HelpCircle } from "lucide-react";
+import { ArrowLeft, Building2, Star, Pencil, Trash2, Users, Wrench, Settings, Upload, Plus, X, HelpCircle, Send, Copy, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +78,8 @@ export default function CollaboratorDetail() {
   const [portalEmail, setPortalEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [contacts, setContacts] = useState<{ name: string; email: string; phone: string }[]>([]);
-
+  const [sendingAccess, setSendingAccess] = useState(false);
+  const [accessCredentials, setAccessCredentials] = useState<{ email: string; password: string } | null>(null);
   const fetchCollaborator = useCallback(async () => {
     if (!id) return;
     const { data, error } = await supabase
@@ -200,6 +202,46 @@ export default function CollaboratorDetail() {
 
   const addContact = () => setContacts((c) => [...c, { name: "", email: "", phone: "" }]);
 
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let pw = "";
+    for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    // Ensure at least one uppercase and one digit
+    pw = pw[0].toUpperCase() + pw.slice(1, 9) + String(Math.floor(Math.random() * 10));
+    return pw;
+  };
+
+  const handleSendAccess = async () => {
+    if (!id || !portalEmail.trim()) {
+      toast({ title: "Error", description: "Indica un email de acceso válido", variant: "destructive" });
+      return;
+    }
+    setSendingAccess(true);
+    try {
+      const password = generatePassword();
+      const { data, error } = await supabase.functions.invoke("register-user", {
+        body: {
+          email: portalEmail.trim(),
+          full_name: collaborator?.companyName || id,
+          password,
+          role: "colaborador",
+          collaborator_id: id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Error", description: data.error, variant: "destructive" });
+        return;
+      }
+      setAccessCredentials({ email: portalEmail.trim(), password });
+      toast({ title: "Acceso creado correctamente" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo crear el acceso", variant: "destructive" });
+    } finally {
+      setSendingAccess(false);
+    }
+  };
+
   const handleSaveConfig = async () => {
     if (!id) return;
     setSavingConfig(true);
@@ -235,6 +277,7 @@ export default function CollaboratorDetail() {
   if (!collaborator) return null;
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -564,8 +607,14 @@ export default function CollaboratorDetail() {
               {portalEnabled && (
                 <div className="space-y-1.5">
                   <Label>Email de acceso</Label>
-                  <Input value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} placeholder="email@empresa.es" />
-                  <p className="text-xs text-muted-foreground">Se enviará una invitación a este email</p>
+                  <div className="flex gap-2">
+                    <Input value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} placeholder="email@empresa.es" className="flex-1" />
+                    <Button onClick={handleSendAccess} disabled={sendingAccess || !portalEmail.trim()} size="sm" className="shrink-0">
+                      {sendingAccess ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}
+                      Enviar acceso
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Se creará una cuenta de acceso al portal del colaborador</p>
                 </div>
               )}
             </div>
@@ -667,5 +716,47 @@ export default function CollaboratorDetail() {
         </TabsContent>
       </Tabs>
     </div>
+
+      {/* Credentials dialog */}
+      <Dialog open={!!accessCredentials} onOpenChange={() => setAccessCredentials(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acceso creado correctamente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Se ha creado la cuenta de acceso al portal para <strong>{collaborator?.companyName}</strong>. 
+              Comparte estas credenciales con el colaborador:
+            </p>
+            <div className="bg-muted/50 rounded-lg border border-border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium text-foreground">{accessCredentials?.email}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.email || ""); toast({ title: "Email copiado" }); }}>
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Contraseña</p>
+                  <p className="text-sm font-mono font-medium text-foreground">{accessCredentials?.password}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.password || ""); toast({ title: "Contraseña copiada" }); }}>
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ⚠️ Guarda estas credenciales. La contraseña no se podrá consultar de nuevo.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setAccessCredentials(null)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
