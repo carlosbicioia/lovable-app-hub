@@ -1037,6 +1037,7 @@ export default function Settings() {
                     {["Dashboard", "Dashboard Avanzado", "Informes", "Informes Avanzados", "Servicios", "Presupuestos", "Clientes", "Artículos", "Operarios", "Colaboradores", "Compras", "Configuración"].map((mod) => {
                       const isChecked = role.value === "admin" ? true
                         : role.value === "gestor" ? !["Configuración"].includes(mod)
+                        : role.value === "colaborador" ? ["Servicios"].includes(mod)
                         : role.value === "operario" ? ["Dashboard", "Servicios"].includes(mod)
                         : role.value === "lectura" ? ["Dashboard", "Servicios", "Presupuestos", "Clientes"].includes(mod)
                         : role.value === "pantalla" ? ["Dashboard"].includes(mod)
