@@ -142,7 +142,9 @@ export default function ReportsIndex() {
 
       {/* Report cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {REPORT_SECTIONS.map((r) => (
+        {REPORT_SECTIONS
+          .filter((r) => !(r as any).adminOnly || isAdmin)
+          .map((r) => (
           <Card
             key={r.id}
             className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/30 overflow-hidden"
