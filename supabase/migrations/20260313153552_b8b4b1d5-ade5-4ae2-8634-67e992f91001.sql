@@ -1,0 +1,1 @@
+ALTER TABLE public.collaborators ALTER COLUMN commission_rate SET DEFAULT 10;

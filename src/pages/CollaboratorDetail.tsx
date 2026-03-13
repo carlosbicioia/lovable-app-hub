@@ -102,7 +102,7 @@ export default function CollaboratorDetail() {
       province: row.province ?? "", postalCode: row.postal_code ?? "",
       website: row.website ?? "", notes: row.notes ?? "",
       branchId: row.branch_id ?? null,
-      commissionRate: Number(row.commission_rate ?? 15),
+      commissionRate: Number(row.commission_rate ?? 10),
     };
     setCollaborator(c);
     setForm({

@@ -125,7 +125,7 @@ export default function Collaborators() {
       website: c.website,
       notes: c.notes,
       branchId: c.branchId ?? null,
-      commissionRate: c.commissionRate ?? 15,
+      commissionRate: c.commissionRate ?? 10,
     });
     setDialogOpen(true);
   };
