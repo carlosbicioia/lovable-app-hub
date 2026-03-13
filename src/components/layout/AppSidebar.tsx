@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard-avanzado", label: "Dashboard Avanzado", icon: BarChart3, adminOnly: true },
   { to: "/servicios", label: "Servicios", icon: Wrench },
   { to: "/calendario", label: "Calendario", icon: Calendar },
   { to: "/presupuestos", label: "Presupuestos", icon: FileText },
