@@ -184,11 +184,12 @@ export default function Services() {
   }, [services]);
 
   const getSlaStatus = (receivedAt: string, contactedAt: string | null) => {
-    if (contactedAt) return null;
+    // SLA only shows as OK when the gestor has explicitly marked contacted_at
+    if (contactedAt) return "ok";
     const hours = differenceInHours(new Date(), new Date(receivedAt));
     if (hours >= 12) return "expired";
     if (hours >= 8) return "warning";
-    return "ok";
+    return "pending";
   };
 
   const closedStatuses = ["Finalizado", "Liquidado"];
