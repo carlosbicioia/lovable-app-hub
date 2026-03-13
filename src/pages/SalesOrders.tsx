@@ -24,6 +24,7 @@ export default function SalesOrders() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: orders = [], isLoading } = useSalesOrders();
+  const { collaborators } = useCollaborators();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sending, setSending] = useState(false);
