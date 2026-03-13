@@ -24,6 +24,20 @@ export default function ServiceComments({ title, description, variant, initialTe
     setText(initialText);
   }, [initialText]);
 
+  // Flush pending debounce on unmount to prevent data loss
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        // Flush: save immediately with current text
+        // We need a ref to track the latest text value
+      }
+    };
+  }, []);
+
+  const latestTextRef = useRef(text);
+  latestTextRef.current = text;
+
   const handleChange = (value: string) => {
     setText(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -31,6 +45,17 @@ export default function ServiceComments({ title, description, variant, initialTe
       onTextChange?.(value);
     }, 800);
   };
+
+  // Flush on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        onTextChange?.(latestTextRef.current);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Card>
