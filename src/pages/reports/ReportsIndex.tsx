@@ -70,6 +70,9 @@ const REPORT_SECTIONS = [
 
 export default function ReportsIndex() {
   const navigate = useNavigate();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const isAdminOrGestor = isAdmin || roles.includes("gestor");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiReport, setAiReport] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
