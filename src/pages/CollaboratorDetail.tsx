@@ -715,5 +715,47 @@ export default function CollaboratorDetail() {
         </TabsContent>
       </Tabs>
     </div>
+
+      {/* Credentials dialog */}
+      <Dialog open={!!accessCredentials} onOpenChange={() => setAccessCredentials(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acceso creado correctamente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Se ha creado la cuenta de acceso al portal para <strong>{collaborator?.companyName}</strong>. 
+              Comparte estas credenciales con el colaborador:
+            </p>
+            <div className="bg-muted/50 rounded-lg border border-border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium text-foreground">{accessCredentials?.email}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.email || ""); toast({ title: "Email copiado" }); }}>
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Contraseña</p>
+                  <p className="text-sm font-mono font-medium text-foreground">{accessCredentials?.password}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.password || ""); toast({ title: "Contraseña copiada" }); }}>
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ⚠️ Guarda estas credenciales. La contraseña no se podrá consultar de nuevo.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setAccessCredentials(null)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
