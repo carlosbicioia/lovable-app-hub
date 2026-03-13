@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import ServiceInfoCards from "@/components/service-detail/ServiceInfoCards";
 import ServiceDescription from "@/components/service-detail/ServiceDescription";
 import ServiceTimeline from "@/components/service-detail/ServiceTimeline";
-import ServiceMedia from "@/components/service-detail/ServiceMedia";
+import ServiceMediaUpload from "@/components/service-detail/ServiceMediaUpload";
 import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
 import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
