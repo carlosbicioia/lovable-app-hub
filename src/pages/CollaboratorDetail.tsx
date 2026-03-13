@@ -109,7 +109,7 @@ export default function CollaboratorDetail() {
       email: c.email, phone: c.phone, contactPerson: c.contactPerson,
       taxId: c.taxId, address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra,
       city: c.city, province: c.province, postalCode: c.postalCode,
-      website: c.website, notes: c.notes,
+      website: c.website, notes: c.notes, commissionRate: c.commissionRate,
     });
     setPortalEnabled(!!row.portal_enabled);
     setPortalEmail(row.portal_email || c.email);
