@@ -19,6 +19,9 @@ export default function ServiceComments({ title, description, variant, initialTe
   const Icon = variant === "internal" ? Lock : Eye;
   const [text, setText] = useState(initialText);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const latestTextRef = useRef(text);
+  const onTextChangeRef = useRef(onTextChange);
+  onTextChangeRef.current = onTextChange;
 
   useEffect(() => {
     setText(initialText);
@@ -26,11 +29,23 @@ export default function ServiceComments({ title, description, variant, initialTe
 
   const handleChange = (value: string) => {
     setText(value);
+    latestTextRef.current = value;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onTextChange?.(value);
+      debounceRef.current = undefined;
+      onTextChangeRef.current?.(value);
     }, 800);
   };
+
+  // Flush pending save on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        onTextChangeRef.current?.(latestTextRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Card>

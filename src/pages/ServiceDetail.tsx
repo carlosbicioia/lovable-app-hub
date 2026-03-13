@@ -233,7 +233,7 @@ export default function ServiceDetail() {
           </TabsList>
 
           {/* Tab 1: RESUMEN */}
-          <TabsContent value="overview" className="space-y-4 mt-3">
+          <TabsContent value="overview" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* Protocol breadcrumb */}
             <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />
 
@@ -279,7 +279,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 2: OPERATIVA */}
-          <TabsContent value="operations" className="space-y-4 mt-3">
+          <TabsContent value="operations" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
@@ -287,7 +287,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 3: NOTAS */}
-          <TabsContent value="notes" className="space-y-4 mt-3">
+          <TabsContent value="notes" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceComments
               title="Comentarios internos"
               description="Solo visibles para el equipo interno"
@@ -309,7 +309,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 4: COMPRAS */}
-          <TabsContent value="purchases" className="space-y-4 mt-3">
+          <TabsContent value="purchases" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
@@ -327,7 +327,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 5: VENTAS */}
-          <TabsContent value="sales" className="space-y-4 mt-3">
+          <TabsContent value="sales" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card>
@@ -578,7 +578,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 6: HISTORIAL */}
-          <TabsContent value="history" className="space-y-4 mt-3">
+          <TabsContent value="history" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceHistory serviceId={service.id} />
           </TabsContent>
         </Tabs>
