@@ -334,23 +334,25 @@ export default function PurchaseDetail() {
           <CardTitle className="text-base flex items-center gap-2">
             <Package className="w-4 h-4 text-muted-foreground" /> Líneas
           </CardTitle>
-          {!editing && order.status === "Borrador" ? (
-            <Button variant="outline" size="sm" onClick={startEdit}>
-              <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
-            </Button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={addEditLine}>
-                <Plus className="w-3.5 h-3.5 mr-1" /> Añadir
+          {order.status === "Borrador" && (
+            !editing ? (
+              <Button variant="outline" size="sm" onClick={startEdit}>
+                <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
               </Button>
-              <Button variant="outline" size="sm" onClick={cancelEdit}>
-                <X className="w-3.5 h-3.5 mr-1" /> Cancelar
-              </Button>
-              <Button size="sm" onClick={saveLines} disabled={updateLines.isPending}>
-                {updateLines.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />}
-                Guardar
-              </Button>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={addEditLine}>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Añadir
+                </Button>
+                <Button variant="outline" size="sm" onClick={cancelEdit}>
+                  <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                </Button>
+                <Button size="sm" onClick={saveLines} disabled={updateLines.isPending}>
+                  {updateLines.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+                  Guardar
+                </Button>
+              </div>
+            )
           )}
         </CardHeader>
         <CardContent>
