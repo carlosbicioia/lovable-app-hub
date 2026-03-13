@@ -233,7 +233,7 @@ export default function ServiceDetail() {
           </TabsList>
 
           {/* Tab 1: RESUMEN */}
-          <TabsContent value="overview" className="space-y-4 mt-3">
+          <TabsContent value="overview" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* Protocol breadcrumb */}
             <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />
 
