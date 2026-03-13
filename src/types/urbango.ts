@@ -48,6 +48,7 @@ export interface Collaborator {
   website: string;
   notes: string;
   branchId: string | null;
+  commissionRate: number;
 }
 
 export type ClaimStatus = "Abierto" | "En_Valoración" | "Aceptado" | "Rechazado" | "Cerrado";

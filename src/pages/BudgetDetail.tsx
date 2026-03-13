@@ -7,6 +7,7 @@ import { es } from "date-fns/locale";
 import type { BudgetStatus } from "@/types/urbango";
 import { toast } from "@/hooks/use-toast";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import CompanyLogo from "@/components/shared/CompanyLogo";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { generateDocumentPdf } from "@/lib/generateDocumentPdf";
@@ -24,8 +25,14 @@ export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getBudget } = useBudgets();
+  const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
   const budget = getBudget(id ?? "");
+  const collaborator = budget?.collaboratorName
+    ? collaborators.find((c) => c.companyName === budget.collaboratorName)
+    : null;
+  const commissionRate = collaborator?.commissionRate ?? 0;
+  const hasCommission = !!budget?.collaboratorName && commissionRate > 0;
 
   if (!budget) {
     return (
@@ -195,6 +202,18 @@ export default function BudgetDetail() {
               <span className="font-bold text-card-foreground">TOTAL:</span>
               <span className="font-bold text-card-foreground">{total.toFixed(2)} €</span>
             </div>
+            {hasCommission && (
+              <>
+                <div className="flex justify-between pt-1">
+                  <span className="text-muted-foreground">Comisión {budget.collaboratorName} ({commissionRate}%)</span>
+                  <span className="text-muted-foreground">-{(total * commissionRate / 100).toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between border-t border-border pt-1">
+                  <span className="font-semibold text-card-foreground">Neto tras comisión:</span>
+                  <span className="font-semibold text-card-foreground">{(total - total * commissionRate / 100).toFixed(2)} €</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

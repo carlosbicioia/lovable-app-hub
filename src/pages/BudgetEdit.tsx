@@ -13,6 +13,7 @@ import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { Building2 } from "lucide-react";
@@ -22,6 +23,7 @@ export default function BudgetEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getBudget, updateBudget } = useBudgets();
+  const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
 
   const budget = getBudget(id ?? "");
@@ -115,6 +117,13 @@ export default function BudgetEdit() {
   const subtotal = lines.reduce((s, l) => s + calcLine(l).lineSubtotal, 0);
   const totalTax = lines.reduce((s, l) => s + calcLine(l).lineTax, 0);
   const total = subtotal + totalTax;
+
+  const collaborator = budget.collaboratorName
+    ? collaborators.find((c) => c.companyName === budget.collaboratorName)
+    : null;
+  const commissionRate = collaborator?.commissionRate ?? 0;
+  const hasCommission = !!budget.collaboratorName && commissionRate > 0;
+  const commissionAmount = hasCommission ? Math.round(total * commissionRate) / 100 : 0;
 
   const handleSave = async (send: boolean) => {
     if (lines.some((l) => !l.concept.trim())) {
@@ -311,6 +320,18 @@ export default function BudgetEdit() {
                   <span className="font-bold text-card-foreground">TOTAL:</span>
                   <span className="font-bold text-card-foreground">{total.toFixed(2)} €</span>
                 </div>
+                {hasCommission && (
+                  <>
+                    <div className="flex justify-between pt-1">
+                      <span className="text-muted-foreground">Comisión {budget.collaboratorName} ({commissionRate}%)</span>
+                      <span className="text-muted-foreground">-{commissionAmount.toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="font-semibold text-card-foreground">Neto:</span>
+                      <span className="font-semibold text-card-foreground">{(total - commissionAmount).toFixed(2)} €</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>

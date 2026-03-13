@@ -21,9 +21,10 @@ function mapRow(row: any): Collaborator {
     city: row.city ?? "",
     province: row.province ?? "",
     postalCode: row.postal_code ?? "",
-    website: row.website ?? "",
-    notes: row.notes ?? "",
-    branchId: row.branch_id ?? null,
+      website: row.website ?? "",
+      notes: row.notes ?? "",
+      branchId: row.branch_id ?? null,
+      commissionRate: Number(row.commission_rate ?? 15),
   };
 }
 
@@ -44,6 +45,7 @@ export type CollaboratorInput = {
   website: string;
   notes: string;
   branchId: string | null;
+  commissionRate: number;
 };
 
 export function useCollaborators() {
@@ -92,6 +94,7 @@ export function useCollaborators() {
       website: input.website,
       notes: input.notes,
       branch_id: input.branchId,
+      commission_rate: input.commissionRate,
     } as any);
     if (!error) await fetch();
     return { error };
@@ -117,6 +120,7 @@ export function useCollaborators() {
         website: input.website,
         notes: input.notes,
         branch_id: input.branchId,
+        commission_rate: input.commissionRate,
       } as any)
       .eq("id", id);
     if (!error) await fetch();

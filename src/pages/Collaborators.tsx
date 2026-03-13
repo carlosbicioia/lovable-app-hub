@@ -69,6 +69,7 @@ const emptyForm: CollaboratorInput = {
   website: "",
   notes: "",
   branchId: null,
+  commissionRate: 15,
 };
 
 export default function Collaborators() {
@@ -123,6 +124,7 @@ export default function Collaborators() {
       website: c.website,
       notes: c.notes,
       branchId: c.branchId ?? null,
+      commissionRate: c.commissionRate ?? 15,
     });
     setDialogOpen(true);
   };

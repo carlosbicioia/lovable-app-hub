@@ -1,0 +1,1 @@
+ALTER TABLE public.collaborators ADD COLUMN commission_rate numeric NOT NULL DEFAULT 15;

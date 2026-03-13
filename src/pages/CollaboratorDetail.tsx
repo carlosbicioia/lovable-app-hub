@@ -66,7 +66,7 @@ export default function CollaboratorDetail() {
     email: "", phone: "", contactPerson: "",
     taxId: "", address: "", streetNumber: "", floor: "", addressExtra: "",
     city: "", province: "", postalCode: "",
-    website: "", notes: "",
+    website: "", notes: "", commissionRate: 15,
   });
   const [saving, setSaving] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -101,6 +101,7 @@ export default function CollaboratorDetail() {
       province: row.province ?? "", postalCode: row.postal_code ?? "",
       website: row.website ?? "", notes: row.notes ?? "",
       branchId: row.branch_id ?? null,
+      commissionRate: Number(row.commission_rate ?? 15),
     };
     setCollaborator(c);
     setForm({
@@ -108,7 +109,7 @@ export default function CollaboratorDetail() {
       email: c.email, phone: c.phone, contactPerson: c.contactPerson,
       taxId: c.taxId, address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra,
       city: c.city, province: c.province, postalCode: c.postalCode,
-      website: c.website, notes: c.notes,
+      website: c.website, notes: c.notes, commissionRate: c.commissionRate,
     });
     setPortalEnabled(!!row.portal_enabled);
     setPortalEmail(row.portal_email || c.email);
@@ -171,6 +172,7 @@ export default function CollaboratorDetail() {
         city: form.city,
         province: form.province, postal_code: form.postalCode,
         website: form.website, notes: form.notes,
+        commission_rate: form.commissionRate,
       } as any)
       .eq("id", id);
     setSaving(false);
@@ -291,7 +293,7 @@ export default function CollaboratorDetail() {
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, streetNumber: collaborator.streetNumber, floor: collaborator.floor, addressExtra: collaborator.addressExtra, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes }); }}>
+                   <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, streetNumber: collaborator.streetNumber, floor: collaborator.floor, addressExtra: collaborator.addressExtra, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes, commissionRate: collaborator.commissionRate }); }}>
                     Cancelar
                   </Button>
                   <Button size="sm" onClick={handleSave} disabled={saving}>
@@ -409,6 +411,14 @@ export default function CollaboratorDetail() {
                   <Input value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="www.empresa.es" />
                 ) : (
                   <p className="text-sm text-foreground">{collaborator.website || "—"}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Comisión (%)</Label>
+                {editing ? (
+                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="15" />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.commissionRate}%</p>
                 )}
               </div>
               <div className="space-y-1.5">
