@@ -305,7 +305,7 @@ export default function ServiceDetail() {
               variant="manager"
               field="collaborator_notes"
               initialText={service.collaboratorNotes ?? ""}
-              onSave={isFinalized ? undefined : (text) => updateService(service.id, { collaborator_notes: text })}
+              onSave={isFinalized ? undefined : async (text) => { await updateService(service.id, { collaborator_notes: text }); }}
               readOnly={isFinalized}
             />
           </TabsContent>
