@@ -306,6 +306,16 @@ export default function Collaborators() {
                   <div className="flex items-center justify-center gap-1">
                     <Star className="w-3.5 h-3.5 text-primary fill-primary" />
                     <span className="text-lg font-display font-bold text-card-foreground">{c.npsMean}</span>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                          Media de las puntuaciones NPS (0-10) de los servicios finalizados de este colaborador.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   <p className="text-xs text-muted-foreground">NPS</p>
                 </div>
