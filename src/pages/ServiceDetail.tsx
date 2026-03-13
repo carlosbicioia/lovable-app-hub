@@ -279,7 +279,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 2: OPERATIVA */}
-          <TabsContent value="operations" className="space-y-4 mt-3">
+          <TabsContent value="operations" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
             <ServiceMedia service={service} />
