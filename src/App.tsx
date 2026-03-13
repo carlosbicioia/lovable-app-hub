@@ -97,6 +97,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
+        {isAdminOrGestor ? <Route path="/dashboard-avanzado" element={<AdvancedDashboard />} /> : <Route path="/dashboard-avanzado" element={<AccessDenied />} />}
         <Route path="/clientes" element={<Clients />} />
         {isAdminOrGestor ? <Route path="/colaboradores" element={<Collaborators />} /> : <Route path="/colaboradores" element={<AccessDenied />} />}
         {isAdminOrGestor ? <Route path="/colaboradores/:id" element={<CollaboratorDetail />} /> : <Route path="/colaboradores/:id" element={<AccessDenied />} />}
