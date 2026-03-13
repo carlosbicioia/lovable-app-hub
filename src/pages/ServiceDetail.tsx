@@ -327,7 +327,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 5: VENTAS */}
-          <TabsContent value="sales" className="space-y-4 mt-3">
+          <TabsContent value="sales" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card>
