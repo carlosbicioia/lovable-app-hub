@@ -134,6 +134,18 @@ export default function Collaborators() {
       toast({ title: "Error", description: "El nombre de empresa es obligatorio", variant: "destructive" });
       return;
     }
+    if (!form.taxId.trim()) {
+      toast({ title: "Error", description: "El NIF/CIF es obligatorio", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Error", description: "El teléfono es obligatorio", variant: "destructive" });
+      return;
+    }
+    if (!form.address.trim()) {
+      toast({ title: "Error", description: "La dirección es obligatoria", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = editingId
       ? await update(editingId, form)
