@@ -299,6 +299,7 @@ export default function ServiceEdit() {
       contact_phone: servicePhone,
       postal_code: servicePostalCode,
       real_hours: realHours !== "" ? Number(realHours) : null,
+      assistance_service_number: assistanceServiceNumber,
     });
 
     setSaving(false);
