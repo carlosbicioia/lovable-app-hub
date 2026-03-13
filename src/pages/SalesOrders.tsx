@@ -230,8 +230,9 @@ export default function SalesOrders() {
                   <TableHead>Presupuesto</TableHead>
                   <TableHead>Servicio</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
+                   <TableHead className="text-right">Total</TableHead>
+                    <TableHead>Comisión</TableHead>
+                    <TableHead>Estado</TableHead>
                   <TableHead>Holded</TableHead>
                   <TableHead>Fecha</TableHead>
                 </TableRow>
