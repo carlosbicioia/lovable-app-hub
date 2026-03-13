@@ -414,6 +414,14 @@ export default function CollaboratorDetail() {
                 )}
               </div>
               <div className="space-y-1.5">
+                <Label>Comisión (%)</Label>
+                {editing ? (
+                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="15" />
+                ) : (
+                  <p className="text-sm text-foreground">{collaborator.commissionRate}%</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
                 <Label>Notas</Label>
                 {editing ? (
                   <Input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Observaciones internas..." />
