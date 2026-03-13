@@ -120,6 +120,7 @@ export function useCollaborators() {
         website: input.website,
         notes: input.notes,
         branch_id: input.branchId,
+        commission_rate: input.commissionRate,
       } as any)
       .eq("id", id);
     if (!error) await fetch();
