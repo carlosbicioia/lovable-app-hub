@@ -80,6 +80,7 @@ function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]
     signatureUrl: row.signature_url ?? null,
     signedAt: row.signed_at ?? null,
     signedBy: row.signed_by ?? null,
+    assistanceServiceNumber: row.assistance_service_number ?? "",
     internalNotes: row.internal_notes ?? "",
     collaboratorNotes: row.collaborator_notes ?? "",
     media: [],
