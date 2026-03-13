@@ -1,0 +1,1 @@
+ALTER TABLE public.services ADD COLUMN assistance_service_number text DEFAULT '' NOT NULL;
