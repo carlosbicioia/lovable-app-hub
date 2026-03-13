@@ -295,7 +295,7 @@ export default function ServiceDetail() {
               variant="internal"
               field="internal_notes"
               initialText={service.internalNotes ?? ""}
-              onSave={isFinalized ? undefined : (text) => updateService(service.id, { internal_notes: text })}
+              onSave={isFinalized ? undefined : async (text) => { await updateService(service.id, { internal_notes: text }); }}
               readOnly={isFinalized}
             />
             <ServiceComments
