@@ -573,6 +573,7 @@ export default function Purchases() {
                           <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border", sc.cls)}>{sc.label}</span>
                         </td>
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">€{inv.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                        <td className="px-5 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{inv.notes || "—"}</td>
                         <td className="px-5 py-3 text-center">
                           {inv.pdfPath ? (
                             <a href={inv.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs" onClick={(e) => e.stopPropagation()}>Ver PDF</a>
