@@ -13,6 +13,7 @@ import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { Building2 } from "lucide-react";
