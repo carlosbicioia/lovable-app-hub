@@ -287,7 +287,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 3: NOTAS */}
-          <TabsContent value="notes" className="space-y-4 mt-3">
+          <TabsContent value="notes" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceComments
               title="Comentarios internos"
               description="Solo visibles para el equipo interno"
