@@ -551,7 +551,7 @@ export default function Services() {
                       {sla === "expired" && <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive animate-pulse-soft">⏰ Vencido</span>}
                       {sla === "warning" && <span className="text-[10px] font-semibold text-warning">⚠ Próximo</span>}
                       {sla === "ok" && <span className="text-[10px] text-success">✓ OK</span>}
-                      {!sla && <span className="text-[10px] text-muted-foreground">—</span>}
+                      {sla === "pending" && <span className="text-[10px] text-muted-foreground">⏳ Pendiente</span>}
                     </td>
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
