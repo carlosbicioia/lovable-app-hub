@@ -550,6 +550,7 @@ export default function Purchases() {
                      <th className="text-left px-5 py-3 text-muted-foreground font-medium">Fecha</th>
                      <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
                      <th className="text-right px-5 py-3 text-muted-foreground font-medium">Total</th>
+                     <th className="text-left px-5 py-3 text-muted-foreground font-medium">Notas</th>
                      <th className="text-center px-5 py-3 text-muted-foreground font-medium">PDF</th>
                      <th className="text-center px-5 py-3 text-muted-foreground font-medium">Acciones</th>
                    </tr>
