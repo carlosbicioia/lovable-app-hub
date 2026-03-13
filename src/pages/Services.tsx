@@ -85,6 +85,21 @@ export default function Services() {
   );
 
   const handleStatusChange = async (serviceId: string, newStatus: string) => {
+    // Block En_Curso if service type is Presupuesto and no approved budget
+    if (newStatus === "En_Curso") {
+      const svc = services.find(s => s.id === serviceId);
+      if (svc && svc.serviceType === "Presupuesto") {
+        const budget = budgets.find(b => b.serviceId === serviceId);
+        if (!budget) {
+          toast({ title: "Presupuesto requerido", description: "No se puede pasar a En Curso: el servicio es de tipo Presupuesto y no tiene presupuesto asignado.", variant: "destructive" });
+          return;
+        }
+        if (budget.status !== "Aprobado") {
+          toast({ title: "Presupuesto no aprobado", description: `El presupuesto debe estar aprobado por el cliente (estado actual: ${budget.status}).`, variant: "destructive" });
+          return;
+        }
+      }
+    }
     // Block finalization if protocol is incomplete
     if (newStatus === "Finalizado" && enabledSteps.length > 0) {
       const checked = protocolChecksMap[serviceId] ?? new Set();
