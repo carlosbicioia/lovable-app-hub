@@ -24,7 +24,7 @@ const statusConfig: Record<BudgetStatus, { label: string; className: string }> =
 export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getBudget } = useBudgets();
+  const { getBudget, updateBudgetStatus } = useBudgets();
   const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
   const budget = getBudget(id ?? "");
@@ -62,7 +62,10 @@ export default function BudgetDetail() {
 
   const cfg = statusConfig[budget.status];
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
+    if (budget.status === "Borrador") {
+      await updateBudgetStatus(budget.id, "Enviado");
+    }
     toast({
       title: "Presupuesto enviado",
       description: `El presupuesto ${budget.id} se ha enviado por email correctamente.`,
