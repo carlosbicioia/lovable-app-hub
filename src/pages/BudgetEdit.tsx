@@ -320,6 +320,18 @@ export default function BudgetEdit() {
                   <span className="font-bold text-card-foreground">TOTAL:</span>
                   <span className="font-bold text-card-foreground">{total.toFixed(2)} €</span>
                 </div>
+                {hasCommission && (
+                  <>
+                    <div className="flex justify-between pt-1">
+                      <span className="text-muted-foreground">Comisión {budget.collaboratorName} ({commissionRate}%)</span>
+                      <span className="text-muted-foreground">-{commissionAmount.toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="font-semibold text-card-foreground">Neto:</span>
+                      <span className="font-semibold text-card-foreground">{(total - commissionAmount).toFixed(2)} €</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
