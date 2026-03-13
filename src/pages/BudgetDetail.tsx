@@ -62,7 +62,10 @@ export default function BudgetDetail() {
 
   const cfg = statusConfig[budget.status];
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
+    if (budget.status === "Borrador") {
+      await updateBudgetStatus(budget.id, "Enviado");
+    }
     toast({
       title: "Presupuesto enviado",
       description: `El presupuesto ${budget.id} se ha enviado por email correctamente.`,
