@@ -202,6 +202,46 @@ export default function CollaboratorDetail() {
 
   const addContact = () => setContacts((c) => [...c, { name: "", email: "", phone: "" }]);
 
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let pw = "";
+    for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    // Ensure at least one uppercase and one digit
+    pw = pw[0].toUpperCase() + pw.slice(1, 9) + String(Math.floor(Math.random() * 10));
+    return pw;
+  };
+
+  const handleSendAccess = async () => {
+    if (!id || !portalEmail.trim()) {
+      toast({ title: "Error", description: "Indica un email de acceso válido", variant: "destructive" });
+      return;
+    }
+    setSendingAccess(true);
+    try {
+      const password = generatePassword();
+      const { data, error } = await supabase.functions.invoke("register-user", {
+        body: {
+          email: portalEmail.trim(),
+          full_name: collaborator?.companyName || id,
+          password,
+          role: "colaborador",
+          collaborator_id: id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Error", description: data.error, variant: "destructive" });
+        return;
+      }
+      setAccessCredentials({ email: portalEmail.trim(), password });
+      toast({ title: "Acceso creado correctamente" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo crear el acceso", variant: "destructive" });
+    } finally {
+      setSendingAccess(false);
+    }
+  };
+
   const handleSaveConfig = async () => {
     if (!id) return;
     setSavingConfig(true);
