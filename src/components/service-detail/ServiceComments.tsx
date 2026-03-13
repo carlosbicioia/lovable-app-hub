@@ -19,42 +19,32 @@ export default function ServiceComments({ title, description, variant, initialTe
   const Icon = variant === "internal" ? Lock : Eye;
   const [text, setText] = useState(initialText);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const latestTextRef = useRef(text);
+  const onTextChangeRef = useRef(onTextChange);
+  onTextChangeRef.current = onTextChange;
 
   useEffect(() => {
     setText(initialText);
   }, [initialText]);
 
-  // Flush pending debounce on unmount to prevent data loss
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-        // Flush: save immediately with current text
-        // We need a ref to track the latest text value
-      }
-    };
-  }, []);
-
-  const latestTextRef = useRef(text);
-  latestTextRef.current = text;
-
   const handleChange = (value: string) => {
     setText(value);
+    latestTextRef.current = value;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onTextChange?.(value);
+      debounceRef.current = undefined;
+      onTextChangeRef.current?.(value);
     }, 800);
   };
 
-  // Flush on unmount
+  // Flush pending save on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
-        onTextChange?.(latestTextRef.current);
+        onTextChangeRef.current?.(latestTextRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
