@@ -104,6 +104,7 @@ export default function ServiceCreate() {
   const [clientOpen, setClientOpen] = useState(false);
   const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
   const [collaboratorId, setCollaboratorId] = useState("");
+  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
 
   // ── Classification ──
   const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
