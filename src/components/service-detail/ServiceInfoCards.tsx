@@ -115,7 +115,12 @@ export default function ServiceInfoCards({ service }: Props) {
   const handleStatusChange = (newStatus: string) => {
     const allowed = VALID_TRANSITIONS[service.status] || [];
     if (!allowed.includes(newStatus)) {
-      toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
+      // Specific message for Agendado → En_Curso (automatic transition)
+      if (service.status === "Agendado" && newStatus === "En_Curso") {
+        toast.error("El paso a \"En Curso\" es automático cuando llega la hora programada. No se puede realizar manualmente porque el servicio no tiene un presupuesto aprobado asignado.");
+      } else {
+        toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
+      }
       return;
     }
     // Block En_Curso if service type is Presupuesto and no approved budget
