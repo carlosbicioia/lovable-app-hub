@@ -118,6 +118,13 @@ export default function BudgetEdit() {
   const totalTax = lines.reduce((s, l) => s + calcLine(l).lineTax, 0);
   const total = subtotal + totalTax;
 
+  const collaborator = budget.collaboratorName
+    ? collaborators.find((c) => c.companyName === budget.collaboratorName)
+    : null;
+  const commissionRate = collaborator?.commissionRate ?? 0;
+  const hasCommission = !!budget.collaboratorName && commissionRate > 0;
+  const commissionAmount = hasCommission ? Math.round(total * commissionRate) / 100 : 0;
+
   const handleSave = async (send: boolean) => {
     if (lines.some((l) => !l.concept.trim())) {
       toast.error("Todos los conceptos deben tener nombre");
