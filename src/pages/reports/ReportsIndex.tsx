@@ -2,12 +2,13 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Wrench, HardHat, DollarSign, Users, ShoppingCart, FileText,
-  Sparkles, Send, Loader2, Download, ArrowRight,
+  Sparkles, Send, Loader2, Download, ArrowRight, Lock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const REPORT_SECTIONS = [
   {
