@@ -172,6 +172,7 @@ export default function CollaboratorDetail() {
         city: form.city,
         province: form.province, postal_code: form.postalCode,
         website: form.website, notes: form.notes,
+        commission_rate: form.commissionRate,
       } as any)
       .eq("id", id);
     setSaving(false);
