@@ -73,6 +73,7 @@ export default function ServiceEdit() {
   const [clientOpen, setClientOpen] = useState(false);
   const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
   const [collaboratorId, setCollaboratorId] = useState("");
+  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
   const [status, setStatus] = useState<ServiceStatus>("Pendiente_Contacto");
   const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
   const [urgency, setUrgency] = useState<UrgencyLevel>("Estándar");
@@ -110,6 +111,7 @@ export default function ServiceEdit() {
     setClientId(service.clientId);
     setOrigin(service.origin);
     setCollaboratorId(service.collaboratorId ?? "");
+    setAssistanceServiceNumber(service.assistanceServiceNumber ?? "");
     setStatus(service.status);
     setSpecialty(service.specialty);
     setUrgency(service.urgency);
@@ -297,6 +299,7 @@ export default function ServiceEdit() {
       contact_phone: servicePhone,
       postal_code: servicePostalCode,
       real_hours: realHours !== "" ? Number(realHours) : null,
+      assistance_service_number: assistanceServiceNumber,
     });
 
     setSaving(false);
@@ -386,6 +389,17 @@ export default function ServiceEdit() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {activeOrigins.find(o => o.name === origin)?.is_assistance && (
+              <div className="space-y-2">
+                <Label>Nº Servicio Asistencia</Label>
+                <Input
+                  value={assistanceServiceNumber}
+                  onChange={(e) => setAssistanceServiceNumber(e.target.value)}
+                  placeholder="Número de referencia externo"
+                />
               </div>
             )}
           </div>

@@ -132,9 +132,10 @@ export interface Service {
   materials?: ServiceMaterial[];
   realHours?: number | null;
   signatureUrl?: string | null;
-  signedAt?: string | null;
-  signedBy?: string | null;
-}
+    signedAt?: string | null;
+    signedBy?: string | null;
+    assistanceServiceNumber?: string;
+  }
 
 export type OperatorStatus = "Activo" | "Inactivo" | "Vacaciones" | "Baja";
 

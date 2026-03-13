@@ -80,6 +80,7 @@ function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]
     signatureUrl: row.signature_url ?? null,
     signedAt: row.signed_at ?? null,
     signedBy: row.signed_by ?? null,
+    assistanceServiceNumber: row.assistance_service_number ?? "",
     internalNotes: row.internal_notes ?? "",
     collaboratorNotes: row.collaborator_notes ?? "",
     media: [],
@@ -178,6 +179,7 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
         origin: "Origen", service_category: "Categoría",
         collaborator_id: "Colaborador", client_name: "Cliente",
         skip_sales_order_reason: "Motivo sin orden de venta",
+        assistance_service_number: "Nº Servicio Asistencia",
       };
       const fields = Object.keys(updates)
         .filter(k => k !== "updated_at")

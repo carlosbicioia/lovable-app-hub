@@ -1558,6 +1558,7 @@ export type Database = {
         Row: {
           address: string | null
           address_extra: string
+          assistance_service_number: string
           branch_id: string | null
           budget_status: string | null
           budget_total: number | null
@@ -1601,6 +1602,7 @@ export type Database = {
         Insert: {
           address?: string | null
           address_extra?: string
+          assistance_service_number?: string
           branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null
@@ -1644,6 +1646,7 @@ export type Database = {
         Update: {
           address?: string | null
           address_extra?: string
+          assistance_service_number?: string
           branch_id?: string | null
           budget_status?: string | null
           budget_total?: number | null

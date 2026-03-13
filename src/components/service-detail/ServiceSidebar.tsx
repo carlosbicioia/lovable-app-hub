@@ -33,6 +33,7 @@ export default function ServiceSidebar({ service }: Props) {
   const { data: serviceOps = [] } = useServiceOperatorsForService(service.id);
   const setServiceOperators = useSetServiceOperators();
   const showCollaborator = serviceOrigins.find(o => o.name === service.origin)?.show_collaborator ?? false;
+  const isAssistance = serviceOrigins.find(o => o.name === service.origin)?.is_assistance ?? false;
   const [savingField, setSavingField] = useState<string | null>(null);
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
@@ -118,6 +119,15 @@ export default function ServiceSidebar({ service }: Props) {
             <p className="text-sm font-medium text-card-foreground">{service.clientName}</p>
             <p className="text-xs text-muted-foreground">{service.clientId}</p>
           </div>
+          {isAssistance && service.assistanceServiceNumber && (
+            <div className="mt-2 flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50">
+              <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Nº Asistencia</p>
+                <p className="text-sm font-medium text-card-foreground">{service.assistanceServiceNumber}</p>
+              </div>
+            </div>
+          )}
           {service.address && (
             <div className="flex items-start gap-2 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4 mt-0.5 shrink-0" />

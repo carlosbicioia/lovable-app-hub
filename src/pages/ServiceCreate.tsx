@@ -104,6 +104,7 @@ export default function ServiceCreate() {
   const [clientOpen, setClientOpen] = useState(false);
   const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
   const [collaboratorId, setCollaboratorId] = useState("");
+  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
 
   // ── Classification ──
   const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
@@ -302,6 +303,7 @@ export default function ServiceCreate() {
       branch_id: findBranchForService(selectedClient?.clusterId ?? "", serviceCity, serviceProvince),
       internal_notes: internalNotes,
       collaborator_notes: collaboratorNotes,
+      assistance_service_number: assistanceServiceNumber,
     };
   };
 
@@ -563,6 +565,17 @@ export default function ServiceCreate() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {activeOrigins.find(o => o.name === origin)?.is_assistance && (
+              <div className="space-y-2">
+                <Label>Nº Servicio Asistencia</Label>
+                <Input
+                  value={assistanceServiceNumber}
+                  onChange={(e) => setAssistanceServiceNumber(e.target.value)}
+                  placeholder="Número de referencia externo"
+                />
               </div>
             )}
           </div>
