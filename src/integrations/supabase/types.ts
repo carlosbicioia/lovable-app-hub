@@ -354,6 +354,7 @@ export type Database = {
           branch_id: string | null
           category: string
           city: string
+          commission_rate: number
           company_name: string
           contact_person: string
           created_at: string
@@ -382,6 +383,7 @@ export type Database = {
           branch_id?: string | null
           category?: string
           city?: string
+          commission_rate?: number
           company_name?: string
           contact_person?: string
           created_at?: string
@@ -410,6 +412,7 @@ export type Database = {
           branch_id?: string | null
           category?: string
           city?: string
+          commission_rate?: number
           company_name?: string
           contact_person?: string
           created_at?: string
