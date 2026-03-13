@@ -36,6 +36,7 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
   const { data: orders = [], isLoading } = useSalesOrders(serviceId);
   const updateOrder = useUpdateSalesOrder();
   const { updateService } = useServices();
+  const { collaborators } = useCollaborators();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [confirmLiquidate, setConfirmLiquidate] = useState<string | null>(null);
 
