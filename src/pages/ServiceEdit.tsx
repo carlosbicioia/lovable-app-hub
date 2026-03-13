@@ -111,6 +111,7 @@ export default function ServiceEdit() {
     setClientId(service.clientId);
     setOrigin(service.origin);
     setCollaboratorId(service.collaboratorId ?? "");
+    setAssistanceServiceNumber(service.assistanceServiceNumber ?? "");
     setStatus(service.status);
     setSpecialty(service.specialty);
     setUrgency(service.urgency);
