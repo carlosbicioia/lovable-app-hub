@@ -303,6 +303,7 @@ export default function ServiceCreate() {
       branch_id: findBranchForService(selectedClient?.clusterId ?? "", serviceCity, serviceProvince),
       internal_notes: internalNotes,
       collaborator_notes: collaboratorNotes,
+      assistance_service_number: assistanceServiceNumber,
     };
   };
 
