@@ -606,8 +606,14 @@ export default function CollaboratorDetail() {
               {portalEnabled && (
                 <div className="space-y-1.5">
                   <Label>Email de acceso</Label>
-                  <Input value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} placeholder="email@empresa.es" />
-                  <p className="text-xs text-muted-foreground">Se enviará una invitación a este email</p>
+                  <div className="flex gap-2">
+                    <Input value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} placeholder="email@empresa.es" className="flex-1" />
+                    <Button onClick={handleSendAccess} disabled={sendingAccess || !portalEmail.trim()} size="sm" className="shrink-0">
+                      {sendingAccess ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}
+                      Enviar acceso
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Se creará una cuenta de acceso al portal del colaborador</p>
                 </div>
               )}
             </div>
