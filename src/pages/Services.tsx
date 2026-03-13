@@ -184,11 +184,12 @@ export default function Services() {
   }, [services]);
 
   const getSlaStatus = (receivedAt: string, contactedAt: string | null) => {
-    if (contactedAt) return null;
+    // SLA only shows as OK when the gestor has explicitly marked contacted_at
+    if (contactedAt) return "ok";
     const hours = differenceInHours(new Date(), new Date(receivedAt));
     if (hours >= 12) return "expired";
     if (hours >= 8) return "warning";
-    return "ok";
+    return "pending";
   };
 
   const closedStatuses = ["Finalizado", "Liquidado"];
@@ -550,7 +551,7 @@ export default function Services() {
                       {sla === "expired" && <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive animate-pulse-soft">⏰ Vencido</span>}
                       {sla === "warning" && <span className="text-[10px] font-semibold text-warning">⚠ Próximo</span>}
                       {sla === "ok" && <span className="text-[10px] text-success">✓ OK</span>}
-                      {!sla && <span className="text-[10px] text-muted-foreground">—</span>}
+                      {sla === "pending" && <span className="text-[10px] text-muted-foreground">⏳ Pendiente</span>}
                     </td>
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Select value={s.urgency} onValueChange={(v) => handleUrgencyChange(s.id, v)}>
