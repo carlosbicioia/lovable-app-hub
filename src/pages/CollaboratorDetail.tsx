@@ -293,7 +293,7 @@ export default function CollaboratorDetail() {
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, streetNumber: collaborator.streetNumber, floor: collaborator.floor, addressExtra: collaborator.addressExtra, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes }); }}>
+                   <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, streetNumber: collaborator.streetNumber, floor: collaborator.floor, addressExtra: collaborator.addressExtra, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes, commissionRate: collaborator.commissionRate }); }}>
                     Cancelar
                   </Button>
                   <Button size="sm" onClick={handleSave} disabled={saving}>
