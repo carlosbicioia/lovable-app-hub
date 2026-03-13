@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import ServiceInfoCards from "@/components/service-detail/ServiceInfoCards";
 import ServiceDescription from "@/components/service-detail/ServiceDescription";
 import ServiceTimeline from "@/components/service-detail/ServiceTimeline";
-import ServiceMedia from "@/components/service-detail/ServiceMedia";
+import ServiceMediaUpload from "@/components/service-detail/ServiceMediaUpload";
 import ServiceComments from "@/components/service-detail/ServiceComments";
 import ServiceSidebar from "@/components/service-detail/ServiceSidebar";
 import ServiceProtocolChecklist from "@/components/service-detail/ServiceProtocolChecklist";
@@ -282,7 +282,7 @@ export default function ServiceDetail() {
           <TabsContent value="operations" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
-            <ServiceMedia service={service} />
+            <ServiceMediaUpload serviceId={service.id} />
             <ServiceMaterials serviceId={service.id} readOnly={isFinalized} />
           </TabsContent>
 
