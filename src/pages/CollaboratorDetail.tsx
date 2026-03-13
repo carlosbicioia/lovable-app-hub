@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Building2, Star, Pencil, Trash2, Users, Wrench, Settings, Upload, Plus, X } from "lucide-react";
+import { ArrowLeft, Building2, Star, Pencil, Trash2, Users, Wrench, Settings, Upload, Plus, X, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -272,6 +273,16 @@ export default function CollaboratorDetail() {
               <Star className="w-4 h-4 text-primary fill-primary" />
               <p className="text-xl font-display font-bold text-foreground">{collaborator.npsMean}</p>
               <p className="text-xs text-muted-foreground ml-1">NPS</p>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help ml-0.5" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[220px] text-xs">
+                    Media de las puntuaciones NPS (0-10) de los servicios finalizados de este colaborador.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
