@@ -334,7 +334,7 @@ export default function PurchaseDetail() {
           <CardTitle className="text-base flex items-center gap-2">
             <Package className="w-4 h-4 text-muted-foreground" /> Líneas
           </CardTitle>
-          {!editing ? (
+          {!editing && order.status === "Borrador" ? (
             <Button variant="outline" size="sm" onClick={startEdit}>
               <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
             </Button>
