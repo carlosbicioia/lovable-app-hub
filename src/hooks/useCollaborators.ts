@@ -45,6 +45,7 @@ export type CollaboratorInput = {
   website: string;
   notes: string;
   branchId: string | null;
+  commissionRate: number;
 };
 
 export function useCollaborators() {
