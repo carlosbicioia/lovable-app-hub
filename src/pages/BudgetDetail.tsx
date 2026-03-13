@@ -24,7 +24,7 @@ const statusConfig: Record<BudgetStatus, { label: string; className: string }> =
 export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getBudget } = useBudgets();
+  const { getBudget, updateBudgetStatus } = useBudgets();
   const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
   const budget = getBudget(id ?? "");
