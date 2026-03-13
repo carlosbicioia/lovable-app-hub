@@ -69,6 +69,7 @@ const emptyForm: CollaboratorInput = {
   website: "",
   notes: "",
   branchId: null,
+  commissionRate: 15,
 };
 
 export default function Collaborators() {
