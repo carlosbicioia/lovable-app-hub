@@ -94,6 +94,7 @@ export function useCollaborators() {
       website: input.website,
       notes: input.notes,
       branch_id: input.branchId,
+      commission_rate: input.commissionRate,
     } as any);
     if (!error) await fetch();
     return { error };
