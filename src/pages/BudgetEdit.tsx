@@ -23,6 +23,7 @@ export default function BudgetEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getBudget, updateBudget } = useBudgets();
+  const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
 
   const budget = getBudget(id ?? "");
