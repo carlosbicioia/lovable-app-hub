@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Send, CheckCircle2, Loader2, Lock } from "lucide-react";
 import { useSalesOrders, useUpdateSalesOrder } from "@/hooks/useSalesOrders";
 import { useServices } from "@/hooks/useServices";
+import { useCollaborators } from "@/hooks/useCollaborators";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
