@@ -73,6 +73,7 @@ export default function ServiceEdit() {
   const [clientOpen, setClientOpen] = useState(false);
   const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
   const [collaboratorId, setCollaboratorId] = useState("");
+  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
   const [status, setStatus] = useState<ServiceStatus>("Pendiente_Contacto");
   const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
   const [urgency, setUrgency] = useState<UrgencyLevel>("Estándar");
