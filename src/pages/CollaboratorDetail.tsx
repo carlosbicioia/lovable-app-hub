@@ -78,7 +78,8 @@ export default function CollaboratorDetail() {
   const [portalEmail, setPortalEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [contacts, setContacts] = useState<{ name: string; email: string; phone: string }[]>([]);
-
+  const [sendingAccess, setSendingAccess] = useState(false);
+  const [accessCredentials, setAccessCredentials] = useState<{ email: string; password: string } | null>(null);
   const fetchCollaborator = useCallback(async () => {
     if (!id) return;
     const { data, error } = await supabase
