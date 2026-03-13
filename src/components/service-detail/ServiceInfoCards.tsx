@@ -23,6 +23,7 @@ interface Props {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
+  Pte_Aceptacion: ["Pendiente_Contacto", "Pte_Asignacion"],
   Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado"],
   Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado"],
   Asignado: ["Pte_Asignacion", "Agendado"],
@@ -35,6 +36,7 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 const CONFIRM_STATUSES = ["Finalizado", "Liquidado"];
 
 const STATUS_PIPELINE = [
+  { key: "Pte_Aceptacion", label: "Pte. Aceptación", short: "Pte.Ac" },
   { key: "Pendiente_Contacto", label: "Pte. Contacto", short: "Pte.C" },
   { key: "Pte_Asignacion", label: "Pte. Asignación", short: "Pte.A" },
   { key: "Asignado", label: "Asignado", short: "Asig." },
