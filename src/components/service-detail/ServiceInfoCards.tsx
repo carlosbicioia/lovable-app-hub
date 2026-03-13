@@ -118,6 +118,17 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede cambiar de "${statusLabel(service.status)}" a "${statusLabel(newStatus)}".`);
       return;
     }
+    // Block En_Curso if service type is Presupuesto and no approved budget
+    if (newStatus === "En_Curso" && service.serviceType === "Presupuesto") {
+      if (!hasBudget) {
+        toast.error("No se puede pasar a En Curso: el servicio es de tipo Presupuesto y no tiene presupuesto asignado.");
+        return;
+      }
+      if (service.budgetStatus !== "Aprobado") {
+        toast.error(`No se puede pasar a En Curso: el presupuesto debe estar aprobado por el cliente (estado actual: ${service.budgetStatus || "sin estado"}).`);
+        return;
+      }
+    }
     // Block finalization if protocol is incomplete
     if (newStatus === "Finalizado" && protocolTotal > 0 && !protocolComplete) {
       toast.error(`No se puede finalizar: el protocolo de gestión está incompleto (${protocolDone}/${protocolTotal}).`);
