@@ -92,7 +92,7 @@ export default function InvoiceCreate() {
             description: l.articleName || l.description || "",
             units: l.units,
             unitPrice: l.costPrice,
-            taxRate: 21,
+            taxRate: l.taxRate ?? 21,
             total: l.units * l.costPrice,
             serviceId: oc.serviceId,
             purchaseOrderId: oc.id,
