@@ -1503,6 +1503,36 @@ export type Database = {
           },
         ]
       }
+      service_notes_history: {
+        Row: {
+          content: string
+          created_at: string
+          field: string
+          id: string
+          service_id: string
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          field: string
+          id?: string
+          service_id: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          field?: string
+          id?: string
+          service_id?: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_operators: {
         Row: {
           created_at: string

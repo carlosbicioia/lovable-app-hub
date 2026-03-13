@@ -289,21 +289,23 @@ export default function ServiceDetail() {
           {/* Tab 3: NOTAS */}
           <TabsContent value="notes" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceComments
+              serviceId={service.id}
               title="Comentarios internos"
               description="Solo visibles para el equipo interno"
-              comments={service.internalComments ?? []}
               variant="internal"
+              field="internal_notes"
               initialText={service.internalNotes ?? ""}
-              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { internal_notes: text })}
+              onSave={isFinalized ? undefined : async (text) => { await updateService(service.id, { internal_notes: text }); }}
               readOnly={isFinalized}
             />
             <ServiceComments
+              serviceId={service.id}
               title="Notas para el colaborador"
               description="Visibles para el colaborador desde el backoffice"
-              comments={service.managerComments ?? []}
               variant="manager"
+              field="collaborator_notes"
               initialText={service.collaboratorNotes ?? ""}
-              onTextChange={isFinalized ? undefined : (text) => updateService(service.id, { collaborator_notes: text })}
+              onSave={isFinalized ? undefined : async (text) => { await updateService(service.id, { collaborator_notes: text }); }}
               readOnly={isFinalized}
             />
           </TabsContent>
