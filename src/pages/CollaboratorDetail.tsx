@@ -67,7 +67,7 @@ export default function CollaboratorDetail() {
     email: "", phone: "", contactPerson: "",
     taxId: "", address: "", streetNumber: "", floor: "", addressExtra: "",
     city: "", province: "", postalCode: "",
-    website: "", notes: "", commissionRate: 15,
+    website: "", notes: "", commissionRate: 10,
   });
   const [saving, setSaving] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
