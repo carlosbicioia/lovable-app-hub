@@ -160,6 +160,21 @@ export default function ServiceSalesOrders({ serviceId }: Props) {
                       <span className="text-lg font-bold text-foreground">€{order.total.toFixed(2)}</span>
                     </div>
 
+                    {/* Commission info */}
+                    {order.collaboratorName && (() => {
+                      const collab = collaborators.find((c) => c.companyName === order.collaboratorName);
+                      const rate = collab?.commissionRate ?? 0;
+                      if (rate <= 0) return null;
+                      const commission = Math.round(order.total * rate) / 100;
+                      return (
+                        <div className="flex items-center gap-3 mt-2 text-xs bg-warning/10 border border-warning/20 rounded-md px-3 py-1.5">
+                          <span className="text-warning font-medium">Comisión {order.collaboratorName}: {rate}%</span>
+                          <span className="text-muted-foreground">−€{commission.toFixed(2)}</span>
+                          <span className="text-foreground font-medium ml-auto">Neto: €{(order.total - commission).toFixed(2)}</span>
+                        </div>
+                      );
+                    })()}
+
                     {/* Meta */}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
                       <span>{order.clientName}</span>
