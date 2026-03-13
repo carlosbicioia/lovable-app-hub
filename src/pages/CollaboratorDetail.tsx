@@ -67,7 +67,7 @@ export default function CollaboratorDetail() {
     email: "", phone: "", contactPerson: "",
     taxId: "", address: "", streetNumber: "", floor: "", addressExtra: "",
     city: "", province: "", postalCode: "",
-    website: "", notes: "", commissionRate: 15,
+    website: "", notes: "", commissionRate: 10,
   });
   const [saving, setSaving] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -102,7 +102,7 @@ export default function CollaboratorDetail() {
       province: row.province ?? "", postalCode: row.postal_code ?? "",
       website: row.website ?? "", notes: row.notes ?? "",
       branchId: row.branch_id ?? null,
-      commissionRate: Number(row.commission_rate ?? 15),
+      commissionRate: Number(row.commission_rate ?? 10),
     };
     setCollaborator(c);
     setForm({
@@ -439,7 +439,7 @@ export default function CollaboratorDetail() {
               <div className="space-y-1.5">
                 <Label>Comisión (%)</Label>
                 {editing ? (
-                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="15" />
+                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="10" />
                 ) : (
                   <p className="text-sm text-foreground">{collaborator.commissionRate}%</p>
                 )}
