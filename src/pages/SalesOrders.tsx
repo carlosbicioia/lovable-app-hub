@@ -256,6 +256,18 @@ export default function SalesOrders() {
                     <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.clientName}</TableCell>
                     <TableCell className="text-right font-medium" onClick={() => navigate(`/servicios/${o.serviceId}`)}>{o.total.toFixed(2)} €</TableCell>
                     <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>
+                      {(() => {
+                        if (!o.collaboratorName) return <span className="text-xs text-muted-foreground">—</span>;
+                        const collab = collaborators.find((c) => c.companyName === o.collaboratorName);
+                        const rate = collab?.commissionRate ?? 0;
+                        if (rate <= 0) return <span className="text-xs text-muted-foreground">—</span>;
+                        const commission = Math.round(o.total * rate) / 100;
+                        return (
+                          <span className="text-xs text-warning font-medium">{rate}% (−{commission.toFixed(2)} €)</span>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell onClick={() => navigate(`/servicios/${o.serviceId}`)}>
                       <Badge
                         variant="outline"
                         className={cn(
