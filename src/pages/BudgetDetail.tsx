@@ -25,8 +25,14 @@ export default function BudgetDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getBudget } = useBudgets();
+  const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
   const budget = getBudget(id ?? "");
+  const collaborator = budget?.collaboratorName
+    ? collaborators.find((c) => c.companyName === budget.collaboratorName)
+    : null;
+  const commissionRate = collaborator?.commissionRate ?? 0;
+  const hasCommission = !!budget?.collaboratorName && commissionRate > 0;
 
   if (!budget) {
     return (
