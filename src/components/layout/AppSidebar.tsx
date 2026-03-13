@@ -106,7 +106,8 @@ export default function AppSidebar() {
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
         {navItems
           .filter((item) => {
-            if (item.to === "/operarios" || item.to === "/colaboradores" || item.to === "/informes") return isAdminOrGestor;
+            if ((item as any).adminOnly) return isAdminOrGestor;
+            if (item.to === "/operarios" || item.to === "/colaboradores") return isAdminOrGestor;
             return true;
           })
           .map(renderNavItem)}
