@@ -37,6 +37,7 @@ const REPORT_SECTIONS = [
     path: "/informes/financiero",
     gradient: "from-warning/20 to-warning/5",
     iconBg: "bg-warning/10 text-warning",
+    adminOnly: true,
   },
   {
     id: "clientes",
