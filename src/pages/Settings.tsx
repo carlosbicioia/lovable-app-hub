@@ -42,6 +42,7 @@ import MonthlyTargetsTab from "@/components/settings/MonthlyTargetsTab";
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
   { value: "gestor", label: "Gestor", desc: "Gestión de servicios, presupuestos y clientes" },
+  { value: "colaborador", label: "Colaborador", desc: "Consulta sus servicios y puede solicitar nuevos servicios" },
   { value: "operario", label: "Operario", desc: "Solo acceso a sus servicios asignados" },
   { value: "lectura", label: "Solo lectura", desc: "Visualización sin edición" },
   { value: "pantalla", label: "Pantalla TV", desc: "Solo ve el panel de KPIs en modo cine" },
@@ -1036,6 +1037,7 @@ export default function Settings() {
                     {["Dashboard", "Dashboard Avanzado", "Informes", "Informes Avanzados", "Servicios", "Presupuestos", "Clientes", "Artículos", "Operarios", "Colaboradores", "Compras", "Configuración"].map((mod) => {
                       const isChecked = role.value === "admin" ? true
                         : role.value === "gestor" ? !["Configuración"].includes(mod)
+                        : role.value === "colaborador" ? ["Servicios"].includes(mod)
                         : role.value === "operario" ? ["Dashboard", "Servicios"].includes(mod)
                         : role.value === "lectura" ? ["Dashboard", "Servicios", "Presupuestos", "Clientes"].includes(mod)
                         : role.value === "pantalla" ? ["Dashboard"].includes(mod)
