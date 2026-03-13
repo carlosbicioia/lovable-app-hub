@@ -309,7 +309,7 @@ export default function ServiceDetail() {
           </TabsContent>
 
           {/* Tab 4: COMPRAS */}
-          <TabsContent value="purchases" className="space-y-4 mt-3">
+          <TabsContent value="purchases" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Órdenes de compra
