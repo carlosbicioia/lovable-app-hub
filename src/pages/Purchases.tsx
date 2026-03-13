@@ -557,7 +557,7 @@ export default function Purchases() {
                  </thead>
                  <tbody>
                    {filteredInv.length === 0 ? (
-                     <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
+                     <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">No hay facturas</td></tr>
                    ) : filteredInv.map((inv) => {
                      const sc = invStatusConfig[inv.status];
                      return (
