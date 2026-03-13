@@ -439,7 +439,7 @@ export default function CollaboratorDetail() {
               <div className="space-y-1.5">
                 <Label>Comisión (%)</Label>
                 {editing ? (
-                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="15" />
+                  <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} placeholder="10" />
                 ) : (
                   <p className="text-sm text-foreground">{collaborator.commissionRate}%</p>
                 )}
