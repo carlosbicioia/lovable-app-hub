@@ -161,6 +161,18 @@ export default function CollaboratorDetail() {
 
   const handleSave = async () => {
     if (!id || !form.companyName.trim()) return;
+    if (!form.taxId.trim()) {
+      toast({ title: "Error", description: "El NIF/CIF es obligatorio", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Error", description: "El teléfono es obligatorio", variant: "destructive" });
+      return;
+    }
+    if (!form.address.trim()) {
+      toast({ title: "Error", description: "La dirección es obligatoria", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("collaborators" as any)
