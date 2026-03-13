@@ -42,6 +42,7 @@ import MonthlyTargetsTab from "@/components/settings/MonthlyTargetsTab";
 const roles = [
   { value: "admin", label: "Administrador", desc: "Acceso total al sistema" },
   { value: "gestor", label: "Gestor", desc: "Gestión de servicios, presupuestos y clientes" },
+  { value: "colaborador", label: "Colaborador", desc: "Consulta sus servicios y puede solicitar nuevos servicios" },
   { value: "operario", label: "Operario", desc: "Solo acceso a sus servicios asignados" },
   { value: "lectura", label: "Solo lectura", desc: "Visualización sin edición" },
   { value: "pantalla", label: "Pantalla TV", desc: "Solo ve el panel de KPIs en modo cine" },
