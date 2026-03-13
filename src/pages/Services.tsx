@@ -84,6 +84,15 @@ export default function Services() {
   );
 
   const handleStatusChange = async (serviceId: string, newStatus: string) => {
+    // Block finalization if protocol is incomplete
+    if (newStatus === "Finalizado" && enabledSteps.length > 0) {
+      const checked = protocolChecksMap[serviceId] ?? new Set();
+      const done = enabledSteps.filter((s) => checked.has(s.stepId)).length;
+      if (done < enabledSteps.length) {
+        toast({ title: "Protocolo incompleto", description: `No se puede finalizar: protocolo ${done}/${enabledSteps.length}.`, variant: "destructive" });
+        return;
+      }
+    }
     const updates: Record<string, any> = { status: newStatus };
     if (newStatus === "Agendado" || newStatus === "En_Curso" || newStatus === "Finalizado") {
       const svc = services.find(s => s.id === serviceId);
