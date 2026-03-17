@@ -1,1 +1,1 @@
-export { ServiceProvider, useServices } from "./useServices.tsx";
+export { useServices, updateService, useUpdateService } from "./useServices.tsx";
