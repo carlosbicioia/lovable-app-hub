@@ -50,7 +50,23 @@ serve(async (req) => {
       }
     }
 
-    // Join the channel first (idempotent - no error if already joined)
+    // Resolve channel name to ID if needed
+    let channelId = channel;
+    if (!channel.startsWith("C") && !channel.startsWith("D") && !channel.startsWith("G")) {
+      const cleanName = channel.replace(/^#/, "");
+      const listRes = await fetch(`${GATEWAY_URL}/conversations.list?types=public_channel&limit=200`, {
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "X-Connection-Api-Key": SLACK_API_KEY,
+        },
+      });
+      const listData = await listRes.json();
+      const found = (listData.channels || []).find((c: any) => c.name === cleanName);
+      if (!found) throw new Error(`Channel "${cleanName}" not found in Slack workspace`);
+      channelId = found.id;
+    }
+
+    // Join the channel first (idempotent)
     await fetch(`${GATEWAY_URL}/conversations.join`, {
       method: "POST",
       headers: {
@@ -58,7 +74,7 @@ serve(async (req) => {
         "X-Connection-Api-Key": SLACK_API_KEY,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ channel }),
+      body: JSON.stringify({ channel: channelId }),
     });
 
     const response = await fetch(`${GATEWAY_URL}/chat.postMessage`, {
