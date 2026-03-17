@@ -50,6 +50,17 @@ serve(async (req) => {
       }
     }
 
+    // Join the channel first (idempotent - no error if already joined)
+    await fetch(`${GATEWAY_URL}/conversations.join`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": SLACK_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ channel }),
+    });
+
     const response = await fetch(`${GATEWAY_URL}/chat.postMessage`, {
       method: "POST",
       headers: {
