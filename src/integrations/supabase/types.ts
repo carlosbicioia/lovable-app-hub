@@ -789,6 +789,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          app_enabled: boolean
+          created_at: string
+          event_description: string
+          event_key: string
+          event_label: string
+          id: string
+          slack_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          app_enabled?: boolean
+          created_at?: string
+          event_description?: string
+          event_key: string
+          event_label?: string
+          id?: string
+          slack_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          app_enabled?: boolean
+          created_at?: string
+          event_description?: string
+          event_key?: string
+          event_label?: string
+          id?: string
+          slack_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       operator_monthly_revenue: {
         Row: {
           created_at: string
@@ -1976,6 +2009,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_slack_channels: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          operator_id: string | null
+          slack_channel_id: string
+          slack_channel_name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          operator_id?: string | null
+          slack_channel_id?: string
+          slack_channel_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          operator_id?: string | null
+          slack_channel_id?: string
+          slack_channel_name?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
