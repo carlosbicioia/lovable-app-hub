@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-slack-notification]
 verify_jwt = false
+
+[functions.list-slack-channels]
+verify_jwt = false
