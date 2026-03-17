@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wrench, Clock, FileText, Bell, Mail, Hash, ShoppingCart,
-  Timer, AlertTriangle, UserX, Smartphone, MessageSquare, CheckCircle2,
+  Timer, AlertTriangle, UserX, Smartphone, MessageSquare, CheckCircle2, Unplug,
 } from "lucide-react";
 import { useNotificationSettings, useUpdateNotificationSetting } from "@/hooks/useNotificationSettings";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const iconMap: Record<string, typeof Wrench> = {
@@ -27,6 +29,7 @@ export default function NotificationsTab() {
   const { data: settings, isLoading } = useNotificationSettings();
   const updateSetting = useUpdateNotificationSetting();
   const [slackConnected, setSlackConnected] = useState<boolean | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     // Test Slack connectivity by invoking a lightweight check
@@ -88,6 +91,36 @@ export default function NotificationsTab() {
             )}
           </div>
         </CardHeader>
+        {slackConnected && (
+          <CardContent className="pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-destructive hover:text-destructive"
+              disabled={disconnecting}
+              onClick={async () => {
+                setDisconnecting(true);
+                try {
+                  // Disable all slack notifications
+                  for (const s of settings ?? []) {
+                    if (s.slack_enabled) {
+                      await updateSetting.mutateAsync({ id: s.id, slack_enabled: false });
+                    }
+                  }
+                  setSlackConnected(false);
+                  toast.success("Slack desconectado. Las notificaciones por Slack han sido deshabilitadas.");
+                } catch {
+                  toast.error("Error al desconectar Slack");
+                } finally {
+                  setDisconnecting(false);
+                }
+              }}
+            >
+              <Unplug className="w-4 h-4" />
+              {disconnecting ? "Desconectando..." : "Deshabilitar Slack"}
+            </Button>
+          </CardContent>
+        )}
         {!slackConnected && slackConnected !== null && (
           <CardContent>
             <p className="text-sm text-muted-foreground">
