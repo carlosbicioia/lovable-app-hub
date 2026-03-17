@@ -29,6 +29,7 @@ export default function NotificationsTab() {
   const { data: settings, isLoading } = useNotificationSettings();
   const updateSetting = useUpdateNotificationSetting();
   const [slackConnected, setSlackConnected] = useState<boolean | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     // Test Slack connectivity by invoking a lightweight check
