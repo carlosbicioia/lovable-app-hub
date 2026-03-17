@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,54 +6,35 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { BudgetProvider } from "@/hooks/useBudgets";
-import { ServiceProvider } from "@/hooks/useServices";
 import AppLayout from "@/components/layout/AppLayout";
-import Dashboard from "@/pages/Dashboard";
-import Clients from "@/pages/Clients";
-import Collaborators from "@/pages/Collaborators";
-import CollaboratorDetail from "@/pages/CollaboratorDetail";
-import Services from "@/pages/Services";
-import ServiceDetail from "@/pages/ServiceDetail";
-import Budgets from "@/pages/Budgets";
-import BudgetDetail from "@/pages/BudgetDetail";
-import BudgetCreate from "@/pages/BudgetCreate";
-import BudgetEdit from "@/pages/BudgetEdit";
-import Articles from "@/pages/Articles";
-import InvoiceCreate from "@/pages/InvoiceCreate";
-import CalendarView from "@/pages/CalendarView";
-import Operators from "@/pages/Operators";
-import Purchases from "@/pages/Purchases";
-import PurchaseCreate from "@/pages/PurchaseCreate";
-import PurchaseDetail from "@/pages/PurchaseDetail";
-import DeliveryNoteCreate from "@/pages/DeliveryNoteCreate";
-import SalesOrders from "@/pages/SalesOrders";
-import Suppliers from "@/pages/Suppliers";
-import ServiceCreate from "@/pages/ServiceCreate";
-import ServiceEdit from "@/pages/ServiceEdit";
-import Settings from "@/pages/Settings";
-import ReportsIndex from "@/pages/reports/ReportsIndex";
-import ServicesReport from "@/pages/reports/ServicesReport";
-import OperatorsReport from "@/pages/reports/OperatorsReport";
-import FinancialReport from "@/pages/reports/FinancialReport";
-import ClientsReport from "@/pages/reports/ClientsReport";
-import PurchasesReport from "@/pages/reports/PurchasesReport";
-import BudgetsReport from "@/pages/reports/BudgetsReport";
-import Auth from "@/pages/Auth";
-import CollaboratorPortal from "@/pages/CollaboratorPortal";
-import TvDashboard from "@/pages/TvDashboard";
-import AdvancedDashboard from "@/pages/AdvancedDashboard";
-import ResetPassword from "@/pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import AccessDenied from "@/pages/AccessDenied";
-import Profile from "@/pages/Profile";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { Loader2 } from "lucide-react";
+
+import {
+  Dashboard, AdvancedDashboard, Clients, Collaborators, CollaboratorDetail,
+  Services, ServiceDetail, ServiceCreate, ServiceEdit,
+  Budgets, BudgetDetail, BudgetCreate, BudgetEdit,
+  Articles, InvoiceCreate, CalendarView, Operators,
+  Purchases, PurchaseCreate, PurchaseDetail, DeliveryNoteCreate,
+  SalesOrders, Suppliers, Settings, Profile,
+  ReportsIndex, ServicesReport, OperatorsReport, FinancialReport,
+  ClientsReport, PurchasesReport, BudgetsReport,
+  Auth, CollaboratorPortal, TvDashboard, ResetPassword, NotFound,
+} from "@/routes";
 
 const queryClient = new QueryClient();
 
+function PageLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+    </div>
+  );
+}
+
 function AppRoutes() {
   const { user, loading, isCollaborator, roles } = useAuth();
-  const isAdmin = roles.includes("admin");
-  const isAdminOrGestor = isAdmin || roles.includes("gestor");
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -72,7 +53,6 @@ function AppRoutes() {
     );
   }
 
-  // Collaborator role → restricted portal
   if (isCollaborator) {
     return (
       <Routes>
@@ -82,7 +62,6 @@ function AppRoutes() {
     );
   }
 
-  // Pantalla/TV role → cinema dashboard only
   if (roles.includes("pantalla")) {
     return (
       <Routes>
@@ -92,60 +71,57 @@ function AppRoutes() {
     );
   }
 
-  // Full app for admin/gestor/operario
+  const P = ProtectedRoute;
+
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        {isAdminOrGestor ? <Route path="/dashboard-avanzado" element={<AdvancedDashboard />} /> : <Route path="/dashboard-avanzado" element={<AccessDenied />} />}
-        <Route path="/clientes" element={<Clients />} />
-        {isAdminOrGestor ? <Route path="/colaboradores" element={<Collaborators />} /> : <Route path="/colaboradores" element={<AccessDenied />} />}
-        {isAdminOrGestor ? <Route path="/colaboradores/:id" element={<CollaboratorDetail />} /> : <Route path="/colaboradores/:id" element={<AccessDenied />} />}
-        <Route path="/servicios" element={<Services />} />
-        <Route path="/servicios/nuevo" element={<ServiceCreate />} />
-        <Route path="/servicios/:id" element={<ServiceDetail />} />
-        <Route path="/servicios/:id/editar" element={<ServiceEdit />} />
-        <Route path="/presupuestos" element={<Budgets />} />
-        <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
-        <Route path="/presupuestos/:id" element={<BudgetDetail />} />
-        <Route path="/presupuestos/:id/editar" element={<BudgetEdit />} />
-        <Route path="/articulos" element={<Articles />} />
-        <Route path="/compras" element={<Purchases />} />
-        <Route path="/compras/nueva" element={<PurchaseCreate />} />
-        <Route path="/compras/albaran/nuevo" element={<DeliveryNoteCreate />} />
-        <Route path="/compras/factura/nueva" element={<InvoiceCreate />} />
-        <Route path="/compras/:id" element={<PurchaseDetail />} />
-        <Route path="/proveedores" element={<Suppliers />} />
-        <Route path="/ordenes-venta" element={<SalesOrders />} />
-        <Route path="/calendario" element={<CalendarView />} />
-        {isAdminOrGestor ? <Route path="/operarios" element={<Operators />} /> : <Route path="/operarios" element={<AccessDenied />} />}
-        {isAdminOrGestor ? (
-          <>
-            <Route path="/informes" element={<ReportsIndex />} />
-            <Route path="/informes/servicios" element={<ServicesReport />} />
-            <Route path="/informes/operarios" element={<OperatorsReport />} />
-            {isAdmin ? <Route path="/informes/financiero" element={<FinancialReport />} /> : <Route path="/informes/financiero" element={<AccessDenied />} />}
-            <Route path="/informes/clientes" element={<ClientsReport />} />
-            <Route path="/informes/compras" element={<PurchasesReport />} />
-            <Route path="/informes/presupuestos" element={<BudgetsReport />} />
-          </>
-        ) : (
-          <>
-            <Route path="/informes" element={<ReportsIndex />} />
-            <Route path="/informes/servicios" element={<ServicesReport />} />
-            <Route path="/informes/operarios" element={<AccessDenied />} />
-            <Route path="/informes/financiero" element={<AccessDenied />} />
-            <Route path="/informes/clientes" element={<ClientsReport />} />
-            <Route path="/informes/compras" element={<AccessDenied />} />
-            <Route path="/informes/presupuestos" element={<AccessDenied />} />
-          </>
-        )}
-        {isAdmin ? <Route path="/configuracion" element={<Settings />} /> : <Route path="/configuracion" element={<AccessDenied />} />}
-        <Route path="/perfil" element={<Profile />} />
-      </Route>
-      <Route path="/auth" element={<Navigate to="/" replace />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route element={<AppLayout />}>
+          {/* Open to all authenticated */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/clientes" element={<Clients />} />
+          <Route path="/servicios" element={<Services />} />
+          <Route path="/servicios/nuevo" element={<ServiceCreate />} />
+          <Route path="/servicios/:id" element={<ServiceDetail />} />
+          <Route path="/servicios/:id/editar" element={<ServiceEdit />} />
+          <Route path="/presupuestos" element={<Budgets />} />
+          <Route path="/presupuestos/nuevo" element={<BudgetCreate />} />
+          <Route path="/presupuestos/:id" element={<BudgetDetail />} />
+          <Route path="/presupuestos/:id/editar" element={<BudgetEdit />} />
+          <Route path="/articulos" element={<Articles />} />
+          <Route path="/compras" element={<Purchases />} />
+          <Route path="/compras/nueva" element={<PurchaseCreate />} />
+          <Route path="/compras/albaran/nuevo" element={<DeliveryNoteCreate />} />
+          <Route path="/compras/factura/nueva" element={<InvoiceCreate />} />
+          <Route path="/compras/:id" element={<PurchaseDetail />} />
+          <Route path="/proveedores" element={<Suppliers />} />
+          <Route path="/ordenes-venta" element={<SalesOrders />} />
+          <Route path="/calendario" element={<CalendarView />} />
+          <Route path="/perfil" element={<Profile />} />
+
+          {/* Admin + Gestor */}
+          <Route path="/dashboard-avanzado" element={<P roles={["admin", "gestor"]}><AdvancedDashboard /></P>} />
+          <Route path="/colaboradores" element={<P roles={["admin", "gestor"]}><Collaborators /></P>} />
+          <Route path="/colaboradores/:id" element={<P roles={["admin", "gestor"]}><CollaboratorDetail /></P>} />
+          <Route path="/operarios" element={<P roles={["admin", "gestor"]}><Operators /></P>} />
+
+          {/* Reports */}
+          <Route path="/informes" element={<ReportsIndex />} />
+          <Route path="/informes/servicios" element={<ServicesReport />} />
+          <Route path="/informes/clientes" element={<ClientsReport />} />
+          <Route path="/informes/operarios" element={<P roles={["admin", "gestor"]}><OperatorsReport /></P>} />
+          <Route path="/informes/financiero" element={<P roles={["admin"]}><FinancialReport /></P>} />
+          <Route path="/informes/compras" element={<P roles={["admin", "gestor"]}><PurchasesReport /></P>} />
+          <Route path="/informes/presupuestos" element={<P roles={["admin", "gestor"]}><BudgetsReport /></P>} />
+
+          {/* Admin only */}
+          <Route path="/configuracion" element={<P roles={["admin"]}><Settings /></P>} />
+        </Route>
+
+        <Route path="/auth" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
@@ -167,9 +143,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <BudgetProvider>
-              <ServiceProvider>
-                <AppRoutes />
-              </ServiceProvider>
+              <AppRoutes />
             </BudgetProvider>
           </AuthProvider>
         </BrowserRouter>
