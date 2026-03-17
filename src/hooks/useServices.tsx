@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service, ServiceStatus, ServiceOrigin, UrgencyLevel, Specialty, ServiceType, ClaimStatus, ServiceOperatorRef } from "@/types/urbango";
 import { logServiceAction } from "@/hooks/useServiceAuditLog";
+import { useEffect } from "react";
 
-/** Fetch all rows bypassing the 1000 row default limit */
+/* ── Fetch helpers (paginated) ─────────────────────────── */
+
 async function fetchAllServices(pageSize = 1000) {
   const all: any[] = [];
   let from = 0;
@@ -40,8 +42,10 @@ async function fetchAllServiceOperators(pageSize = 1000) {
   return all;
 }
 
-function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]>): Service {
-  const ops = operatorsMap.get(row.id) ?? [];
+/* ── Mapper ────────────────────────────────────────────── */
+
+function mapDbToService(row: any, opsMap: Map<string, ServiceOperatorRef[]>): Service {
+  const ops = opsMap.get(row.id) ?? [];
   return {
     id: row.id,
     clientId: row.client_id,
@@ -91,117 +95,111 @@ function mapDbToService(row: any, operatorsMap: Map<string, ServiceOperatorRef[]
   };
 }
 
-interface ServiceContextValue {
-  services: Service[];
-  loading: boolean;
-  getService: (id: string) => Service | undefined;
-  updateService: (id: string, updates: Record<string, any>) => Promise<{ error: any }>;
-  refetch: () => Promise<void>;
+/* ── Combined fetcher ─────────────────────────────────── */
+
+async function fetchServicesWithOperators(): Promise<Service[]> {
+  // Auto-start scheduled services
+  await supabase.rpc("auto_start_scheduled_services");
+
+  const [data, soData] = await Promise.all([
+    fetchAllServices(),
+    fetchAllServiceOperators(),
+  ]);
+
+  const opsMap = new Map<string, ServiceOperatorRef[]>();
+  for (const row of soData) {
+    const arr = opsMap.get(row.service_id) ?? [];
+    arr.push({ id: row.operator_id, name: row.operator_name });
+    opsMap.set(row.service_id, arr);
+  }
+
+  return data.map((r) => mapDbToService(r, opsMap));
 }
 
-const ServiceContext = createContext<ServiceContextValue | null>(null);
+/* ── Query key ────────────────────────────────────────── */
 
-export function ServiceProvider({ children }: { children: React.ReactNode }) {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+const SERVICES_KEY = ["services"] as const;
 
-  const fetchServices = useCallback(async () => {
-    try {
-      // Auto-start scheduled services that have reached their scheduled time
-      await supabase.rpc("auto_start_scheduled_services");
+/* ── Hook ──────────────────────────────────────────────── */
 
-      const [data, soData] = await Promise.all([
-        fetchAllServices(),
-        fetchAllServiceOperators(),
-      ]);
-      const error = null;
-      if (error) {
-        console.error("Error fetching services:", error);
-        setLoading(false);
-        return;
-      }
+export function useServices() {
+  const queryClient = useQueryClient();
 
-      // Build operators map
-      const opsMap = new Map<string, ServiceOperatorRef[]>();
-      if (soData) {
-        for (const row of soData) {
-          const arr = opsMap.get(row.service_id) ?? [];
-          arr.push({ id: row.operator_id, name: row.operator_name });
-          opsMap.set(row.service_id, arr);
-        }
-      }
+  const { data: services = [], isLoading: loading } = useQuery({
+    queryKey: SERVICES_KEY,
+    queryFn: fetchServicesWithOperators,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
 
-      if (data) setServices(data.map((r) => mapDbToService(r, opsMap)));
-    } catch (err) {
-      console.error("Unexpected error fetching services:", err);
-    }
-    setLoading(false);
-  }, []);
-
+  // Realtime subscription for auto-invalidation
   useEffect(() => {
-    fetchServices();
-
     const channel = supabase
       .channel("services-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "services" }, () => {
-        fetchServices();
+        queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "service_operators" }, () => {
-        fetchServices();
+        queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [fetchServices]);
+  }, [queryClient]);
 
-  const getService = useCallback(
-    (id: string) => services.find((s) => s.id === id),
-    [services]
-  );
+  const getService = (id: string) => services.find((s) => s.id === id);
 
-  const updateService = useCallback(async (id: string, updates: Record<string, any>) => {
-    const { error } = await supabase
-      .from("services")
-      .update(updates)
-      .eq("id", id);
-    if (!error) {
-      // Build audit description
-      const fieldLabels: Record<string, string> = {
-        status: "Estado", operator_id: "Operario", operator_name: "Operario",
-        scheduled_at: "Fecha programada", scheduled_end_at: "Fin programado",
-        contacted_at: "Fecha contacto", description: "Descripción",
-        internal_notes: "Notas internas", collaborator_notes: "Notas colaborador",
-        claim_status: "Estado reclamación", urgency: "Urgencia",
-        specialty: "Especialidad", service_type: "Tipo servicio",
-        budget_status: "Estado presupuesto", budget_total: "Importe presupuesto",
-        nps: "NPS", real_hours: "Horas reales", diagnosis_complete: "Diagnóstico completo",
-        address: "Dirección", contact_name: "Contacto", contact_phone: "Teléfono contacto",
-        origin: "Origen", service_category: "Categoría",
-        collaborator_id: "Colaborador", client_name: "Cliente",
-        skip_sales_order_reason: "Motivo sin orden de venta",
-        assistance_service_number: "Nº Servicio Asistencia",
-      };
-      const fields = Object.keys(updates)
-        .filter(k => k !== "updated_at")
-        .map(k => fieldLabels[k] || k);
-      if (fields.length > 0) {
-        const action = `Modificado: ${fields.join(", ")}`;
-        logServiceAction(id, action);
-      }
-      await fetchServices();
-    }
-    return { error };
-  }, [fetchServices]);
+  const refetch = () => queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
 
-  return (
-    <ServiceContext.Provider value={{ services, loading, getService, updateService, refetch: fetchServices }}>
-      {children}
-    </ServiceContext.Provider>
-  );
+  return { services, loading, getService, updateService, refetch };
 }
 
-export function useServices() {
-  const ctx = useContext(ServiceContext);
-  if (!ctx) throw new Error("useServices must be used within ServiceProvider");
-  return ctx;
+/* ── Mutation helper (used directly, not from context) ── */
+
+export async function updateService(id: string, updates: Record<string, any>): Promise<{ error: any }> {
+  const { error } = await supabase
+    .from("services")
+    .update(updates)
+    .eq("id", id);
+
+  if (!error) {
+    const fieldLabels: Record<string, string> = {
+      status: "Estado", operator_id: "Operario", operator_name: "Operario",
+      scheduled_at: "Fecha programada", scheduled_end_at: "Fin programado",
+      contacted_at: "Fecha contacto", description: "Descripción",
+      internal_notes: "Notas internas", collaborator_notes: "Notas colaborador",
+      claim_status: "Estado reclamación", urgency: "Urgencia",
+      specialty: "Especialidad", service_type: "Tipo servicio",
+      budget_status: "Estado presupuesto", budget_total: "Importe presupuesto",
+      nps: "NPS", real_hours: "Horas reales", diagnosis_complete: "Diagnóstico completo",
+      address: "Dirección", contact_name: "Contacto", contact_phone: "Teléfono contacto",
+      origin: "Origen", service_category: "Categoría",
+      collaborator_id: "Colaborador", client_name: "Cliente",
+      skip_sales_order_reason: "Motivo sin orden de venta",
+      assistance_service_number: "Nº Servicio Asistencia",
+    };
+    const fields = Object.keys(updates)
+      .filter(k => k !== "updated_at")
+      .map(k => fieldLabels[k] || k);
+    if (fields.length > 0) {
+      logServiceAction(id, `Modificado: ${fields.join(", ")}`);
+    }
+  }
+
+  return { error };
+}
+
+/* ── Mutation hook for components that need invalidation ── */
+
+export function useUpdateService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const { error } = await updateService(id, updates);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
+    },
+  });
 }
