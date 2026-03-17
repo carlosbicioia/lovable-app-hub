@@ -66,12 +66,14 @@ serve(async (req) => {
     });
 
     const data = await response.json();
-    if (!response.ok) {
+    console.log("Slack API response:", JSON.stringify(data));
+    
+    if (!response.ok || data.ok === false) {
       throw new Error(`Slack API failed [${response.status}]: ${JSON.stringify(data)}`);
     }
 
     return new Response(
-      JSON.stringify({ success: true, ts: data.ts }),
+      JSON.stringify({ success: true, ts: data.ts, channel: data.channel }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
