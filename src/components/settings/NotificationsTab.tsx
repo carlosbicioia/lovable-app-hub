@@ -91,6 +91,36 @@ export default function NotificationsTab() {
             )}
           </div>
         </CardHeader>
+        {slackConnected && (
+          <CardContent className="pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-destructive hover:text-destructive"
+              disabled={disconnecting}
+              onClick={async () => {
+                setDisconnecting(true);
+                try {
+                  // Disable all slack notifications
+                  for (const s of settings ?? []) {
+                    if (s.slack_enabled) {
+                      await updateSetting.mutateAsync({ id: s.id, slack_enabled: false });
+                    }
+                  }
+                  setSlackConnected(false);
+                  toast.success("Slack desconectado. Las notificaciones por Slack han sido deshabilitadas.");
+                } catch {
+                  toast.error("Error al desconectar Slack");
+                } finally {
+                  setDisconnecting(false);
+                }
+              }}
+            >
+              <Unplug className="w-4 h-4" />
+              {disconnecting ? "Desconectando..." : "Deshabilitar Slack"}
+            </Button>
+          </CardContent>
+        )}
         {!slackConnected && slackConnected !== null && (
           <CardContent>
             <p className="text-sm text-muted-foreground">
