@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wrench, Clock, FileText, Bell, Mail, Hash, ShoppingCart,
-  Timer, AlertTriangle, UserX, Smartphone, MessageSquare, CheckCircle2,
+  Timer, AlertTriangle, UserX, Smartphone, MessageSquare, CheckCircle2, Unplug,
 } from "lucide-react";
 import { useNotificationSettings, useUpdateNotificationSetting } from "@/hooks/useNotificationSettings";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const iconMap: Record<string, typeof Wrench> = {
