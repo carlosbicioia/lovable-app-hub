@@ -85,7 +85,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        channel,
+        channel: channelId,
         text,
         username: username || "UrbanGo",
         icon_emoji: icon_emoji || ":wrench:",
