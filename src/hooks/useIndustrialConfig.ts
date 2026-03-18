@@ -9,7 +9,6 @@ export interface SpecialtyRow {
   color: string;
   active: boolean;
   sort_order: number;
-  hourly_rate: number;
 }
 
 export interface CertificationRow {

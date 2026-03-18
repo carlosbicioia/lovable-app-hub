@@ -7,6 +7,7 @@ import { Loader2, Plus, Trash2, CheckCircle2, Clock, Package } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useCreateSalesOrder } from "@/hooks/useSalesOrders";
 import { useServices } from "@/hooks/useServices";
+import { articlesData, getArticleSalePrice } from "@/data/articlesData";
 import type { Service } from "@/types/urbango";
 import { toast } from "sonner";
 
@@ -50,15 +51,6 @@ export default function DirectRepairSalesOrderDialog({ open, onOpenChange, servi
         .select("operator_id, hours, notes")
         .eq("service_id", service.id);
 
-      // Get specialty hourly rate
-      const { data: specialties } = await supabase
-        .from("specialties")
-        .select("name, hourly_rate")
-        .eq("name", service.specialty)
-        .limit(1);
-
-      const hourlyRate = (specialties?.[0] as any)?.hourly_rate ?? 0;
-
       if (timeRecords && timeRecords.length > 0) {
         // Group hours by operator
         const opHours: Record<string, { total: number; name: string }> = {};
@@ -69,25 +61,42 @@ export default function DirectRepairSalesOrderDialog({ open, onOpenChange, servi
           opHours[tr.operator_id].total += Number(tr.hours);
         }
 
-        // Get operator names
+        // Get operator names and article assignments
         const opIds = Object.keys(opHours);
-        if (opIds.length > 0) {
-          const { data: ops } = await supabase
-            .from("operators")
-            .select("id, name")
-            .in("id", opIds);
-          ops?.forEach((op) => {
-            if (opHours[op.id]) opHours[op.id].name = op.name;
-          });
-        }
+        const { data: ops } = await supabase
+          .from("operators")
+          .select("id, name, article_standard_hour_id, article_app_hour_id, article_urgency_hour_id")
+          .in("id", opIds);
 
-        for (const [, info] of Object.entries(opHours)) {
+        // Determine which article to use based on service urgency and origin
+        const getArticleForOperator = (op: any) => {
+          let articleId: string | null = null;
+          if (service.urgency === "Inmediato" || service.urgency === "24h") {
+            articleId = op.article_urgency_hour_id;
+          } else if (service.origin === "App") {
+            articleId = op.article_app_hour_id;
+          } else {
+            articleId = op.article_standard_hour_id;
+          }
+          // Fallback to standard if not assigned
+          articleId = articleId || op.article_standard_hour_id;
+          return articleId ? articlesData.find((a) => a.id === articleId) : null;
+        };
+
+        for (const [opId, info] of Object.entries(opHours)) {
+          const op = ops?.find((o) => o.id === opId);
+          if (op) info.name = op.name;
+
+          const article = op ? getArticleForOperator(op) : null;
+          const costPrice = article ? article.costPrice : 0;
+          const articleLabel = article ? article.title : "Sin tarifa asignada";
+
           draftLines.push({
             concept: `Mano de obra - ${info.name || "Operario"}`,
-            description: `${service.specialty} · ${info.total.toFixed(2)}h`,
+            description: `${articleLabel} · ${info.total.toFixed(2)}h`,
             units: info.total,
-            costPrice: hourlyRate,
-            margin: 0,
+            costPrice,
+            margin: article ? ((getArticleSalePrice(article) / article.costPrice - 1) * 100) : 0,
             taxRate: 21,
             type: "labor",
           });

@@ -892,6 +892,9 @@ export type Database = {
           active_services: number
           address: string
           address_extra: string
+          article_app_hour_id: string | null
+          article_standard_hour_id: string | null
+          article_urgency_hour_id: string | null
           available: boolean
           avg_response_time: number
           branch_id: string | null
@@ -927,6 +930,9 @@ export type Database = {
           active_services?: number
           address?: string
           address_extra?: string
+          article_app_hour_id?: string | null
+          article_standard_hour_id?: string | null
+          article_urgency_hour_id?: string | null
           available?: boolean
           avg_response_time?: number
           branch_id?: string | null
@@ -962,6 +968,9 @@ export type Database = {
           active_services?: number
           address?: string
           address_extra?: string
+          article_app_hour_id?: string | null
+          article_standard_hour_id?: string | null
+          article_urgency_hour_id?: string | null
           available?: boolean
           avg_response_time?: number
           branch_id?: string | null
@@ -1768,7 +1777,6 @@ export type Database = {
           active: boolean
           color: string
           created_at: string
-          hourly_rate: number
           icon: string
           id: string
           name: string
@@ -1778,7 +1786,6 @@ export type Database = {
           active?: boolean
           color?: string
           created_at?: string
-          hourly_rate?: number
           icon?: string
           id?: string
           name: string
@@ -1788,7 +1795,6 @@ export type Database = {
           active?: boolean
           color?: string
           created_at?: string
-          hourly_rate?: number
           icon?: string
           id?: string
           name?: string

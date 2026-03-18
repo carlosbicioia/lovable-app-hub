@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { useBranches } from "@/hooks/useBranches";
+import { articlesData } from "@/data/articlesData";
 import type { DbOperator } from "@/hooks/useOperators";
 import type { OperatorStatus } from "@/types/urbango";
 
@@ -58,6 +59,9 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
     cluster_ids: operator.clusterIds.join(", "),
     certifications: operator.certifications,
     branch_id: operator.branchId ?? "",
+    article_standard_hour_id: operator.articleStandardHourId ?? "",
+    article_app_hour_id: operator.articleAppHourId ?? "",
+    article_urgency_hour_id: operator.articleUrgencyHourId ?? "",
   });
 
   const set = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
@@ -136,6 +140,9 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           certifications: form.certifications,
           photo: photoUrl,
           branch_id: form.branch_id || null,
+          article_standard_hour_id: form.article_standard_hour_id || null,
+          article_app_hour_id: form.article_app_hour_id || null,
+          article_urgency_hour_id: form.article_urgency_hour_id || null,
         })
         .eq("id", operator.id);
 
@@ -371,6 +378,41 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Artículos de tarifa horaria */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Label className="text-xs font-semibold">Tarifas horarias (artículos)</Label>
+              {([
+                { key: "article_standard_hour_id", label: "Precio hora estándar" },
+                { key: "article_app_hour_id", label: "Precio hora APP" },
+                { key: "article_urgency_hour_id", label: "Precio hora urgencia" },
+              ] as const).map(({ key, label }) => {
+                const selectedArticle = articlesData.find((a) => a.id === (form as any)[key]);
+                return (
+                  <div key={key} className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                    <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Seleccionar artículo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin asignar</SelectItem>
+                        {articlesData
+                          .filter((a) => a.category === "Mano_de_Obra")
+                          .map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.title} — €{a.costPrice.toFixed(2)}/h
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedArticle && (
+                      <p className="text-[10px] text-muted-foreground">Coste: €{selectedArticle.costPrice.toFixed(2)}/h</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

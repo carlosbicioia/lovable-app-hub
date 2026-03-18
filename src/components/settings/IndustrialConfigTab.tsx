@@ -139,7 +139,6 @@ export default function IndustrialConfigTab() {
                       <p className="text-sm font-medium text-card-foreground">{sp.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {sp.active ? "Activa" : "Inactiva"}
-                        {sp.hourly_rate > 0 && <span className="ml-2">· €{sp.hourly_rate}/h</span>}
                       </p>
                     </div>
                   </div>
@@ -290,24 +289,13 @@ export default function IndustrialConfigTab() {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Tarifa €/hora</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={editSpec.hourly_rate}
-                  onChange={(e) => setEditSpec({ ...editSpec, hourly_rate: parseFloat(e.target.value) || 0 })}
-                  placeholder="0.00"
-                />
-              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditSpec(null)}>Cancelar</Button>
             <Button disabled={updateSpec.isPending} onClick={() => {
               if (!editSpec) return;
-              updateSpec.mutate({ id: editSpec.id, name: editSpec.name, icon: editSpec.icon, color: editSpec.color, hourly_rate: editSpec.hourly_rate }, { onSuccess: () => setEditSpec(null) });
+              updateSpec.mutate({ id: editSpec.id, name: editSpec.name, icon: editSpec.icon, color: editSpec.color }, { onSuccess: () => setEditSpec(null) });
             }}>
               {updateSpec.isPending && <Loader2 className="w-4 h-4 mr-1 animate-spin" />} Guardar
             </Button>
