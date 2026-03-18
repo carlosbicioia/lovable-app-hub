@@ -43,6 +43,7 @@ import {
   Trash2,
   Palmtree,
   Hammer,
+  Pencil,
 } from "lucide-react";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
