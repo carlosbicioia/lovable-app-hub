@@ -33,6 +33,7 @@ const navItems = [
   { to: "/proveedores", label: "Proveedores", icon: Truck },
   { to: "/compras", label: "Compras", icon: ShoppingCart },
   { to: "/operarios", label: "Operarios", icon: HardHat },
+  { to: "/vehiculos", label: "Vehículos", icon: Car },
   { to: "/colaboradores", label: "Colaboradores", icon: Handshake },
   { to: "/informes", label: "Informes", icon: BarChart3 },
 ];

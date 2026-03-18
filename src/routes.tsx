@@ -24,6 +24,7 @@ export const PurchaseDetail = lazy(() => import("@/pages/PurchaseDetail"));
 export const DeliveryNoteCreate = lazy(() => import("@/pages/DeliveryNoteCreate"));
 export const SalesOrders = lazy(() => import("@/pages/SalesOrders"));
 export const Suppliers = lazy(() => import("@/pages/Suppliers"));
+export const Vehicles = lazy(() => import("@/pages/Vehicles"));
 export const Settings = lazy(() => import("@/pages/Settings"));
 export const Profile = lazy(() => import("@/pages/Profile"));
 

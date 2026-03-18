@@ -104,6 +104,7 @@ function AppRoutes() {
           <Route path="/colaboradores" element={<P roles={["admin", "gestor"]}><Collaborators /></P>} />
           <Route path="/colaboradores/:id" element={<P roles={["admin", "gestor"]}><CollaboratorDetail /></P>} />
           <Route path="/operarios" element={<P roles={["admin", "gestor"]}><Operators /></P>} />
+          <Route path="/vehiculos" element={<P roles={["admin", "gestor"]}><Vehicles /></P>} />
 
           {/* Reports */}
           <Route path="/informes" element={<ReportsIndex />} />
