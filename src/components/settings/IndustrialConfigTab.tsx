@@ -307,7 +307,7 @@ export default function IndustrialConfigTab() {
             <Button variant="outline" onClick={() => setEditSpec(null)}>Cancelar</Button>
             <Button disabled={updateSpec.isPending} onClick={() => {
               if (!editSpec) return;
-              updateSpec.mutate({ id: editSpec.id, name: editSpec.name, icon: editSpec.icon, color: editSpec.color }, { onSuccess: () => setEditSpec(null) });
+              updateSpec.mutate({ id: editSpec.id, name: editSpec.name, icon: editSpec.icon, color: editSpec.color, hourly_rate: editSpec.hourly_rate }, { onSuccess: () => setEditSpec(null) });
             }}>
               {updateSpec.isPending && <Loader2 className="w-4 h-4 mr-1 animate-spin" />} Guardar
             </Button>
