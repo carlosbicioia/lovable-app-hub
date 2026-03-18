@@ -102,7 +102,9 @@ export function useDeleteArticle() {
   });
 }
 
-export function getArticleSalePrice(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp">): number {
+export function getArticleSalePrice(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp"> & { category?: string }): number {
+  // Labor articles: costPrice IS the sale price (no margin applied)
+  if (a.category === "Mano_de_Obra") return a.costPrice;
   return a.hasKnownPvp && a.pvp !== null ? a.pvp : a.costPrice * 1.30;
 }
 
