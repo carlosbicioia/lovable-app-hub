@@ -395,6 +395,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <TableRow className="bg-muted/30">
                 <TableCell className="text-xs font-semibold">Total</TableCell>
                 <TableCell />
+                <TableCell />
+                <TableCell />
                 <TableCell className="text-xs text-right font-bold font-mono">{hoursToHHMM(totalHours)}</TableCell>
                 <TableCell />
                 <TableCell />
