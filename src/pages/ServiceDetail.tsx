@@ -43,6 +43,34 @@ export default function ServiceDetail() {
   const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
   const { data: salesOrders = [] } = useSalesOrders(id);
 
+  // Real-time hours from time_records
+  const { data: totalHours = 0 } = useQuery({
+    queryKey: ["service_total_hours", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("time_records")
+        .select("hours")
+        .eq("service_id", id!);
+      if (error) throw error;
+      return (data ?? []).reduce((sum, r) => sum + Number(r.hours), 0);
+    },
+  });
+
+  // Real-time materials count
+  const { data: materialsCount = 0 } = useQuery({
+    queryKey: ["service_materials_count", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_materials_used")
+        .select("id")
+        .eq("service_id", id!);
+      if (error) throw error;
+      return (data ?? []).length;
+    },
+  });
+
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
   const linkedOrders = allPurchaseOrders;
