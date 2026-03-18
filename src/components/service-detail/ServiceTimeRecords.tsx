@@ -47,7 +47,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
   const [showForm, setShowForm] = useState(false);
   const [operatorId, setOperatorId] = useState("");
   const [recordDate, setRecordDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [hoursInput, setHoursInput] = useState("01:00");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
 
