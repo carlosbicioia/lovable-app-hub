@@ -459,83 +459,89 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
 
         {/* ─── INFO TAB ─── */}
         <TabsContent value="info">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Personal data */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Datos personales</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <InfoRow icon={<Mail className="w-4 h-4" />} label="Email" value={operator.email} />
-                <InfoRow icon={<Phone className="w-4 h-4" />} label="Teléfono" value={operator.phone} />
-                <InfoRow icon={<MapPin className="w-4 h-4" />} label="Dirección" value={`${operator.address}, ${operator.city}`} />
-                <InfoRow icon={<ShieldCheck className="w-4 h-4" />} label="DNI" value={operator.dni} />
-                <InfoRow icon={<CalendarDays className="w-4 h-4" />} label="Alta" value={format(new Date(operator.hireDate), "d MMM yyyy", { locale: es })} />
-                {operator.vehiclePlate && (
-                  <InfoRow icon={<Car className="w-4 h-4" />} label="Vehículo" value={operator.vehiclePlate} />
-                )}
-              </CardContent>
-            </Card>
+          {isEditing ? (
+            <OperatorEditForm operator={operator as any} onSaved={() => setIsEditing(false)} />
+          ) : (
+            <>
+              <div className="flex justify-end mb-4">
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-2">
+                  <Pencil className="w-4 h-4" /> Editar
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Personal data */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Datos personales</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <InfoRow icon={<Mail className="w-4 h-4" />} label="Email" value={operator.email} />
+                    <InfoRow icon={<Phone className="w-4 h-4" />} label="Teléfono" value={operator.phone} />
+                    <InfoRow icon={<MapPin className="w-4 h-4" />} label="Dirección" value={`${operator.address}, ${operator.city}`} />
+                    <InfoRow icon={<ShieldCheck className="w-4 h-4" />} label="DNI" value={operator.dni} />
+                    <InfoRow icon={<CalendarDays className="w-4 h-4" />} label="Alta" value={format(new Date(operator.hireDate), "d MMM yyyy", { locale: es })} />
+                    {operator.vehiclePlate && (
+                      <InfoRow icon={<Car className="w-4 h-4" />} label="Vehículo" value={operator.vehiclePlate} />
+                    )}
+                  </CardContent>
+                </Card>
 
-            {/* Professional */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Datos profesionales</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Clústeres asignados</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {operator.clusterIds.map((c) => (
-                      <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Certificaciones</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {operator.certifications.map((cert) => (
-                      <Badge key={cert} variant="outline" className="text-xs">
-                        <ShieldCheck className="w-3 h-3 mr-1" /> {cert}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                {/* Tarifas horarias */}
-                {(('articleStandardHourId' in operator && operator.articleStandardHourId) || ('articleAppHourId' in operator && operator.articleAppHourId) || ('articleUrgencyHourId' in operator && operator.articleUrgencyHourId)) && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
-                    <div className="space-y-1">
-                      {([
-                        { id: ('articleStandardHourId' in operator ? operator.articleStandardHourId : null) as string | null, label: "Estándar" },
-                        { id: ('articleAppHourId' in operator ? operator.articleAppHourId : null) as string | null, label: "APP" },
-                        { id: ('articleUrgencyHourId' in operator ? operator.articleUrgencyHourId : null) as string | null, label: "Urgencia" },
-                      ] as const).map(({ id, label }) => {
-                        if (!id) return null;
-                        const art = articlesData.find((a) => a.id === id);
-                        return art ? (
-                          <div key={label} className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">{label}</span>
-                            <span className="font-medium">{art.title} — €{art.costPrice.toFixed(2)}/h</span>
-                          </div>
-                        ) : null;
-                      })}
+                {/* Professional */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Datos profesionales</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Clústeres asignados</p>
+                      <div className="flex gap-1 flex-wrap">
+                        {operator.clusterIds.map((c) => (
+                          <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Acceso app</p>
-                  <p className="text-sm text-foreground">{operator.email}</p>
-                  <p className="text-xs text-muted-foreground">Contraseña gestionada vía sistema de autenticación</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* ─── EDIT TAB ─── */}
-        <TabsContent value="edit">
-          <OperatorEditForm operator={operator as any} onSaved={() => setActiveTab("info")} />
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Certificaciones</p>
+                      <div className="flex gap-1 flex-wrap">
+                        {operator.certifications.map((cert) => (
+                          <Badge key={cert} variant="outline" className="text-xs">
+                            <ShieldCheck className="w-3 h-3 mr-1" /> {cert}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Tarifas horarias */}
+                    {(('articleStandardHourId' in operator && operator.articleStandardHourId) || ('articleAppHourId' in operator && operator.articleAppHourId) || ('articleUrgencyHourId' in operator && operator.articleUrgencyHourId)) && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
+                        <div className="space-y-1">
+                          {([
+                            { id: ('articleStandardHourId' in operator ? operator.articleStandardHourId : null) as string | null, label: "Estándar" },
+                            { id: ('articleAppHourId' in operator ? operator.articleAppHourId : null) as string | null, label: "APP" },
+                            { id: ('articleUrgencyHourId' in operator ? operator.articleUrgencyHourId : null) as string | null, label: "Urgencia" },
+                          ] as const).map(({ id, label }) => {
+                            if (!id) return null;
+                            const art = articlesData.find((a) => a.id === id);
+                            return art ? (
+                              <div key={label} className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">{label}</span>
+                                <span className="font-medium">{art.title} — €{art.costPrice.toFixed(2)}/h</span>
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Acceso app</p>
+                      <p className="text-sm text-foreground">{operator.email}</p>
+                      <p className="text-xs text-muted-foreground">Contraseña gestionada vía sistema de autenticación</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* ─── PERFORMANCE TAB ─── */}
