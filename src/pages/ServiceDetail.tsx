@@ -28,7 +28,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { ClaimStatus } from "@/types/urbango";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { logServiceAction } from "@/hooks/useServiceAuditLog";
 
@@ -41,6 +42,34 @@ export default function ServiceDetail() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeleteBudgetDialog, setShowDeleteBudgetDialog] = useState(false);
   const { data: salesOrders = [] } = useSalesOrders(id);
+
+  // Real-time hours from time_records
+  const { data: totalHours = 0 } = useQuery({
+    queryKey: ["service_total_hours", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("time_records")
+        .select("hours")
+        .eq("service_id", id!);
+      if (error) throw error;
+      return (data ?? []).reduce((sum, r) => sum + Number(r.hours), 0);
+    },
+  });
+
+  // Real-time materials count
+  const { data: materialsCount = 0 } = useQuery({
+    queryKey: ["service_materials_count", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_materials_used")
+        .select("id")
+        .eq("service_id", id!);
+      if (error) throw error;
+      return (data ?? []).length;
+    },
+  });
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
@@ -331,11 +360,35 @@ export default function ServiceDetail() {
           {/* Tab 5: VENTAS */}
           <TabsContent value="sales" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* KPIs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Presupuestos</p>
-                  <p className="text-2xl font-bold text-foreground">{linkedBudget ? 1 : 0}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {linkedBudget && linkedBudget.lines.length > 0
+                      ? `€${linkedBudget.lines.reduce((sum, l) => {
+                          const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                          const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                          return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                        }, 0).toFixed(2)}`
+                      : "—"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {totalHours > 0 ? `${totalHours.toFixed(1)}h` : "—"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Materiales</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {materialsCount > 0 ? materialsCount : "—"}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -346,18 +399,17 @@ export default function ServiceDetail() {
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {service.budgetTotal && service.realHours
-                      ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                    {linkedBudget && linkedBudget.lines.length > 0 && totalHours > 0
+                      ? (() => {
+                          const total = linkedBudget.lines.reduce((sum, l) => {
+                            const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                            const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                            return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                          }, 0);
+                          return `€${(total / totalHours).toFixed(2)}`;
+                        })()
                       : "—"}
                   </p>
                 </CardContent>
