@@ -59,6 +59,9 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
     cluster_ids: operator.clusterIds.join(", "),
     certifications: operator.certifications,
     branch_id: operator.branchId ?? "",
+    article_standard_hour_id: operator.articleStandardHourId ?? "",
+    article_app_hour_id: operator.articleAppHourId ?? "",
+    article_urgency_hour_id: operator.articleUrgencyHourId ?? "",
   });
 
   const set = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
