@@ -360,6 +360,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                       {format(new Date(r.record_date), "dd MMM yyyy", { locale: es })}
                     </TableCell>
                     <TableCell className="text-xs font-medium">{getOperatorName(r.operator_id)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{r.start_time?.slice(0, 5) || "—"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{r.end_time?.slice(0, 5) || "—"}</TableCell>
                     <TableCell className="text-xs text-right font-semibold font-mono">{hoursToHHMM(Number(r.hours))}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{r.location || "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{r.notes || "—"}</TableCell>
