@@ -2108,6 +2108,92 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicles: {
+        Row: {
+          active: boolean
+          branch_id: string | null
+          brand: string
+          color: string
+          created_at: string
+          fuel_type: string
+          id: string
+          insurance_company: string
+          insurance_expiry: string | null
+          insurance_policy: string
+          itv_expiry: string | null
+          last_maintenance_date: string | null
+          mileage: number
+          model: string
+          next_maintenance_date: string | null
+          notes: string
+          operator_id: string | null
+          photo: string
+          plate: string
+          status: string
+          updated_at: string
+          vin: string
+          year: number | null
+        }
+        Insert: {
+          active?: boolean
+          branch_id?: string | null
+          brand?: string
+          color?: string
+          created_at?: string
+          fuel_type?: string
+          id?: string
+          insurance_company?: string
+          insurance_expiry?: string | null
+          insurance_policy?: string
+          itv_expiry?: string | null
+          last_maintenance_date?: string | null
+          mileage?: number
+          model?: string
+          next_maintenance_date?: string | null
+          notes?: string
+          operator_id?: string | null
+          photo?: string
+          plate?: string
+          status?: string
+          updated_at?: string
+          vin?: string
+          year?: number | null
+        }
+        Update: {
+          active?: boolean
+          branch_id?: string | null
+          brand?: string
+          color?: string
+          created_at?: string
+          fuel_type?: string
+          id?: string
+          insurance_company?: string
+          insurance_expiry?: string | null
+          insurance_policy?: string
+          itv_expiry?: string | null
+          last_maintenance_date?: string | null
+          mileage?: number
+          model?: string
+          next_maintenance_date?: string | null
+          notes?: string
+          operator_id?: string | null
+          photo?: string
+          plate?: string
+          status?: string
+          updated_at?: string
+          vin?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
