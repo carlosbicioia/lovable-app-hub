@@ -415,10 +415,6 @@ export default function ServiceDetail() {
                 </CardContent>
               </Card>
             </div>
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
 
             <Tabs defaultValue="presupuestos">
               <TabsList>
