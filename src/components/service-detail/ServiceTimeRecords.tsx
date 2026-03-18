@@ -111,15 +111,18 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
     queryClient.invalidateQueries({ queryKey: ["service_total_hours", serviceId] });
   };
 
+  const calculatedHours = calculateBillableHours(startTime, endTime);
+
   const createMutation = useMutation({
     mutationFn: async () => {
-      const h = hhmmToHours(hoursInput);
-      if (!h || h <= 0) throw new Error("Formato de horas inválido (use HH:MM)");
+      if (!calculatedHours || calculatedHours <= 0) throw new Error("Hora de inicio/fin inválidas");
       const { error } = await supabase.from("time_records" as any).insert({
         operator_id: operatorId,
         service_id: serviceId,
         record_date: recordDate,
-        hours: h,
+        hours: calculatedHours,
+        start_time: startTime,
+        end_time: endTime,
         location: location || "",
         notes: notes || null,
         source: "backoffice",
@@ -131,7 +134,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       toast.success("Registro de horas añadido");
       setShowForm(false);
       setOperatorId("");
-      setHoursInput("01:00");
+      setStartTime("09:00");
+      setEndTime("10:00");
       setLocation("");
       setNotes("");
     },
