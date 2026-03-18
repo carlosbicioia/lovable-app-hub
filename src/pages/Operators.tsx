@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
+import { articlesData } from "@/data/articlesData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
@@ -498,6 +499,28 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                     ))}
                   </div>
                 </div>
+                {/* Tarifas horarias */}
+                {(('articleStandardHourId' in operator && operator.articleStandardHourId) || ('articleAppHourId' in operator && operator.articleAppHourId) || ('articleUrgencyHourId' in operator && operator.articleUrgencyHourId)) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
+                    <div className="space-y-1">
+                      {([
+                        { id: ('articleStandardHourId' in operator ? operator.articleStandardHourId : null) as string | null, label: "Estándar" },
+                        { id: ('articleAppHourId' in operator ? operator.articleAppHourId : null) as string | null, label: "APP" },
+                        { id: ('articleUrgencyHourId' in operator ? operator.articleUrgencyHourId : null) as string | null, label: "Urgencia" },
+                      ] as const).map(({ id, label }) => {
+                        if (!id) return null;
+                        const art = articlesData.find((a) => a.id === id);
+                        return art ? (
+                          <div key={label} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{label}</span>
+                            <span className="font-medium">{art.title} — €{art.costPrice.toFixed(2)}/h</span>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Acceso app</p>
                   <p className="text-sm text-foreground">{operator.email}</p>
