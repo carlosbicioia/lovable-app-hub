@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { useBranches } from "@/hooks/useBranches";
-import { articlesData } from "@/data/articlesData";
+import { useArticles } from "@/hooks/useArticles";
 import type { DbOperator } from "@/hooks/useOperators";
 import type { OperatorStatus } from "@/types/urbango";
 
@@ -25,6 +25,7 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: dbSpecialties } = useSpecialties();
+  const { data: articlesData = [] } = useArticles();
   const { data: dbCertifications } = useCertifications();
   const { data: branches = [] } = useBranches();
   const activeBranches = branches.filter((b) => b.active);

@@ -7,7 +7,7 @@ import { Loader2, Plus, Trash2, CheckCircle2, Clock, Package } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useCreateSalesOrder } from "@/hooks/useSalesOrders";
 import { useServices } from "@/hooks/useServices";
-import { articlesData, getArticleSalePrice } from "@/data/articlesData";
+import { useArticles, getArticleSalePrice } from "@/hooks/useArticles";
 import type { Service } from "@/types/urbango";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ export default function DirectRepairSalesOrderDialog({ open, onOpenChange, servi
   const [creating, setCreating] = useState(false);
   const createSalesOrder = useCreateSalesOrder();
   const { updateService } = useServices();
+  const { data: articlesData = [] } = useArticles();
 
   useEffect(() => {
     if (!open) return;

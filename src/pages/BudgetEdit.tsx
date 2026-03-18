@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { articlesData, getArticleSalePrice } from "@/data/articlesData";
+import { useArticles, getArticleSalePrice } from "@/hooks/useArticles";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";
@@ -25,6 +25,7 @@ export default function BudgetEdit() {
   const { getBudget, updateBudget } = useBudgets();
   const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
+  const { data: articlesData = [] } = useArticles();
 
   const budget = getBudget(id ?? "");
 

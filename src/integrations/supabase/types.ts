@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      articles: {
+        Row: {
+          active: boolean
+          category: string
+          cost_price: number
+          created_at: string
+          description: string
+          has_known_pvp: boolean
+          id: string
+          pvp: number | null
+          sort_order: number
+          specialty: string
+          title: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          cost_price?: number
+          created_at?: string
+          description?: string
+          has_known_pvp?: boolean
+          id: string
+          pvp?: number | null
+          sort_order?: number
+          specialty?: string
+          title?: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          cost_price?: number
+          created_at?: string
+          description?: string
+          has_known_pvp?: boolean
+          id?: string
+          pvp?: number | null
+          sort_order?: number
+          specialty?: string
+          title?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       branches: {
         Row: {
           active: boolean

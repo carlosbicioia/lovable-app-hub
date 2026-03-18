@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Pencil, Trash2, X, Save } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, Save, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,9 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { articlesData, getArticleSalePrice as getSalePrice, getArticleMargin as getMargin } from "@/data/articlesData";
+import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle, getArticleSalePrice as getSalePrice, getArticleMargin as getMargin } from "@/hooks/useArticles";
+import { useSpecialties } from "@/hooks/useIndustrialConfig";
 import type { Article, ArticleCategory, Specialty } from "@/types/urbango";
-const initialArticles: Article[] = articlesData;
 
 const categoryLabels: Record<ArticleCategory, string> = { Material: "Material", Mano_de_Obra: "Mano de obra" };
 const units = ["ud", "m", "m²", "h", "kg"];
@@ -22,13 +22,20 @@ const emptyArticle: Omit<Article, "id"> = {
 };
 
 export default function Articles() {
-  const [articles, setArticles] = useState<Article[]>(initialArticles);
+  const { data: articles = [], isLoading } = useArticles();
+  const { data: dbSpecialties } = useSpecialties();
+  const createArticle = useCreateArticle();
+  const updateArticle = useUpdateArticle();
+  const deleteArticle = useDeleteArticle();
+  const activeSpecs = (dbSpecialties ?? []).filter((s) => s.active);
+
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Article | null>(null);
   const [form, setForm] = useState<Omit<Article, "id">>(emptyArticle);
+  const [saving, setSaving] = useState(false);
 
   const filtered = articles.filter((a) => {
     const matchSearch = a.title.toLowerCase().includes(search.toLowerCase()) || a.description.toLowerCase().includes(search.toLowerCase());
@@ -49,26 +56,44 @@ export default function Articles() {
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim()) {
       toast({ title: "Error", description: "El título es obligatorio", variant: "destructive" });
       return;
     }
-    if (editing) {
-      setArticles((prev) => prev.map((a) => a.id === editing.id ? { ...a, ...form } : a));
-      toast({ title: "Artículo actualizado" });
-    } else {
-      const newId = `ART-${String(articles.length + 1).padStart(3, "0")}`;
-      setArticles((prev) => [...prev, { id: newId, ...form }]);
-      toast({ title: "Artículo creado" });
+    setSaving(true);
+    try {
+      if (editing) {
+        await updateArticle.mutateAsync({ id: editing.id, ...form });
+        toast({ title: "Artículo actualizado" });
+      } else {
+        await createArticle.mutateAsync(form);
+        toast({ title: "Artículo creado" });
+      }
+      setDialogOpen(false);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setArticles((prev) => prev.filter((a) => a.id !== id));
-    toast({ title: "Artículo eliminado" });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteArticle.mutateAsync(id);
+      toast({ title: "Artículo eliminado" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -103,10 +128,9 @@ export default function Articles() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="Fontanería/Agua">Fontanería/Agua</SelectItem>
-            <SelectItem value="Electricidad/Luz">Electricidad/Luz</SelectItem>
-            <SelectItem value="Clima">Clima</SelectItem>
-            <SelectItem value="Carpintería_Metálica">Carpintería Metálica</SelectItem>
+            {activeSpecs.map((s) => (
+              <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -217,10 +241,9 @@ export default function Articles() {
                 <Select value={form.specialty} onValueChange={(v) => setForm({ ...form, specialty: v as Specialty })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Fontanería/Agua">Fontanería/Agua</SelectItem>
-                    <SelectItem value="Electricidad/Luz">Electricidad/Luz</SelectItem>
-                    <SelectItem value="Clima">Clima</SelectItem>
-                    <SelectItem value="Carpintería_Metálica">Carpintería Metálica</SelectItem>
+                    {activeSpecs.map((s) => (
+                      <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -278,8 +301,9 @@ export default function Articles() {
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" /> {editing ? "Guardar cambios" : "Crear artículo"}
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                {editing ? "Guardar cambios" : "Crear artículo"}
               </Button>
             </div>
           </div>
