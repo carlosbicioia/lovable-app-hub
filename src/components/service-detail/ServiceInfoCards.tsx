@@ -584,6 +584,14 @@ export default function ServiceInfoCards({ service }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Direct repair sales order dialog */}
+      <DirectRepairSalesOrderDialog
+        open={showDirectRepairDialog}
+        onOpenChange={setShowDirectRepairDialog}
+        service={service}
+        onFinalized={() => {}}
+      />
     </div>
   );
 }
