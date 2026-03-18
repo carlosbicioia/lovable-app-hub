@@ -293,7 +293,7 @@ export default function ServiceDetail() {
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas</p>
                     <p className="text-base font-bold text-card-foreground">
-                      {service.realHours != null ? `${service.realHours}h` : "—"}
+                      {service.realHours != null ? hoursToHHMM(service.realHours) : "—"}
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
