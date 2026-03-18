@@ -638,7 +638,12 @@ export default function ServiceDetail() {
             </Tabs>
           </TabsContent>
 
-          {/* Tab 6: HISTORIAL */}
+          {/* Tab 6: HORAS */}
+          <TabsContent value="hours" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
+            <ServiceTimeRecords serviceId={service.id} readOnly={isFinalized} />
+          </TabsContent>
+
+          {/* Tab 7: HISTORIAL */}
           <TabsContent value="history" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceHistory serviceId={service.id} />
           </TabsContent>
