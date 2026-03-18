@@ -290,6 +290,17 @@ export default function IndustrialConfigTab() {
                   </Select>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Tarifa €/hora</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editSpec.hourly_rate}
+                  onChange={(e) => setEditSpec({ ...editSpec, hourly_rate: parseFloat(e.target.value) || 0 })}
+                  placeholder="0.00"
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
