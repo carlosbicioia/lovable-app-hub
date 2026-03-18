@@ -229,7 +229,7 @@ export default function ServiceDetail() {
               {!isFinalized && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => { e.preventDefault(); setShowDeleteDialog(true); }}>
                     <Trash2 className="w-4 h-4 mr-2" /> Eliminar servicio
                   </DropdownMenuItem>
                 </>
