@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Plus, Trash2, Loader2 } from "lucide-react";
+import { Clock, Plus, Trash2, Loader2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -17,16 +17,22 @@ interface ServiceTimeRecordsProps {
   readOnly?: boolean;
 }
 
-interface TimeRecordRow {
-  id: string;
-  operator_id: string;
-  operator_name: string;
-  record_date: string;
-  hours: number;
-  location: string;
-  notes: string | null;
-  source: string;
-  created_at: string;
+// Convert decimal hours to HH:MM string
+function hoursToHHMM(h: number): string {
+  const totalMinutes = Math.round(h * 60);
+  const hh = Math.floor(totalMinutes / 60);
+  const mm = totalMinutes % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+// Convert HH:MM string to decimal hours
+function hhmmToHours(val: string): number | null {
+  const match = val.match(/^(\d{1,3}):(\d{2})$/);
+  if (!match) return null;
+  const hh = parseInt(match[1], 10);
+  const mm = parseInt(match[2], 10);
+  if (mm >= 60) return null;
+  return hh + mm / 60;
 }
 
 export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeRecordsProps) {
@@ -34,9 +40,17 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
   const [showForm, setShowForm] = useState(false);
   const [operatorId, setOperatorId] = useState("");
   const [recordDate, setRecordDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [hours, setHours] = useState("1");
+  const [hoursInput, setHoursInput] = useState("01:00");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editOperatorId, setEditOperatorId] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editHours, setEditHours] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   // Fetch time records for this service
   const { data: records = [], isLoading } = useQuery({
@@ -83,13 +97,20 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
     ? serviceOperators.map((o) => ({ id: o.operator_id, name: o.operator_name }))
     : allOperators.map((o) => ({ id: o.id, name: o.name }));
 
+  const invalidateQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["service_time_records", serviceId] });
+    queryClient.invalidateQueries({ queryKey: ["service_total_hours", serviceId] });
+  };
+
   const createMutation = useMutation({
     mutationFn: async () => {
+      const h = hhmmToHours(hoursInput);
+      if (!h || h <= 0) throw new Error("Formato de horas inválido (use HH:MM)");
       const { error } = await supabase.from("time_records" as any).insert({
         operator_id: operatorId,
         service_id: serviceId,
         record_date: recordDate,
-        hours: parseFloat(hours),
+        hours: h,
         location: location || "",
         notes: notes || null,
         source: "backoffice",
@@ -97,16 +118,28 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["service_time_records", serviceId] });
-      queryClient.invalidateQueries({ queryKey: ["service_total_hours", serviceId] });
+      invalidateQueries();
       toast.success("Registro de horas añadido");
       setShowForm(false);
       setOperatorId("");
-      setHours("1");
+      setHoursInput("01:00");
       setLocation("");
       setNotes("");
     },
     onError: (err: any) => toast.error(err.message || "Error al registrar horas"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from("time_records" as any).update(data).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      toast.success("Registro actualizado");
+      setEditingId(null);
+    },
+    onError: (err: any) => toast.error(err.message || "Error al actualizar"),
   });
 
   const deleteMutation = useMutation({
@@ -115,8 +148,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["service_time_records", serviceId] });
-      queryClient.invalidateQueries({ queryKey: ["service_total_hours", serviceId] });
+      invalidateQueries();
       toast.success("Registro eliminado");
     },
     onError: (err: any) => toast.error(err.message || "Error al eliminar"),
@@ -124,12 +156,38 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
 
   const totalHours = records.reduce((sum: number, r: any) => sum + Number(r.hours), 0);
 
-  // Map operator_id to name
   const getOperatorName = (opId: string) => {
     const fromService = serviceOperators.find((o) => o.operator_id === opId);
     if (fromService) return fromService.operator_name;
     const fromAll = allOperators.find((o) => o.id === opId);
     return fromAll?.name || opId;
+  };
+
+  const startEdit = (r: any) => {
+    setEditingId(r.id);
+    setEditOperatorId(r.operator_id);
+    setEditDate(r.record_date);
+    setEditHours(hoursToHHMM(Number(r.hours)));
+    setEditLocation(r.location || "");
+    setEditNotes(r.notes || "");
+  };
+
+  const saveEdit = () => {
+    const h = hhmmToHours(editHours);
+    if (!h || h <= 0) {
+      toast.error("Formato de horas inválido (use HH:MM)");
+      return;
+    }
+    updateMutation.mutate({
+      id: editingId!,
+      data: {
+        operator_id: editOperatorId,
+        record_date: editDate,
+        hours: h,
+        location: editLocation,
+        notes: editNotes || null,
+      } as any,
+    });
   };
 
   return (
@@ -140,7 +198,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
             <Clock className="w-4 h-4 text-muted-foreground" /> Registro de horas
             {records.length > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
-                {totalHours.toFixed(1)}h
+                {hoursToHHMM(totalHours)}
               </span>
             )}
           </CardTitle>
@@ -174,8 +232,13 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                 <Input type="date" className="h-9 text-sm" value={recordDate} onChange={(e) => setRecordDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Horas</Label>
-                <Input type="number" step="0.5" min="0.5" className="h-9 text-sm" value={hours} onChange={(e) => setHours(e.target.value)} />
+                <Label className="text-xs">Horas (HH:MM)</Label>
+                <Input
+                  className="h-9 text-sm"
+                  placeholder="01:30"
+                  value={hoursInput}
+                  onChange={(e) => setHoursInput(e.target.value)}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Ubicación</Label>
@@ -191,7 +254,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <Button
                 size="sm"
                 className="h-7 text-xs"
-                disabled={!operatorId || !hours || createMutation.isPending}
+                disabled={!operatorId || !hoursInput || createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >
                 {createMutation.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
@@ -219,39 +282,88 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                 <TableHead className="text-xs text-right">Horas</TableHead>
                 <TableHead className="text-xs">Ubicación</TableHead>
                 <TableHead className="text-xs">Notas</TableHead>
-                {!readOnly && <TableHead className="w-10" />}
+                {!readOnly && <TableHead className="w-20" />}
               </TableRow>
             </TableHeader>
             <TableBody>
               {records.map((r: any) => (
-                <TableRow key={r.id}>
-                  <TableCell className="text-xs">
-                    {format(new Date(r.record_date), "dd MMM yyyy", { locale: es })}
-                  </TableCell>
-                  <TableCell className="text-xs font-medium">{getOperatorName(r.operator_id)}</TableCell>
-                  <TableCell className="text-xs text-right font-semibold">{Number(r.hours).toFixed(1)}h</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{r.location || "—"}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{r.notes || "—"}</TableCell>
-                  {!readOnly && (
+                editingId === r.id ? (
+                  <TableRow key={r.id}>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-6 h-6 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteMutation.mutate(r.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                      <Input type="date" className="h-7 text-xs w-32" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
                     </TableCell>
-                  )}
-                </TableRow>
+                    <TableCell>
+                      <Select value={editOperatorId} onValueChange={setEditOperatorId}>
+                        <SelectTrigger className="h-7 text-xs w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {operatorOptions.map((op) => (
+                            <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Input className="h-7 text-xs w-16 text-right" value={editHours} onChange={(e) => setEditHours(e.target.value)} placeholder="HH:MM" />
+                    </TableCell>
+                    <TableCell>
+                      <Input className="h-7 text-xs w-28" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <Input className="h-7 text-xs w-36" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="w-6 h-6 text-primary" onClick={saveEdit} disabled={updateMutation.isPending}>
+                          {updateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => setEditingId(null)}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-xs">
+                      {format(new Date(r.record_date), "dd MMM yyyy", { locale: es })}
+                    </TableCell>
+                    <TableCell className="text-xs font-medium">{getOperatorName(r.operator_id)}</TableCell>
+                    <TableCell className="text-xs text-right font-semibold font-mono">{hoursToHHMM(Number(r.hours))}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{r.location || "—"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{r.notes || "—"}</TableCell>
+                    {!readOnly && (
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 text-muted-foreground hover:text-primary"
+                            onClick={() => startEdit(r)}
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 text-muted-foreground hover:text-destructive"
+                            onClick={() => deleteMutation.mutate(r.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
               ))}
               {/* Total row */}
               <TableRow className="bg-muted/30">
                 <TableCell className="text-xs font-semibold">Total</TableCell>
                 <TableCell />
-                <TableCell className="text-xs text-right font-bold">{totalHours.toFixed(1)}h</TableCell>
+                <TableCell className="text-xs text-right font-bold font-mono">{hoursToHHMM(totalHours)}</TableCell>
                 <TableCell />
                 <TableCell />
                 {!readOnly && <TableCell />}
