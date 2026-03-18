@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { differenceInHours, format } from "date-fns";
+
+// Convert decimal hours to HH:MM string
+function hoursToHHMM(h: number): string {
+  const totalMinutes = Math.round(h * 60);
+  const hh = Math.floor(totalMinutes / 60);
+  const mm = totalMinutes % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
 import { es } from "date-fns/locale";
 import ServiceInfoCards from "@/components/service-detail/ServiceInfoCards";
 import ServiceDescription from "@/components/service-detail/ServiceDescription";
@@ -285,7 +293,7 @@ export default function ServiceDetail() {
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas</p>
                     <p className="text-base font-bold text-card-foreground">
-                      {service.realHours != null ? `${service.realHours}h` : "—"}
+                      {service.realHours != null ? hoursToHHMM(service.realHours) : "—"}
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
@@ -383,7 +391,7 @@ export default function ServiceDetail() {
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {totalHours > 0 ? `${totalHours.toFixed(1)}h` : "—"}
+                    {totalHours > 0 ? hoursToHHMM(totalHours) : "—"}
                   </p>
                 </CardContent>
               </Card>
@@ -579,7 +587,7 @@ export default function ServiceDetail() {
                       <div className="rounded-lg border border-border p-4">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.realHours != null ? `${service.realHours}h` : "—"}
+                          {service.realHours != null ? hoursToHHMM(service.realHours) : "—"}
                         </p>
                       </div>
 
