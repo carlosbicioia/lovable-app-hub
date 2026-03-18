@@ -449,7 +449,6 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="info">Información</TabsTrigger>
-          <TabsTrigger value="edit">Editar</TabsTrigger>
           <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           <TabsTrigger value="services">Servicios ({operatorServices.length})</TabsTrigger>
           <TabsTrigger value="time-records">Registro horario</TabsTrigger>
