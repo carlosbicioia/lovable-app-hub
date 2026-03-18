@@ -141,9 +141,14 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede finalizar: el protocolo de gestión está incompleto (${protocolDone}/${protocolTotal}).`);
       return;
     }
-    // Special flow: En_Curso → Finalizado with budget
+    // Special flow: En_Curso → Finalizado with budget (Presupuesto type)
     if (newStatus === "Finalizado" && service.status === "En_Curso" && hasBudget && budgetData) {
       setShowFinalizadoPrompt(true);
+      return;
+    }
+    // Special flow: En_Curso → Finalizado for Reparación Directa → auto-generate sales order
+    if (newStatus === "Finalizado" && service.status === "En_Curso" && service.serviceType === "Reparación_Directa") {
+      setShowDirectRepairDialog(true);
       return;
     }
     if (CONFIRM_STATUSES.includes(newStatus)) {
