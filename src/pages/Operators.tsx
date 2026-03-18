@@ -349,6 +349,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
   const stCfg = statusConfig[operator.status];
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
+  const { data: articlesData = [] } = useArticles();
 
   const getSpecIcon = (name: string) => {
     const sp = (dbSpecialties ?? []).find(s => s.name === name);
