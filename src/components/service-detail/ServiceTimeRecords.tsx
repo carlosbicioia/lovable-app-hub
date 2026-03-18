@@ -301,6 +301,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <TableRow>
                 <TableHead className="text-xs">Fecha</TableHead>
                 <TableHead className="text-xs">Operario</TableHead>
+                <TableHead className="text-xs">Inicio</TableHead>
+                <TableHead className="text-xs">Fin</TableHead>
                 <TableHead className="text-xs text-right">Horas</TableHead>
                 <TableHead className="text-xs">Ubicación</TableHead>
                 <TableHead className="text-xs">Notas</TableHead>
