@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
 import { useBranches } from "@/hooks/useBranches";
+import { articlesData } from "@/data/articlesData";
 import type { DbOperator } from "@/hooks/useOperators";
 import type { OperatorStatus } from "@/types/urbango";
 
