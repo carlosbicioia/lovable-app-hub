@@ -257,6 +257,12 @@ export default function ServiceDetail() {
                 <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{salesCount}</span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="hours" className="text-xs gap-1 h-8">
+              <Clock className="w-3 h-3" /> Horas
+              {totalHours > 0 && (
+                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{totalHours.toFixed(1)}h</span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="history" className="text-xs gap-1 h-8">
               <History className="w-3 h-3" /> Historial
             </TabsTrigger>
