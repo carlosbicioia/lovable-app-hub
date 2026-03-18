@@ -5,6 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import DirectRepairSalesOrderDialog from "./DirectRepairSalesOrderDialog";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
@@ -72,6 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
   const [showFinalizadoPrompt, setShowFinalizadoPrompt] = useState(false);
   const [creatingSalesOrder, setCreatingSalesOrder] = useState(false);
+  const [showDirectRepairDialog, setShowDirectRepairDialog] = useState(false);
 
   useEffect(() => {
     async function fetchBudget() {
@@ -139,9 +141,14 @@ export default function ServiceInfoCards({ service }: Props) {
       toast.error(`No se puede finalizar: el protocolo de gestión está incompleto (${protocolDone}/${protocolTotal}).`);
       return;
     }
-    // Special flow: En_Curso → Finalizado with budget
+    // Special flow: En_Curso → Finalizado with budget (Presupuesto type)
     if (newStatus === "Finalizado" && service.status === "En_Curso" && hasBudget && budgetData) {
       setShowFinalizadoPrompt(true);
+      return;
+    }
+    // Special flow: En_Curso → Finalizado for Reparación Directa → auto-generate sales order
+    if (newStatus === "Finalizado" && service.status === "En_Curso" && service.serviceType === "Reparación_Directa") {
+      setShowDirectRepairDialog(true);
       return;
     }
     if (CONFIRM_STATUSES.includes(newStatus)) {
@@ -577,6 +584,14 @@ export default function ServiceInfoCards({ service }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Direct repair sales order dialog */}
+      <DirectRepairSalesOrderDialog
+        open={showDirectRepairDialog}
+        onOpenChange={setShowDirectRepairDialog}
+        service={service}
+        onFinalized={() => {}}
+      />
     </div>
   );
 }
