@@ -184,6 +184,17 @@ export async function updateService(id: string, updates: Record<string, any>): P
     if (fields.length > 0) {
       logServiceAction(id, `Modificado: ${fields.join(", ")}`);
     }
+
+    // Fire-and-forget Slack notification on status change
+    if (updates.status) {
+      supabase.functions.invoke("send-slack-notification", {
+        body: {
+          channel: "servicios",
+          text: `🔄 Servicio *${id}* cambió de estado a *${updates.status}*`,
+          event_key: "service_status_change",
+        },
+      }).catch(() => {});
+    }
   }
 
   return { error };
