@@ -587,7 +587,7 @@ export default function ServiceDetail() {
                       <div className="rounded-lg border border-border p-4">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas reales</p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.realHours != null ? `${service.realHours}h` : "—"}
+                          {service.realHours != null ? hoursToHHMM(service.realHours) : "—"}
                         </p>
                       </div>
 
