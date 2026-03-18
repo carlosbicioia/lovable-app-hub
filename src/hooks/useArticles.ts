@@ -108,7 +108,9 @@ export function getArticleSalePrice(a: Pick<Article, "costPrice" | "hasKnownPvp"
   return a.hasKnownPvp && a.pvp !== null ? a.pvp : a.costPrice * 1.30;
 }
 
-export function getArticleMargin(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp">): number {
+export function getArticleMargin(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp"> & { category?: string }): number {
+  // Labor articles have no margin (costPrice = sale price)
+  if (a.category === "Mano_de_Obra") return 0;
   const sale = getArticleSalePrice(a);
   if (a.costPrice === 0) return 0;
   return ((sale - a.costPrice) / a.costPrice) * 100;
