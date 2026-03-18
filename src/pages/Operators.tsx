@@ -500,14 +500,14 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                   </div>
                 </div>
                 {/* Tarifas horarias */}
-                {(operator.articleStandardHourId || operator.articleAppHourId || operator.articleUrgencyHourId) && (
+                {(('articleStandardHourId' in operator && operator.articleStandardHourId) || ('articleAppHourId' in operator && operator.articleAppHourId) || ('articleUrgencyHourId' in operator && operator.articleUrgencyHourId)) && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
                     <div className="space-y-1">
                       {([
-                        { id: operator.articleStandardHourId, label: "Estándar" },
-                        { id: operator.articleAppHourId, label: "APP" },
-                        { id: operator.articleUrgencyHourId, label: "Urgencia" },
+                        { id: ('articleStandardHourId' in operator ? operator.articleStandardHourId : null) as string | null, label: "Estándar" },
+                        { id: ('articleAppHourId' in operator ? operator.articleAppHourId : null) as string | null, label: "APP" },
+                        { id: ('articleUrgencyHourId' in operator ? operator.articleUrgencyHourId : null) as string | null, label: "Urgencia" },
                       ] as const).map(({ id, label }) => {
                         if (!id) return null;
                         const art = articlesData.find((a) => a.id === id);
