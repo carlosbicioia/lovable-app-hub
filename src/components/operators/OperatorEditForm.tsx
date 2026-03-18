@@ -379,6 +379,41 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                 })}
               </div>
             </div>
+
+            {/* Artículos de tarifa horaria */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Label className="text-xs font-semibold">Tarifas horarias (artículos)</Label>
+              {([
+                { key: "article_standard_hour_id", label: "Precio hora estándar" },
+                { key: "article_app_hour_id", label: "Precio hora APP" },
+                { key: "article_urgency_hour_id", label: "Precio hora urgencia" },
+              ] as const).map(({ key, label }) => {
+                const selectedArticle = articlesData.find((a) => a.id === (form as any)[key]);
+                return (
+                  <div key={key} className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                    <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Seleccionar artículo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin asignar</SelectItem>
+                        {articlesData
+                          .filter((a) => a.category === "Mano_de_Obra")
+                          .map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.title} — €{a.costPrice.toFixed(2)}/h
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedArticle && (
+                      <p className="text-[10px] text-muted-foreground">Coste: €{selectedArticle.costPrice.toFixed(2)}/h</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>
