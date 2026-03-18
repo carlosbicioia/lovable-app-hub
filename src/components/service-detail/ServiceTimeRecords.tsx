@@ -276,7 +276,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <Button
                 size="sm"
                 className="h-7 text-xs"
-                disabled={!operatorId || !hoursInput || createMutation.isPending}
+                disabled={!operatorId || !calculatedHours || createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >
                 {createMutation.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
