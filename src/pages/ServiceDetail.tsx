@@ -21,6 +21,7 @@ import ServiceSalesOrders from "@/components/service-detail/ServiceSalesOrders";
 import { useSalesOrders } from "@/hooks/useSalesOrders";
 import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import ServiceHistory from "@/components/service-detail/ServiceHistory";
+import ServiceTimeRecords from "@/components/service-detail/ServiceTimeRecords";
 import ProtocolBreadcrumb from "@/components/service-detail/ProtocolBreadcrumb";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -254,6 +255,12 @@ export default function ServiceDetail() {
               <Euro className="w-3 h-3" /> Ventas
               {salesCount > 0 && (
                 <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{salesCount}</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="hours" className="text-xs gap-1 h-8">
+              <Clock className="w-3 h-3" /> Horas
+              {totalHours > 0 && (
+                <span className="px-1 py-0.5 rounded-full bg-primary/15 text-primary text-[9px] font-bold">{totalHours.toFixed(1)}h</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="history" className="text-xs gap-1 h-8">
@@ -631,7 +638,12 @@ export default function ServiceDetail() {
             </Tabs>
           </TabsContent>
 
-          {/* Tab 6: HISTORIAL */}
+          {/* Tab 6: HORAS */}
+          <TabsContent value="hours" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
+            <ServiceTimeRecords serviceId={service.id} readOnly={isFinalized} />
+          </TabsContent>
+
+          {/* Tab 7: HISTORIAL */}
           <TabsContent value="history" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceHistory serviceId={service.id} />
           </TabsContent>
