@@ -28,6 +28,7 @@ export default function BudgetCreate() {
   const { addBudget, budgets } = useBudgets();
   const { services } = useServices();
   const { data: companySettings } = useCompanySettings();
+  const { data: articlesData = [] } = useArticles();
 
   const [serviceId, setServiceId] = useState(searchParams.get("serviceId") ?? "");
   const [terms, setTerms] = useState("");
