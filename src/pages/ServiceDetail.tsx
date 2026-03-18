@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { differenceInHours, format } from "date-fns";
+
+// Convert decimal hours to HH:MM string
+function hoursToHHMM(h: number): string {
+  const totalMinutes = Math.round(h * 60);
+  const hh = Math.floor(totalMinutes / 60);
+  const mm = totalMinutes % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
 import { es } from "date-fns/locale";
 import ServiceInfoCards from "@/components/service-detail/ServiceInfoCards";
 import ServiceDescription from "@/components/service-detail/ServiceDescription";
