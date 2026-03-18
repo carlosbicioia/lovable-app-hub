@@ -454,6 +454,15 @@ export default function ServiceCreate() {
       await logServiceAction(serviceId, "Servicio creado");
       await refetch();
 
+      // Send Slack notification (fire-and-forget)
+      supabase.functions.invoke("send-slack-notification", {
+        body: {
+          channel: "servicios",
+          text: `🆕 Nuevo servicio *${serviceId}* creado para *${clientDisplayName}*\n📍 ${address || "Sin dirección"}\n🔧 ${specialty} — ${urgency}`,
+          event_key: "new_service",
+        },
+      }).catch(() => {});
+
       toast({
         title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
         description: andSchedule
