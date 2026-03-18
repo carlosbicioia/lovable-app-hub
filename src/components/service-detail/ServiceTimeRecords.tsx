@@ -25,14 +25,21 @@ function hoursToHHMM(h: number): string {
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
 
-// Convert HH:MM string to decimal hours
-function hhmmToHours(val: string): number | null {
-  const match = val.match(/^(\d{1,3}):(\d{2})$/);
-  if (!match) return null;
-  const hh = parseInt(match[1], 10);
-  const mm = parseInt(match[2], 10);
-  if (mm >= 60) return null;
-  return hh + mm / 60;
+// Calculate billable hours from start/end time
+// Rule: minimum 1 hour, then 30-min increments from 2nd hour onward
+function calculateBillableHours(start: string, end: string): number | null {
+  if (!start || !end) return null;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+  let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+  if (diffMinutes <= 0) return null;
+  // Minimum 1 hour
+  if (diffMinutes <= 60) return 1;
+  // After first hour, round up to nearest 30 min
+  const extraMinutes = diffMinutes - 60;
+  const extraBlocks = Math.ceil(extraMinutes / 30);
+  return 1 + extraBlocks * 0.5;
 }
 
 export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeRecordsProps) {
