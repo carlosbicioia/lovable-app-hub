@@ -321,7 +321,6 @@ export default function ServiceDetail() {
 
           {/* Tab 2: OPERATIVA */}
           <TabsContent value="operations" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
-            <ServiceProtocolChecklist service={service} readOnly={isFinalized} />
             <ServiceTimeline service={service} />
             <ServiceMediaUpload serviceId={service.id} />
             <ServiceMaterials serviceId={service.id} readOnly={isFinalized} />
