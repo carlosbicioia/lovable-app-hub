@@ -34,6 +34,7 @@ export default function DirectRepairSalesOrderDialog({ open, onOpenChange, servi
   const [creating, setCreating] = useState(false);
   const createSalesOrder = useCreateSalesOrder();
   const { updateService } = useServices();
+  const { data: articlesData = [] } = useArticles();
 
   useEffect(() => {
     if (!open) return;

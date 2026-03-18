@@ -25,6 +25,7 @@ export default function BudgetEdit() {
   const { getBudget, updateBudget } = useBudgets();
   const { collaborators } = useCollaborators();
   const { data: companySettings } = useCompanySettings();
+  const { data: articlesData = [] } = useArticles();
 
   const budget = getBudget(id ?? "");
 
