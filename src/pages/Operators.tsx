@@ -498,6 +498,28 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                     ))}
                   </div>
                 </div>
+                {/* Tarifas horarias */}
+                {(operator.articleStandardHourId || operator.articleAppHourId || operator.articleUrgencyHourId) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
+                    <div className="space-y-1">
+                      {([
+                        { id: operator.articleStandardHourId, label: "Estándar" },
+                        { id: operator.articleAppHourId, label: "APP" },
+                        { id: operator.articleUrgencyHourId, label: "Urgencia" },
+                      ] as const).map(({ id, label }) => {
+                        if (!id) return null;
+                        const art = articlesData.find((a) => a.id === id);
+                        return art ? (
+                          <div key={label} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{label}</span>
+                            <span className="font-medium">{art.title} — €{art.costPrice.toFixed(2)}/h</span>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Acceso app</p>
                   <p className="text-sm text-foreground">{operator.email}</p>
