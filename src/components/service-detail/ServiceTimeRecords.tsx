@@ -180,15 +180,17 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
     setEditingId(r.id);
     setEditOperatorId(r.operator_id);
     setEditDate(r.record_date);
-    setEditHours(hoursToHHMM(Number(r.hours)));
+    setEditStartTime(r.start_time || "");
+    setEditEndTime(r.end_time || "");
     setEditLocation(r.location || "");
     setEditNotes(r.notes || "");
   };
 
+  const editCalculatedHours = calculateBillableHours(editStartTime, editEndTime);
+
   const saveEdit = () => {
-    const h = hhmmToHours(editHours);
-    if (!h || h <= 0) {
-      toast.error("Formato de horas inválido (use HH:MM)");
+    if (!editCalculatedHours || editCalculatedHours <= 0) {
+      toast.error("Hora de inicio/fin inválidas");
       return;
     }
     updateMutation.mutate({
@@ -196,7 +198,9 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       data: {
         operator_id: editOperatorId,
         record_date: editDate,
-        hours: h,
+        hours: editCalculatedHours,
+        start_time: editStartTime,
+        end_time: editEndTime,
         location: editLocation,
         notes: editNotes || null,
       } as any,
