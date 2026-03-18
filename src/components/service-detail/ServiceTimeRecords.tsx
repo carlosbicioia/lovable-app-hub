@@ -25,14 +25,21 @@ function hoursToHHMM(h: number): string {
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
 
-// Convert HH:MM string to decimal hours
-function hhmmToHours(val: string): number | null {
-  const match = val.match(/^(\d{1,3}):(\d{2})$/);
-  if (!match) return null;
-  const hh = parseInt(match[1], 10);
-  const mm = parseInt(match[2], 10);
-  if (mm >= 60) return null;
-  return hh + mm / 60;
+// Calculate billable hours from start/end time
+// Rule: minimum 1 hour, then 30-min increments from 2nd hour onward
+function calculateBillableHours(start: string, end: string): number | null {
+  if (!start || !end) return null;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+  let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+  if (diffMinutes <= 0) return null;
+  // Minimum 1 hour
+  if (diffMinutes <= 60) return 1;
+  // After first hour, round up to nearest 30 min
+  const extraMinutes = diffMinutes - 60;
+  const extraBlocks = Math.ceil(extraMinutes / 30);
+  return 1 + extraBlocks * 0.5;
 }
 
 export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeRecordsProps) {
@@ -40,7 +47,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
   const [showForm, setShowForm] = useState(false);
   const [operatorId, setOperatorId] = useState("");
   const [recordDate, setRecordDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [hoursInput, setHoursInput] = useState("01:00");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -48,7 +56,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOperatorId, setEditOperatorId] = useState("");
   const [editDate, setEditDate] = useState("");
-  const [editHours, setEditHours] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
   const [editLocation, setEditLocation] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
@@ -102,15 +111,18 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
     queryClient.invalidateQueries({ queryKey: ["service_total_hours", serviceId] });
   };
 
+  const calculatedHours = calculateBillableHours(startTime, endTime);
+
   const createMutation = useMutation({
     mutationFn: async () => {
-      const h = hhmmToHours(hoursInput);
-      if (!h || h <= 0) throw new Error("Formato de horas inválido (use HH:MM)");
+      if (!calculatedHours || calculatedHours <= 0) throw new Error("Hora de inicio/fin inválidas");
       const { error } = await supabase.from("time_records" as any).insert({
         operator_id: operatorId,
         service_id: serviceId,
         record_date: recordDate,
-        hours: h,
+        hours: calculatedHours,
+        start_time: startTime,
+        end_time: endTime,
         location: location || "",
         notes: notes || null,
         source: "backoffice",
@@ -122,7 +134,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       toast.success("Registro de horas añadido");
       setShowForm(false);
       setOperatorId("");
-      setHoursInput("01:00");
+      setStartTime("09:00");
+      setEndTime("10:00");
       setLocation("");
       setNotes("");
     },
@@ -167,15 +180,17 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
     setEditingId(r.id);
     setEditOperatorId(r.operator_id);
     setEditDate(r.record_date);
-    setEditHours(hoursToHHMM(Number(r.hours)));
+    setEditStartTime(r.start_time || "");
+    setEditEndTime(r.end_time || "");
     setEditLocation(r.location || "");
     setEditNotes(r.notes || "");
   };
 
+  const editCalculatedHours = calculateBillableHours(editStartTime, editEndTime);
+
   const saveEdit = () => {
-    const h = hhmmToHours(editHours);
-    if (!h || h <= 0) {
-      toast.error("Formato de horas inválido (use HH:MM)");
+    if (!editCalculatedHours || editCalculatedHours <= 0) {
+      toast.error("Hora de inicio/fin inválidas");
       return;
     }
     updateMutation.mutate({
@@ -183,7 +198,9 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
       data: {
         operator_id: editOperatorId,
         record_date: editDate,
-        hours: h,
+        hours: editCalculatedHours,
+        start_time: editStartTime,
+        end_time: editEndTime,
         location: editLocation,
         notes: editNotes || null,
       } as any,
@@ -213,7 +230,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
         {/* Form */}
         {showForm && (
           <div className="border border-border rounded-lg p-4 bg-muted/30 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Operario</Label>
                 <Select value={operatorId} onValueChange={setOperatorId}>
@@ -232,13 +249,18 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                 <Input type="date" className="h-9 text-sm" value={recordDate} onChange={(e) => setRecordDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Horas (HH:MM)</Label>
-                <Input
-                  className="h-9 text-sm"
-                  placeholder="01:30"
-                  value={hoursInput}
-                  onChange={(e) => setHoursInput(e.target.value)}
-                />
+                <Label className="text-xs">Hora inicio</Label>
+                <Input type="time" className="h-9 text-sm" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Hora fin</Label>
+                <Input type="time" className="h-9 text-sm" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Horas facturables</Label>
+                <div className="h-9 flex items-center text-sm font-semibold font-mono px-3 bg-muted rounded-md">
+                  {calculatedHours ? hoursToHHMM(calculatedHours) : "—"}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Ubicación</Label>
@@ -254,7 +276,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <Button
                 size="sm"
                 className="h-7 text-xs"
-                disabled={!operatorId || !hoursInput || createMutation.isPending}
+                disabled={!operatorId || !calculatedHours || createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >
                 {createMutation.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
@@ -279,6 +301,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               <TableRow>
                 <TableHead className="text-xs">Fecha</TableHead>
                 <TableHead className="text-xs">Operario</TableHead>
+                <TableHead className="text-xs">Inicio</TableHead>
+                <TableHead className="text-xs">Fin</TableHead>
                 <TableHead className="text-xs text-right">Horas</TableHead>
                 <TableHead className="text-xs">Ubicación</TableHead>
                 <TableHead className="text-xs">Notas</TableHead>
@@ -305,7 +329,13 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Input className="h-7 text-xs w-16 text-right" value={editHours} onChange={(e) => setEditHours(e.target.value)} placeholder="HH:MM" />
+                      <Input type="time" className="h-7 text-xs w-24" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <Input type="time" className="h-7 text-xs w-24" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} />
+                    </TableCell>
+                    <TableCell className="text-xs text-right font-semibold font-mono">
+                      {editCalculatedHours ? hoursToHHMM(editCalculatedHours) : "—"}
                     </TableCell>
                     <TableCell>
                       <Input className="h-7 text-xs w-28" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
@@ -330,6 +360,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                       {format(new Date(r.record_date), "dd MMM yyyy", { locale: es })}
                     </TableCell>
                     <TableCell className="text-xs font-medium">{getOperatorName(r.operator_id)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{r.start_time?.slice(0, 5) || "—"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{r.end_time?.slice(0, 5) || "—"}</TableCell>
                     <TableCell className="text-xs text-right font-semibold font-mono">{hoursToHHMM(Number(r.hours))}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{r.location || "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{r.notes || "—"}</TableCell>
@@ -362,6 +394,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
               {/* Total row */}
               <TableRow className="bg-muted/30">
                 <TableCell className="text-xs font-semibold">Total</TableCell>
+                <TableCell />
+                <TableCell />
                 <TableCell />
                 <TableCell className="text-xs text-right font-bold font-mono">{hoursToHHMM(totalHours)}</TableCell>
                 <TableCell />

@@ -1958,6 +1958,7 @@ export type Database = {
       time_records: {
         Row: {
           created_at: string
+          end_time: string | null
           hours: number
           id: string
           latitude: number | null
@@ -1968,10 +1969,12 @@ export type Database = {
           record_date: string
           service_id: string | null
           source: string
+          start_time: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          end_time?: string | null
           hours?: number
           id?: string
           latitude?: number | null
@@ -1982,10 +1985,12 @@ export type Database = {
           record_date?: string
           service_id?: string | null
           source?: string
+          start_time?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          end_time?: string | null
           hours?: number
           id?: string
           latitude?: number | null
@@ -1996,6 +2001,7 @@ export type Database = {
           record_date?: string
           service_id?: string | null
           source?: string
+          start_time?: string | null
           updated_at?: string
         }
         Relationships: []
