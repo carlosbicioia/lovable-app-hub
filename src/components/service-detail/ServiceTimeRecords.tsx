@@ -56,7 +56,8 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOperatorId, setEditOperatorId] = useState("");
   const [editDate, setEditDate] = useState("");
-  const [editHours, setEditHours] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
   const [editLocation, setEditLocation] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
