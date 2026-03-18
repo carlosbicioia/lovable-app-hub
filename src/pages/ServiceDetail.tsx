@@ -360,11 +360,35 @@ export default function ServiceDetail() {
           {/* Tab 5: VENTAS */}
           <TabsContent value="sales" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             {/* KPIs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Presupuestos</p>
-                  <p className="text-2xl font-bold text-foreground">{linkedBudget ? 1 : 0}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {linkedBudget && linkedBudget.lines.length > 0
+                      ? `€${linkedBudget.lines.reduce((sum, l) => {
+                          const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                          const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                          return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                        }, 0).toFixed(2)}`
+                      : "—"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {totalHours > 0 ? `${totalHours.toFixed(1)}h` : "—"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Materiales</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {materialsCount > 0 ? materialsCount : "—"}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -375,19 +399,22 @@ export default function ServiceDetail() {
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                    {linkedBudget && linkedBudget.lines.length > 0 && totalHours > 0
+                      ? (() => {
+                          const total = linkedBudget.lines.reduce((sum, l) => {
+                            const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                            const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                            return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                          }, 0);
+                          return `€${(total / totalHours).toFixed(2)}`;
+                        })()
+                      : "—"}
                   </p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste/hora</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {service.budgetTotal && service.realHours
-                      ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
-                      : "—"}
+            </div>
                   </p>
                 </CardContent>
               </Card>
