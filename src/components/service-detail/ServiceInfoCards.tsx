@@ -73,6 +73,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
   const [showFinalizadoPrompt, setShowFinalizadoPrompt] = useState(false);
   const [creatingSalesOrder, setCreatingSalesOrder] = useState(false);
+  const [showDirectRepairDialog, setShowDirectRepairDialog] = useState(false);
 
   useEffect(() => {
     async function fetchBudget() {
