@@ -33,6 +33,9 @@ export interface DbOperator {
   avgResponseTime: number;
   lastServiceDate: string | null;
   branchId: string | null;
+  articleStandardHourId: string | null;
+  articleAppHourId: string | null;
+  articleUrgencyHourId: string | null;
   monthlyRevenue: { month: string; revenue: number; services: number }[];
 }
 
