@@ -89,15 +89,16 @@ export default function DirectRepairSalesOrderDialog({ open, onOpenChange, servi
           if (op) info.name = op.name;
 
           const article = op ? getArticleForOperator(op) : null;
-          const costPrice = article ? article.costPrice : 0;
+          // For labor articles: costPrice IS the sale price, margin = 0
+          const salePrice = article ? article.costPrice : 0;
           const articleLabel = article ? article.title : "Sin tarifa asignada";
 
           draftLines.push({
             concept: `Mano de obra - ${info.name || "Operario"}`,
             description: `${articleLabel} · ${info.total.toFixed(2)}h`,
             units: info.total,
-            costPrice,
-            margin: article ? ((getArticleSalePrice(article) / article.costPrice - 1) * 100) : 0,
+            costPrice: salePrice,
+            margin: 0,
             taxRate: 21,
             type: "labor",
           });

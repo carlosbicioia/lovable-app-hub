@@ -403,13 +403,13 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                           .filter((a) => a.category === "Mano_de_Obra")
                           .map((a) => (
                             <SelectItem key={a.id} value={a.id}>
-                              {a.title} — €{a.costPrice.toFixed(2)}/h
+                              {a.title} — €{a.costPrice.toFixed(2)}/h (PVP)
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                     {selectedArticle && (
-                      <p className="text-[10px] text-muted-foreground">Coste: €{selectedArticle.costPrice.toFixed(2)}/h</p>
+                      <p className="text-[10px] text-muted-foreground">PVP: €{selectedArticle.costPrice.toFixed(2)}/h</p>
                     )}
                   </div>
                 );
