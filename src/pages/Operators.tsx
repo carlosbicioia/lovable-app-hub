@@ -346,6 +346,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
   // Use fresh data from query if available
   const operator = allOperators.find((o) => o.id === initialOperator.id) ?? initialOperator;
   const [activeTab, setActiveTab] = useState("info");
+  const [isEditing, setIsEditing] = useState(false);
   const stCfg = statusConfig[operator.status];
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
