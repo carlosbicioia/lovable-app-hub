@@ -249,13 +249,18 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                 <Input type="date" className="h-9 text-sm" value={recordDate} onChange={(e) => setRecordDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Horas (HH:MM)</Label>
-                <Input
-                  className="h-9 text-sm"
-                  placeholder="01:30"
-                  value={hoursInput}
-                  onChange={(e) => setHoursInput(e.target.value)}
-                />
+                <Label className="text-xs">Hora inicio</Label>
+                <Input type="time" className="h-9 text-sm" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Hora fin</Label>
+                <Input type="time" className="h-9 text-sm" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Horas facturables</Label>
+                <div className="h-9 flex items-center text-sm font-semibold font-mono px-3 bg-muted rounded-md">
+                  {calculatedHours ? hoursToHHMM(calculatedHours) : "—"}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Ubicación</Label>
