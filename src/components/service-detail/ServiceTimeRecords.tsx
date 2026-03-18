@@ -329,7 +329,13 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Input className="h-7 text-xs w-16 text-right" value={editHours} onChange={(e) => setEditHours(e.target.value)} placeholder="HH:MM" />
+                      <Input type="time" className="h-7 text-xs w-24" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <Input type="time" className="h-7 text-xs w-24" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} />
+                    </TableCell>
+                    <TableCell className="text-xs text-right font-semibold font-mono">
+                      {editCalculatedHours ? hoursToHHMM(editCalculatedHours) : "—"}
                     </TableCell>
                     <TableCell>
                       <Input className="h-7 text-xs w-28" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
