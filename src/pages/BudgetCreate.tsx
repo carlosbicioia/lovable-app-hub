@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { useServices } from "@/hooks/useServices";
-import { articlesData, getArticleSalePrice } from "@/data/articlesData";
+import { useArticles, getArticleSalePrice } from "@/hooks/useArticles";
 import { toast } from "sonner";
 import type { TaxRate, BudgetLine } from "@/types/urbango";
 import { useBudgets } from "@/hooks/useBudgets";

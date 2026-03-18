@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { articlesData } from "@/data/articlesData";
+import { useArticles } from "@/hooks/useArticles";
 import type { Article } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +22,10 @@ export default function ArticleAutocomplete({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const { data: articles = [] } = useArticles();
 
   const filtered = query.length >= 1
-    ? articlesData.filter(
+    ? articles.filter(
         (a) =>
           a.id.toLowerCase().includes(query.toLowerCase()) ||
           a.title.toLowerCase().includes(query.toLowerCase())

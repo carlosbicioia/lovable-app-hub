@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
-import { articlesData } from "@/data/articlesData";
+import { useArticles } from "@/hooks/useArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
