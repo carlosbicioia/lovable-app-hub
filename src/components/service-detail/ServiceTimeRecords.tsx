@@ -230,7 +230,7 @@ export default function ServiceTimeRecords({ serviceId, readOnly }: ServiceTimeR
         {/* Form */}
         {showForm && (
           <div className="border border-border rounded-lg p-4 bg-muted/30 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Operario</Label>
                 <Select value={operatorId} onValueChange={setOperatorId}>
