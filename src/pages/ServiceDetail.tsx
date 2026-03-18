@@ -391,7 +391,7 @@ export default function ServiceDetail() {
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Horas</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {totalHours > 0 ? `${totalHours.toFixed(1)}h` : "—"}
+                    {totalHours > 0 ? hoursToHHMM(totalHours) : "—"}
                   </p>
                 </CardContent>
               </Card>
