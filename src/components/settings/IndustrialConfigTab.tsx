@@ -137,7 +137,10 @@ export default function IndustrialConfigTab() {
                     </span>
                     <div>
                       <p className="text-sm font-medium text-card-foreground">{sp.name}</p>
-                      <p className="text-xs text-muted-foreground">{sp.active ? "Activa" : "Inactiva"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sp.active ? "Activa" : "Inactiva"}
+                        {sp.hourly_rate > 0 && <span className="ml-2">· €{sp.hourly_rate}/h</span>}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
