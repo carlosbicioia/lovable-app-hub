@@ -16,7 +16,7 @@ import {
   Budgets, BudgetDetail, BudgetCreate, BudgetEdit,
   Articles, InvoiceCreate, CalendarView, Operators,
   Purchases, PurchaseCreate, PurchaseDetail, DeliveryNoteCreate,
-  SalesOrders, Suppliers, Settings, Profile,
+  SalesOrders, Suppliers, Vehicles, Settings, Profile,
   ReportsIndex, ServicesReport, OperatorsReport, FinancialReport,
   ClientsReport, PurchasesReport, BudgetsReport,
   Auth, CollaboratorPortal, TvDashboard, ResetPassword, NotFound,
