@@ -72,6 +72,9 @@ function mapRow(r: any, monthlyRevenue: any[]): DbOperator {
     avgResponseTime: Number(r.avg_response_time),
     lastServiceDate: r.last_service_date,
     branchId: r.branch_id ?? null,
+    articleStandardHourId: r.article_standard_hour_id ?? null,
+    articleAppHourId: r.article_app_hour_id ?? null,
+    articleUrgencyHourId: r.article_urgency_hour_id ?? null,
     monthlyRevenue: monthlyRevenue
       .filter((m: any) => m.operator_id === r.id)
       .sort((a: any, b: any) => a.month.localeCompare(b.month))
