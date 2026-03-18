@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingCart,
   Truck,
+  Car,
   ClipboardList,
   Calendar,
   HardHat,
