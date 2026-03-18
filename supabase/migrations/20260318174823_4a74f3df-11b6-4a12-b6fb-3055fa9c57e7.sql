@@ -1,0 +1,1 @@
+ALTER TABLE public.specialties ADD COLUMN hourly_rate numeric NOT NULL DEFAULT 0;

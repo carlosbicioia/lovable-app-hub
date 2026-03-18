@@ -1768,6 +1768,7 @@ export type Database = {
           active: boolean
           color: string
           created_at: string
+          hourly_rate: number
           icon: string
           id: string
           name: string
@@ -1777,6 +1778,7 @@ export type Database = {
           active?: boolean
           color?: string
           created_at?: string
+          hourly_rate?: number
           icon?: string
           id?: string
           name: string
@@ -1786,6 +1788,7 @@ export type Database = {
           active?: boolean
           color?: string
           created_at?: string
+          hourly_rate?: number
           icon?: string
           id?: string
           name?: string
