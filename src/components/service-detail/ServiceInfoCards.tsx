@@ -5,6 +5,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import DirectRepairSalesOrderDialog from "./DirectRepairSalesOrderDialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useOperators } from "@/hooks/useOperators";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
