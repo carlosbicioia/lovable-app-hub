@@ -125,28 +125,33 @@ export default function UsersTab() {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      {u.collaborator_id && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{u.collaborator_id}</span>}
-                      {u.id === currentUser?.id ? (
-                        <span className="text-[10px] text-muted-foreground italic px-2">Tú</span>
                       ) : (
+                        <span className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded w-[140px] text-center">{u.role ?? "Sin rol"}</span>
+                      )}
+                      {u.collaborator_id && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{u.collaborator_id}</span>}
+                      {u.auth_user_id === currentUser?.id ? (
+                        <span className="text-[10px] text-muted-foreground italic px-2">Tú</span>
+                      ) : u.auth_user_id ? (
                         <>
-                          <Switch checked={!u.banned} disabled={manageUser.isPending} onCheckedChange={(checked) => manageUser.mutate({ userId: u.id, action: checked ? "unban" : "ban" })} className="scale-75" />
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Restablecer contraseña" onClick={() => { setResetPwUser({ id: u.id, name: u.full_name, email: u.email }); setNewPassword(""); }}>
+                          <Switch checked={!u.banned} disabled={manageUser.isPending} onCheckedChange={(checked) => manageUser.mutate({ userId: u.auth_user_id!, action: checked ? "unban" : "ban" })} className="scale-75" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Restablecer contraseña" onClick={() => { setResetPwUser({ id: u.id, auth_user_id: u.auth_user_id!, name: u.full_name, email: u.email }); setNewPassword(""); }}>
                             <KeyRound className="w-3.5 h-3.5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
-                            setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
+                            setEditingUser({ id: u.id, auth_user_id: u.auth_user_id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
                             setEditForm({ full_name: u.full_name, role: u.role ?? "operario", collaborator_id: u.collaborator_id ?? "" });
                           }}>
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => {
                             if (!confirm(`¿Eliminar permanentemente a ${u.full_name || u.email}? Esta acción no se puede deshacer.`)) return;
-                            manageUser.mutate({ userId: u.id, action: "delete" });
+                            manageUser.mutate({ userId: u.auth_user_id!, action: "delete" });
                           }} disabled={manageUser.isPending}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground italic px-2">Sin acceso</span>
                       )}
                     </div>
                   </div>
