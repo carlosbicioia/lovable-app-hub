@@ -719,7 +719,7 @@ export default function ServiceEdit() {
       </Card>
 
       {/* ── SECTION 6: Media ── */}
-      <ServiceMediaUpload serviceId={service.id} />
+      <ServiceMediaUpload service={service} />
 
       {/* ── Actions ── */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">

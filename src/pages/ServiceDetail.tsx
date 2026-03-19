@@ -323,7 +323,7 @@ export default function ServiceDetail() {
           {/* Tab 2: OPERATIVA */}
           <TabsContent value="operations" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
             <ServiceTimeline service={service} />
-            <ServiceMediaUpload serviceId={service.id} />
+            <ServiceMediaUpload service={service} readOnly={isFinalized} />
             <ServiceMaterials serviceId={service.id} readOnly={isFinalized} />
           </TabsContent>
 

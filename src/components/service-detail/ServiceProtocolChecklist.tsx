@@ -9,8 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useServices } from "@/hooks/useServices";
-import { useAuth } from "@/hooks/useAuth";
+
 
 interface Props {
   service: Service;
@@ -23,9 +22,6 @@ const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
 export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
-  const { updateService } = useServices();
-  const { roles } = useAuth();
-  const isAdmin = roles.includes("admin");
   const [mediaCount, setMediaCount] = useState<number | null>(null);
 
   const noMediaAvailable = service.noMediaAvailable ?? false;
@@ -64,11 +60,6 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
       toggleItem("diagnosis");
     }
   }, [mediaCount, noMediaAvailable, checksLoading]);
-
-  const handleToggleNoMedia = async () => {
-    if (readOnly) return;
-    await updateService(service.id, { no_media_available: !noMediaAvailable });
-  };
 
   const loading = checksLoading || stepsLoading;
 
@@ -171,32 +162,6 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                 )}
               </div>
 
-              {/* No media available checkbox under diagnosis step */}
-              {check.id === "diagnosis" && (
-                <div
-                  className={cn(
-                    "ml-7 mt-1.5 flex items-center gap-2",
-                    !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
-                  )}
-                  onClick={handleToggleNoMedia}
-                >
-                  <Checkbox
-                    checked={noMediaAvailable}
-                    onCheckedChange={handleToggleNoMedia}
-                    disabled={readOnly}
-                    className={cn(
-                      "h-3.5 w-3.5 transition-colors",
-                      noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
-                    )}
-                  />
-                  <span className={cn(
-                    "text-xs",
-                    noMediaAvailable ? "text-warning font-medium" : "text-muted-foreground"
-                  )}>
-                    No es posible obtener archivos multimedia
-                  </span>
-                </div>
-              )}
             </div>
           );
         })}

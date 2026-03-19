@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Trash2, Loader2, X, Play } from "lucide-react";
+import { Camera, Trash2, Loader2, X, Play, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useServices } from "@/hooks/useServices";
+import type { Service } from "@/types/urbango";
 
 interface MediaFile {
   id: string;
@@ -20,12 +23,16 @@ interface MediaFile {
 }
 
 interface Props {
-  serviceId: string;
+  service: Service;
+  readOnly?: boolean;
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-export default function ServiceMediaUpload({ serviceId }: Props) {
+export default function ServiceMediaUpload({ service, readOnly }: Props) {
+  const serviceId = service.id;
+  const { updateService } = useServices();
+  const noMediaAvailable = service.noMediaAvailable ?? false;
   const [media, setMedia] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -124,13 +131,43 @@ export default function ServiceMediaUpload({ serviceId }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const handleToggleNoMedia = async () => {
+    if (readOnly) return;
+    await updateService(service.id, { no_media_available: !noMediaAvailable });
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Camera className="w-4 h-4 text-muted-foreground" />
-          Archivos Multimedia
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Camera className="w-4 h-4 text-muted-foreground" />
+            Archivos Multimedia
+          </CardTitle>
+          <div
+            className={cn(
+              "flex items-center gap-2",
+              !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
+            )}
+            onClick={handleToggleNoMedia}
+          >
+            <Checkbox
+              checked={noMediaAvailable}
+              onCheckedChange={handleToggleNoMedia}
+              disabled={readOnly}
+              className={cn(
+                "h-3.5 w-3.5 transition-colors",
+                noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+              )}
+            />
+            <span className={cn(
+              "text-xs",
+              noMediaAvailable ? "text-warning font-medium" : "text-muted-foreground"
+            )}>
+              No es posible obtener archivos multimedia
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Upload zone */}
