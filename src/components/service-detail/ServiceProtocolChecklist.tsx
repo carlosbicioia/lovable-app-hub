@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useServices } from "@/hooks/useServices";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   service: Service;
