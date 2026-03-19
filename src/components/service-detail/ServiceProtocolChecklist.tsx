@@ -66,7 +66,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   }, [mediaCount, noMediaAvailable, checksLoading]);
 
   const handleToggleNoMedia = async () => {
-    if (readOnly || !isAdmin) return;
+    if (readOnly) return;
     await updateService(service.id, { no_media_available: !noMediaAvailable });
   };
 
