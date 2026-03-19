@@ -38,7 +38,6 @@ export default function TvDashboard() {
 
   const stats = useMemo(() => {
     const pendingContact = services.filter(s => s.status === "Pendiente_Contacto").length;
-    const pendingAssign = services.filter(s => s.status === "Pte_Asignacion").length;
     const assigned = services.filter(s => s.status === "Asignado").length;
     const scheduled = services.filter(s => s.status === "Agendado").length;
     const inProgress = services.filter(s => s.status === "En_Curso").length;
@@ -57,7 +56,7 @@ export default function TvDashboard() {
 
     return {
       total: services.length,
-      pendingContact, pendingAssign, assigned, scheduled, inProgress, finalized, settled, urgent,
+      pendingContact, assigned, scheduled, inProgress, finalized, settled, urgent,
       totalBudgeted, ovPendiente, ovLiquidada,
       avgNps, activeOperators,
       clientCount: clients.length,
@@ -75,7 +74,6 @@ export default function TvDashboard() {
 
   const statusCards = [
     { label: "Pte. Contacto", value: stats.pendingContact, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    { label: "Pte. Asignación", value: stats.pendingAssign, icon: UserPlus, color: "text-info", bg: "bg-info/10" },
     { label: "Asignado", value: stats.assigned, icon: UserCheck, color: "text-foreground", bg: "bg-muted" },
     { label: "Agendado", value: stats.scheduled, icon: Wrench, color: "text-primary", bg: "bg-primary/10" },
     { label: "En Curso", value: stats.inProgress, icon: TrendingUp, color: "text-info", bg: "bg-info/10" },
