@@ -325,7 +325,7 @@ export default function BulkImportTab() {
           <CardTitle className="text-base flex items-center gap-2">
             <Upload className="w-4 h-4 text-primary" /> Importación masiva de datos
           </CardTitle>
-          <CardDescription>Sube un archivo CSV para importar proveedores, clientes, artículos o colaboradores de forma masiva</CardDescription>
+          <CardDescription>Sube un archivo CSV para importar operarios, proveedores, clientes, artículos o colaboradores de forma masiva</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
