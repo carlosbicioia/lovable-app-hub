@@ -40,6 +40,13 @@ export interface DbOperator {
   costArticleStandardHourId: string | null;
   costArticleAppHourId: string | null;
   costArticleUrgencyHourId: string | null;
+  // Urgency pricing
+  costArticleSalidaId: string | null;
+  costArticleDiaGuardiaId: string | null;
+  costArticleHoraGuardiaId: string | null;
+  articleSalidaId: string | null;
+  articleDiaGuardiaId: string | null;
+  articleHoraGuardiaId: string | null;
   monthlyRevenue: { month: string; revenue: number; services: number }[];
 }
 
