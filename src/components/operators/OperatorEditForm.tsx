@@ -145,9 +145,13 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           certifications: form.certifications,
           photo: photoUrl,
           branch_id: form.branch_id || null,
+          operator_type: form.operator_type,
           article_standard_hour_id: form.article_standard_hour_id || null,
           article_app_hour_id: form.article_app_hour_id || null,
           article_urgency_hour_id: form.article_urgency_hour_id || null,
+          cost_article_standard_hour_id: form.cost_article_standard_hour_id || null,
+          cost_article_app_hour_id: form.cost_article_app_hour_id || null,
+          cost_article_urgency_hour_id: form.cost_article_urgency_hour_id || null,
         })
         .eq("id", operator.id);
 
