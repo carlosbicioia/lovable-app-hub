@@ -724,7 +724,8 @@ export default function ServiceCreate() {
                   <Switch checked={diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" />
                   <Label htmlFor="diagnosis" className="text-sm font-normal">Diagnóstico completado</Label>
                 </div>
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Budget section when "Presupuesto" is selected */}
