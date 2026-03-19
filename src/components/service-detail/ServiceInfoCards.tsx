@@ -270,18 +270,12 @@ export default function ServiceInfoCards({ service }: Props) {
               <div key={step.key} className="flex items-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={() => {
-                        if (!isLocked && step.key !== service.status) handleStatusChange(step.key);
-                      }}
-                      disabled={isLocked}
+                    <div
                       className={cn(
                         "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap",
                         isCurrent && "bg-primary text-primary-foreground shadow-md",
                         isPast && "bg-success/15 text-success",
                         isFuture && "bg-muted text-muted-foreground",
-                        !isLocked && !isCurrent && "hover:bg-muted/80 cursor-pointer",
-                        isLocked && "cursor-not-allowed opacity-60"
                       )}
                     >
                       <span className={cn(
@@ -294,7 +288,7 @@ export default function ServiceInfoCards({ service }: Props) {
                       </span>
                       <span className="hidden sm:inline">{step.label}</span>
                       <span className="sm:hidden">{step.short}</span>
-                    </button>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs max-w-[220px]">
                     <p className="font-medium">{step.label}</p>
