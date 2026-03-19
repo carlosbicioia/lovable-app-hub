@@ -275,7 +275,7 @@ export default function ServiceDetail() {
           </TabsList>
 
           {/* Protocol breadcrumb - visible across all tabs, hidden for urgent services */}
-          {!isUrgent && <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />}
+          {!isUrgent && <ProtocolBreadcrumb service={service} readOnly={isFinalized} />}
 
           {/* Tab 1: RESUMEN */}
           <TabsContent value="overview" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
