@@ -275,6 +275,9 @@ export default function ServiceDetail() {
             </TabsTrigger>
           </TabsList>
 
+          {/* Status pipeline - read-only, shows service lifecycle */}
+          <ServiceStatusPipeline service={service} />
+
           {/* Protocol breadcrumb - visible across all tabs, hidden for urgent services */}
           {!isUrgent && <ProtocolBreadcrumb service={service} readOnly={isFinalized} />}
 
