@@ -449,7 +449,7 @@ export default function ServiceCreate() {
     try {
       const serviceId = pendingServiceId ?? await generateServiceId();
       const status = andSchedule ? "Agendado" : "Pendiente_Contacto";
-      const payload = buildServicePayload(serviceId, status);
+      const payload = await buildServicePayload(serviceId, status);
       if (andSchedule) payload.contacted_at = new Date().toISOString();
 
       if (pendingServiceId) {
