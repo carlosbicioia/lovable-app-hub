@@ -66,7 +66,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   }, [mediaCount, noMediaAvailable, checksLoading]);
 
   const handleToggleNoMedia = async () => {
-    if (readOnly || !isAdmin) return;
+    if (readOnly) return;
     await updateService(service.id, { no_media_available: !noMediaAvailable });
   };
 
@@ -176,14 +176,14 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                 <div
                   className={cn(
                     "ml-7 mt-1.5 flex items-center gap-2",
-                    !readOnly && isAdmin ? "cursor-pointer" : "opacity-60 cursor-default"
+                    !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
                   )}
                   onClick={handleToggleNoMedia}
                 >
                   <Checkbox
                     checked={noMediaAvailable}
                     onCheckedChange={handleToggleNoMedia}
-                    disabled={readOnly || !isAdmin}
+                    disabled={readOnly}
                     className={cn(
                       "h-3.5 w-3.5 transition-colors",
                       noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
