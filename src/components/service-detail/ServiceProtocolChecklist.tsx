@@ -23,7 +23,6 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
   const [mediaCount, setMediaCount] = useState<number | null>(null);
-  const [mediaCount, setMediaCount] = useState<number | null>(null);
 
   const noMediaAvailable = service.noMediaAvailable ?? false;
 
