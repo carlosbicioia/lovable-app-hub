@@ -288,7 +288,7 @@ export default function ServiceInfoCards({ service }: Props) {
                       </span>
                       <span className="hidden sm:inline">{step.label}</span>
                       <span className="sm:hidden">{step.short}</span>
-                    </button>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs max-w-[220px]">
                     <p className="font-medium">{step.label}</p>
