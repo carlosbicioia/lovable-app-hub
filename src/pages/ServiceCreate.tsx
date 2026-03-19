@@ -92,10 +92,21 @@ export default function ServiceCreate() {
   const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
   const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
 
+  const isUrgent = urgency === "24h" || urgency === "Inmediato";
+
   const handleServiceTypeChange = (v: string) => {
+    if (isUrgent) return; // Block change for urgent services
     setServiceType(v as ServiceType);
     if (v === "Presupuesto") {
       setShowBudgetPrompt(true);
+    }
+  };
+
+  // When urgency changes to urgent, force Reparación_Directa
+  const handleUrgencyChange = (v: string) => {
+    setUrgency(v as UrgencyLevel);
+    if (v === "24h" || v === "Inmediato") {
+      setServiceType("Reparación_Directa");
     }
   };
 
