@@ -137,6 +137,10 @@ export interface Service {
     signedBy?: string | null;
     assistanceServiceNumber?: string;
     noMediaAvailable?: boolean;
+    createdByEmail?: string;
+    createdByName?: string;
+    managedByEmail?: string;
+    managedByName?: string;
   }
 
 export type OperatorStatus = "Activo" | "Inactivo" | "Vacaciones" | "Baja";
