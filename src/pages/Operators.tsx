@@ -343,7 +343,7 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
 }
 
 // ─── OPERATOR DETAIL ───────────────────────────────────────
-function OperatorDetail({ operator: initialOperator, onBack }: { operator: Operator; onBack: () => void }) {
+function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; onBack: () => void }) {
   const { data: allOperators = [] } = useOperators();
   // Use fresh data from query if available
   const operator = allOperators.find((o) => o.id === initialOperator.id) ?? initialOperator;
