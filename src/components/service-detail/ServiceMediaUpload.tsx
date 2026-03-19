@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Trash2, Loader2, X, Play } from "lucide-react";
+import { Camera, Trash2, Loader2, X, Play, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useServices } from "@/hooks/useServices";
+import type { Service } from "@/types/urbango";
 
 interface MediaFile {
   id: string;
@@ -20,12 +23,16 @@ interface MediaFile {
 }
 
 interface Props {
-  serviceId: string;
+  service: Service;
+  readOnly?: boolean;
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-export default function ServiceMediaUpload({ serviceId }: Props) {
+export default function ServiceMediaUpload({ service, readOnly }: Props) {
+  const serviceId = service.id;
+  const { updateService } = useServices();
+  const noMediaAvailable = service.noMediaAvailable ?? false;
   const [media, setMedia] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
