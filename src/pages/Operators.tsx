@@ -9,6 +9,7 @@ import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
 import { useArticles } from "@/hooks/useArticles";
+import { useVehicles } from "@/hooks/useVehicles";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
@@ -342,7 +343,7 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
 }
 
 // ─── OPERATOR DETAIL ───────────────────────────────────────
-function OperatorDetail({ operator: initialOperator, onBack }: { operator: Operator; onBack: () => void }) {
+function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; onBack: () => void }) {
   const { data: allOperators = [] } = useOperators();
   // Use fresh data from query if available
   const operator = allOperators.find((o) => o.id === initialOperator.id) ?? initialOperator;
@@ -352,6 +353,8 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: articlesData = [] } = useArticles();
+  const { data: vehicles = [] } = useVehicles();
+  const assignedVehicle = vehicles.find((v) => v.operatorId === operator.id);
 
   const getSpecIcon = (name: string) => {
     const sp = (dbSpecialties ?? []).find(s => s.name === name);
@@ -468,8 +471,8 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                   <Pencil className="w-4 h-4" /> Editar
                 </Button>
               </div>
+              {/* Row 1: Personal + Professional */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Personal data */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Datos personales</CardTitle>
@@ -477,21 +480,25 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                   <CardContent className="space-y-3">
                     <InfoRow icon={<Mail className="w-4 h-4" />} label="Email" value={operator.email} />
                     <InfoRow icon={<Phone className="w-4 h-4" />} label="Teléfono" value={operator.phone} />
-                    <InfoRow icon={<MapPin className="w-4 h-4" />} label="Dirección" value={`${operator.address}, ${operator.city}`} />
-                    <InfoRow icon={<ShieldCheck className="w-4 h-4" />} label="DNI" value={operator.dni} />
-                    <InfoRow icon={<CalendarDays className="w-4 h-4" />} label="Alta" value={format(new Date(operator.hireDate), "d MMM yyyy", { locale: es })} />
-                    {operator.vehiclePlate && (
-                      <InfoRow icon={<Car className="w-4 h-4" />} label="Vehículo" value={operator.vehiclePlate} />
+                    <InfoRow icon={<MapPin className="w-4 h-4" />} label="Dirección" value={`${operator.address}${operator.streetNumber ? ` ${operator.streetNumber}` : ''}, ${operator.city}`} />
+                    <InfoRow icon={<ShieldCheck className="w-4 h-4" />} label="DNI / NIE" value={operator.dni} />
+                    {operator.hireDate && (
+                      <InfoRow icon={<CalendarDays className="w-4 h-4" />} label="Fecha de alta" value={format(new Date(operator.hireDate), "d MMM yyyy", { locale: es })} />
                     )}
                   </CardContent>
                 </Card>
 
-                {/* Professional */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Datos profesionales</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Tipo</span>
+                      <Badge variant={operator.operatorType === "Subcontratado" ? "secondary" : "default"} className="text-xs">
+                        {operator.operatorType}
+                      </Badge>
+                    </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Clústeres asignados</p>
                       <div className="flex gap-1 flex-wrap">
@@ -500,43 +507,111 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Certificaciones</p>
-                      <div className="flex gap-1 flex-wrap">
-                        {operator.certifications.map((cert) => (
-                          <Badge key={cert} variant="outline" className="text-xs">
-                            <ShieldCheck className="w-3 h-3 mr-1" /> {cert}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Tarifas horarias */}
-                    {(('articleStandardHourId' in operator && operator.articleStandardHourId) || ('articleAppHourId' in operator && operator.articleAppHourId) || ('articleUrgencyHourId' in operator && operator.articleUrgencyHourId)) && (
+                    {operator.certifications.length > 0 && (
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Tarifas horarias</p>
-                        <div className="space-y-1">
-                          {([
-                            { id: ('articleStandardHourId' in operator ? operator.articleStandardHourId : null) as string | null, label: "Estándar" },
-                            { id: ('articleAppHourId' in operator ? operator.articleAppHourId : null) as string | null, label: "APP" },
-                            { id: ('articleUrgencyHourId' in operator ? operator.articleUrgencyHourId : null) as string | null, label: "Urgencia" },
-                          ] as const).map(({ id, label }) => {
-                            if (!id) return null;
-                            const art = articlesData.find((a) => a.id === id);
-                            return art ? (
-                              <div key={label} className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">{label}</span>
-                                <span className="font-medium">{art.title} — €{art.costPrice.toFixed(2)}/h</span>
-                              </div>
-                            ) : null;
-                          })}
+                        <p className="text-xs text-muted-foreground mb-1">Certificaciones</p>
+                        <div className="flex gap-1 flex-wrap">
+                          {operator.certifications.map((cert) => (
+                            <Badge key={cert} variant="outline" className="text-xs">
+                              <ShieldCheck className="w-3 h-3 mr-1" /> {cert}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     )}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Acceso app</p>
-                      <p className="text-sm text-foreground">{operator.email}</p>
-                      <p className="text-xs text-muted-foreground">Contraseña gestionada vía sistema de autenticación</p>
-                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Row 2: Vehicle + Pricing */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                {/* Vehicle */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Car className="w-4 h-4" /> Vehículo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {assignedVehicle ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground text-xs">Matrícula</span>
+                          <span className="font-medium">{assignedVehicle.plate}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground text-xs">Marca / Modelo</span>
+                          <span className="font-medium">{assignedVehicle.brand} {assignedVehicle.model}</span>
+                        </div>
+                        {assignedVehicle.fuelType && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground text-xs">Combustible</span>
+                            <span className="font-medium">{assignedVehicle.fuelType}</span>
+                          </div>
+                        )}
+                        {assignedVehicle.mileage > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground text-xs">Kilometraje</span>
+                            <span className="font-medium">{assignedVehicle.mileage.toLocaleString()} km</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sin vehículo asignado</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Cost Pricing */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Precios de coste</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {([
+                      { id: operator.costArticleStandardHourId, label: "Estándar" },
+                      { id: operator.costArticleAppHourId, label: "APP" },
+                      { id: operator.costArticleUrgencyHourId, label: "Urgencia" },
+                    ] as const).map(({ id, label }) => {
+                      const art = id ? articlesData.find((a) => a.id === id) : null;
+                      return (
+                        <div key={label} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground text-xs">{label}</span>
+                          {art ? (
+                            <span className="font-medium">€{art.costPrice.toFixed(2)}/h</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+
+                {/* Sale Pricing */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Precios de venta (PVP)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {([
+                      { id: operator.articleStandardHourId, label: "Estándar" },
+                      { id: operator.articleAppHourId, label: "APP" },
+                      { id: operator.articleUrgencyHourId, label: "Urgencia" },
+                    ] as const).map(({ id, label }) => {
+                      const art = id ? articlesData.find((a) => a.id === id) : null;
+                      const sp = art ? (art.hasKnownPvp && art.pvp !== null ? art.pvp : art.costPrice * (1 + (art.margin ?? 0) / 100)) : null;
+                      return (
+                        <div key={label} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground text-xs">{label}</span>
+                          {sp !== null ? (
+                            <span className="font-medium">€{sp.toFixed(2)}/h</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </Card>
               </div>
