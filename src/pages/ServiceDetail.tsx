@@ -84,6 +84,7 @@ export default function ServiceDetail() {
   const linkedBudget = budgets.find((b) => b.serviceId === id);
   const linkedOrders = allPurchaseOrders;
   const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
+  const isUrgent = service?.urgency === "24h" || service?.urgency === "Inmediato";
 
   if (servicesLoading) {
     return (
