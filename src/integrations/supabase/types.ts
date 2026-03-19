@@ -1710,6 +1710,36 @@ export type Database = {
         }
         Relationships: []
       }
+      service_timeline_events: {
+        Row: {
+          author_email: string
+          author_id: string | null
+          comment: string
+          created_at: string
+          event_date: string
+          id: string
+          service_id: string
+        }
+        Insert: {
+          author_email?: string
+          author_id?: string | null
+          comment?: string
+          created_at?: string
+          event_date: string
+          id?: string
+          service_id: string
+        }
+        Update: {
+          author_email?: string
+          author_id?: string | null
+          comment?: string
+          created_at?: string
+          event_date?: string
+          id?: string
+          service_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           address: string | null
