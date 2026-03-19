@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import type { Service, TimelineEvent } from "@/types/urbango";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

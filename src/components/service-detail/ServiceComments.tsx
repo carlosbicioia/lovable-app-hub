@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Eye, Lock, Save, Loader2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
