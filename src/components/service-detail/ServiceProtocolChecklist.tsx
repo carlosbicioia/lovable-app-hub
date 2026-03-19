@@ -17,7 +17,7 @@ interface Props {
 }
 
 /** Step IDs that are auto-computed and cannot be toggled manually */
-const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
+const AUTO_COMPUTED_STEPS = new Set(["diagnosis", "operator", "budget", "servicio_realizado"]);
 
 export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, setItem, loading: checksLoading } = useProtocolChecks(service.id);
