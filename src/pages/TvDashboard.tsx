@@ -56,7 +56,7 @@ export default function TvDashboard() {
 
     return {
       total: services.length,
-      pendingContact, pendingAssign, assigned, scheduled, inProgress, finalized, settled, urgent,
+      pendingContact, assigned, scheduled, inProgress, finalized, settled, urgent,
       totalBudgeted, ovPendiente, ovLiquidada,
       avgNps, activeOperators,
       clientCount: clients.length,
