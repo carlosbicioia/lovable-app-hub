@@ -84,6 +84,7 @@ export default function ServiceDetail() {
   const linkedBudget = budgets.find((b) => b.serviceId === id);
   const linkedOrders = allPurchaseOrders;
   const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
+  const isUrgent = service?.urgency === "24h" || service?.urgency === "Inmediato";
 
   if (servicesLoading) {
     return (
@@ -275,8 +276,8 @@ export default function ServiceDetail() {
 
           {/* Tab 1: RESUMEN */}
           <TabsContent value="overview" forceMount className="space-y-4 mt-3 data-[state=inactive]:hidden">
-            {/* Protocol breadcrumb */}
-            <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />
+            {/* Protocol breadcrumb - hidden for urgent services */}
+            {!isUrgent && <ProtocolBreadcrumb serviceId={service.id} readOnly={isFinalized} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-4">
