@@ -40,8 +40,8 @@ const CONFIRM_STATUSES = ["Finalizado", "Liquidado"];
 const STATUS_PIPELINE: { key: string; label: string; short: string; description: string }[] = [
   { key: "Pte_Aceptacion", label: "Pte. Aceptación", short: "Pte.Ac", description: "El servicio ha sido recibido y está pendiente de ser aceptado por el gestor." },
   { key: "Pendiente_Contacto", label: "Pte. Contacto", short: "Pte.C", description: "El servicio está aceptado y se debe contactar al cliente para coordinar." },
-  { key: "Asignado", label: "Asignado", short: "Asig.", description: "Hay un técnico asignado al servicio, pendiente de agendar fecha." },
   { key: "Agendado", label: "Agendado", short: "Agend.", description: "El servicio tiene fecha y hora programados. Pasará a En Curso automáticamente." },
+  { key: "Asignado", label: "Asignado", short: "Asig.", description: "Hay un técnico asignado al servicio, pendiente de agendar fecha." },
   { key: "En_Curso", label: "En Curso", short: "Curso", description: "El técnico está realizando el trabajo. Transición automática al llegar la hora." },
   { key: "Finalizado", label: "Finalizado", short: "Final.", description: "El trabajo ha terminado. Se genera la orden de venta y queda en solo lectura." },
   { key: "Liquidado", label: "Liquidado", short: "Liq.", description: "El servicio está cobrado y cerrado. Acción irreversible." },
