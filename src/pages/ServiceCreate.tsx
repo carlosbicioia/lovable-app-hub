@@ -487,7 +487,7 @@ export default function ServiceCreate() {
         title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
         description: andSchedule
           ? `El servicio ${serviceId} ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
-          : `El servicio ${serviceId} se ha registrado como Pendiente de Contacto.`,
+          : `El servicio ${serviceId} se ha registrado como Pendiente de Aceptación.`,
       });
       navigate("/servicios");
     } catch (err: any) {
