@@ -168,9 +168,21 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const [optimisticNoMedia, setOptimisticNoMedia] = useState<boolean | null>(null);
+  const effectiveNoMedia = optimisticNoMedia !== null ? optimisticNoMedia : noMediaAvailable;
+
+  // Sync optimistic state when real data catches up
+  useEffect(() => {
+    if (optimisticNoMedia !== null && noMediaAvailable === optimisticNoMedia) {
+      setOptimisticNoMedia(null);
+    }
+  }, [noMediaAvailable, optimisticNoMedia]);
+
   const handleToggleNoMedia = async () => {
     if (readOnly) return;
-    await updateService(service.id, { no_media_available: !noMediaAvailable });
+    const newValue = !effectiveNoMedia;
+    setOptimisticNoMedia(newValue);
+    await updateService(service.id, { no_media_available: newValue });
   };
 
   return (
