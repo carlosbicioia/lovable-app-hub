@@ -336,7 +336,7 @@ export default function ServiceCreate() {
     setSaving(true);
     try {
       const newId = pendingServiceId ?? await generateServiceId();
-      const payload = buildServicePayload(newId);
+      const payload = await buildServicePayload(newId);
 
       if (pendingServiceId) {
         // Update existing
