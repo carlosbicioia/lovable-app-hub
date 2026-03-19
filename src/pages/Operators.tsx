@@ -9,6 +9,7 @@ import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
 import { useArticles } from "@/hooks/useArticles";
+import { useVehicles } from "@/hooks/useVehicles";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
