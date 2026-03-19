@@ -85,6 +85,7 @@ function mapDbToService(row: any, opsMap: Map<string, ServiceOperatorRef[]>): Se
     signedAt: row.signed_at ?? null,
     signedBy: row.signed_by ?? null,
     assistanceServiceNumber: row.assistance_service_number ?? "",
+    noMediaAvailable: row.no_media_available ?? false,
     internalNotes: row.internal_notes ?? "",
     collaboratorNotes: row.collaborator_notes ?? "",
     media: [],
