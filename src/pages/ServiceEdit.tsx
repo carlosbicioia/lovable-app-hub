@@ -58,6 +58,19 @@ export default function ServiceEdit() {
       .then(({ data }) => setHasBudget((data?.length ?? 0) > 0));
   }, [id]);
 
+  // ── All state ──
+  const [clientId, setClientId] = useState("");
+  const [clientOpen, setClientOpen] = useState(false);
+  const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
+  const [collaboratorId, setCollaboratorId] = useState("");
+  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
+  const [status, setStatus] = useState<ServiceStatus>("Pendiente_Contacto");
+  const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
+  const [urgency, setUrgency] = useState<UrgencyLevel>("Estándar");
+  const [serviceType, setServiceType] = useState<ServiceType>("Reparación_Directa");
+  const [serviceCategory, setServiceCategory] = useState<"Correctivo" | "Plan_Preventivo">("Correctivo");
+  const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
+
   const isUrgent = urgency === "24h" || urgency === "Inmediato";
 
   const handleServiceTypeChange = (v: string) => {
@@ -78,18 +91,6 @@ export default function ServiceEdit() {
       setServiceType("Reparación_Directa");
     }
   };
-  // ── All state ──
-  const [clientId, setClientId] = useState("");
-  const [clientOpen, setClientOpen] = useState(false);
-  const [origin, setOrigin] = useState<ServiceOrigin>("Directo");
-  const [collaboratorId, setCollaboratorId] = useState("");
-  const [assistanceServiceNumber, setAssistanceServiceNumber] = useState("");
-  const [status, setStatus] = useState<ServiceStatus>("Pendiente_Contacto");
-  const [specialty, setSpecialty] = useState<Specialty>("Fontanería/Agua");
-  const [urgency, setUrgency] = useState<UrgencyLevel>("Estándar");
-  const [serviceType, setServiceType] = useState<ServiceType>("Reparación_Directa");
-  const [serviceCategory, setServiceCategory] = useState<"Correctivo" | "Plan_Preventivo">("Correctivo");
-  const [claimStatus, setClaimStatus] = useState<ClaimStatus>("Abierto");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
   const [streetNumber, setStreetNumber] = useState("");
