@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardCheck, Lock, AlertTriangle } from "lucide-react";
+import { ClipboardCheck, Lock } from "lucide-react";
 import type { Service } from "@/types/urbango";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
