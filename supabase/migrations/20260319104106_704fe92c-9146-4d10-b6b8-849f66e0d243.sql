@@ -1,0 +1,1 @@
+ALTER TABLE public.services ADD COLUMN no_media_available boolean NOT NULL DEFAULT false;

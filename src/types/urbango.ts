@@ -136,6 +136,7 @@ export interface Service {
     signedAt?: string | null;
     signedBy?: string | null;
     assistanceServiceNumber?: string;
+    noMediaAvailable?: boolean;
   }
 
 export type OperatorStatus = "Activo" | "Inactivo" | "Vacaciones" | "Baja";

@@ -1734,6 +1734,7 @@ export type Database = {
           floor: string
           id: string
           internal_notes: string
+          no_media_available: boolean
           nps: number | null
           operator_id: string | null
           operator_name: string | null
@@ -1778,6 +1779,7 @@ export type Database = {
           floor?: string
           id: string
           internal_notes?: string
+          no_media_available?: boolean
           nps?: number | null
           operator_id?: string | null
           operator_name?: string | null
@@ -1822,6 +1824,7 @@ export type Database = {
           floor?: string
           id?: string
           internal_notes?: string
+          no_media_available?: boolean
           nps?: number | null
           operator_id?: string | null
           operator_name?: string | null
