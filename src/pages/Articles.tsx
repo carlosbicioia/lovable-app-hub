@@ -52,7 +52,7 @@ export default function Articles() {
 
   const openEdit = (a: Article) => {
     setEditing(a);
-    setForm({ title: a.title, description: a.description, category: a.category, specialty: a.specialty, costPrice: a.costPrice, hasKnownPvp: a.hasKnownPvp, pvp: a.pvp, unit: a.unit });
+    setForm({ title: a.title, description: a.description, category: a.category, specialty: a.specialty, costPrice: a.costPrice, hasKnownPvp: a.hasKnownPvp, pvp: a.pvp, unit: a.unit, margin: a.margin ?? 0 });
     setDialogOpen(true);
   };
 
