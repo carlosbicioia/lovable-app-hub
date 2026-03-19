@@ -166,9 +166,15 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           article_standard_hour_id: form.article_standard_hour_id || null,
           article_app_hour_id: form.article_app_hour_id || null,
           article_urgency_hour_id: form.article_urgency_hour_id || null,
-          cost_article_standard_hour_id: form.cost_article_standard_hour_id || null,
+           cost_article_standard_hour_id: form.cost_article_standard_hour_id || null,
           cost_article_app_hour_id: form.cost_article_app_hour_id || null,
           cost_article_urgency_hour_id: form.cost_article_urgency_hour_id || null,
+          cost_article_salida_id: form.cost_article_salida_id || null,
+          cost_article_dia_guardia_id: form.cost_article_dia_guardia_id || null,
+          cost_article_hora_guardia_id: form.cost_article_hora_guardia_id || null,
+          article_salida_id: form.article_salida_id || null,
+          article_dia_guardia_id: form.article_dia_guardia_id || null,
+          article_hora_guardia_id: form.article_hora_guardia_id || null,
         })
         .eq("id", operator.id);
 
