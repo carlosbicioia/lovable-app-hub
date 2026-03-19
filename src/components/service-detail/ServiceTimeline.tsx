@@ -17,8 +17,8 @@ interface Props {
 export default function ServiceTimeline({ serviceId }: Props) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [newDate, setNewDate] = useState("");
-  const [newTime, setNewTime] = useState("");
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [newTime, setNewTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [newComment, setNewComment] = useState("");
   const [saving, setSaving] = useState(false);
 
