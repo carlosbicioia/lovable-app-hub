@@ -138,7 +138,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                         <TooltipTrigger asChild>
                           <Lock className="w-3 h-3 inline ml-1.5 text-muted-foreground" />
                         </TooltipTrigger>
-                        <TooltipContent>Se marca automáticamente al subir archivos multimedia</TooltipContent>
+                        <TooltipContent>Este paso se marca automáticamente</TooltipContent>
                       </Tooltip>
                     )}
                   </p>
