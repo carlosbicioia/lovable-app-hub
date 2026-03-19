@@ -652,7 +652,7 @@ export default function ServiceCreate() {
           <CardTitle className="text-base">2. Clasificación del Servicio</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Especialidad *</Label>
               <Select value={specialty} onValueChange={(v) => { setSpecialty(v as Specialty); setOperatorId(""); }}>
@@ -700,30 +700,6 @@ export default function ServiceCreate() {
                   <SelectItem value="Plan_Preventivo">Plan preventivo</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className={isUrgent ? "text-muted-foreground" : ""}>Estado reclamación</Label>
-              <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)} disabled={isUrgent}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Abierto">Abierto</SelectItem>
-                  <SelectItem value="En_Valoración">En valoración</SelectItem>
-                  <SelectItem value="Aceptado">Aceptado</SelectItem>
-                  <SelectItem value="Rechazado">Rechazado</SelectItem>
-                  <SelectItem value="Cerrado">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-              {isUrgent && (
-                <p className="text-[11px] text-muted-foreground">No aplica en urgencias</p>
-              )}
-            </div>
-
-            <div className="flex items-end gap-3 pb-1">
-              <div className="flex items-center gap-2">
-                <Switch checked={isUrgent ? false : diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" disabled={isUrgent} />
-                <Label htmlFor="diagnosis" className={cn("text-sm font-normal", isUrgent && "text-muted-foreground")}>Diagnóstico completado</Label>
-              </div>
             </div>
           </div>
 
