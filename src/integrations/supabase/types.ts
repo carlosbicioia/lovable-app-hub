@@ -944,6 +944,9 @@ export type Database = {
           address: string
           address_extra: string
           article_app_hour_id: string | null
+          article_dia_guardia_id: string | null
+          article_hora_guardia_id: string | null
+          article_salida_id: string | null
           article_standard_hour_id: string | null
           article_urgency_hour_id: string | null
           available: boolean
@@ -956,6 +959,9 @@ export type Database = {
           color: string
           completed_services: number
           cost_article_app_hour_id: string | null
+          cost_article_dia_guardia_id: string | null
+          cost_article_hora_guardia_id: string | null
+          cost_article_salida_id: string | null
           cost_article_standard_hour_id: string | null
           cost_article_urgency_hour_id: string | null
           created_at: string
@@ -986,6 +992,9 @@ export type Database = {
           address?: string
           address_extra?: string
           article_app_hour_id?: string | null
+          article_dia_guardia_id?: string | null
+          article_hora_guardia_id?: string | null
+          article_salida_id?: string | null
           article_standard_hour_id?: string | null
           article_urgency_hour_id?: string | null
           available?: boolean
@@ -998,6 +1007,9 @@ export type Database = {
           color?: string
           completed_services?: number
           cost_article_app_hour_id?: string | null
+          cost_article_dia_guardia_id?: string | null
+          cost_article_hora_guardia_id?: string | null
+          cost_article_salida_id?: string | null
           cost_article_standard_hour_id?: string | null
           cost_article_urgency_hour_id?: string | null
           created_at?: string
@@ -1028,6 +1040,9 @@ export type Database = {
           address?: string
           address_extra?: string
           article_app_hour_id?: string | null
+          article_dia_guardia_id?: string | null
+          article_hora_guardia_id?: string | null
+          article_salida_id?: string | null
           article_standard_hour_id?: string | null
           article_urgency_hour_id?: string | null
           available?: boolean
@@ -1040,6 +1055,9 @@ export type Database = {
           color?: string
           completed_services?: number
           cost_article_app_hour_id?: string | null
+          cost_article_dia_guardia_id?: string | null
+          cost_article_hora_guardia_id?: string | null
+          cost_article_salida_id?: string | null
           cost_article_standard_hour_id?: string | null
           cost_article_urgency_hour_id?: string | null
           created_at?: string
