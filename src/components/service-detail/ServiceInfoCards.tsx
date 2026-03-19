@@ -61,6 +61,8 @@ export default function ServiceInfoCards({ service }: Props) {
   const { updateService } = useServices();
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
+  const { data: appUsers = [] } = useAppUsers();
+  const gestorUsers = appUsers.filter(u => u.active && (u.role === "admin" || u.role === "gestor"));
   const createSalesOrder = useCreateSalesOrder();
   const { checkedItems: protocolChecked } = useProtocolChecks(service.id);
   const { data: protocolSteps = [] } = useEnabledProtocolSteps();
