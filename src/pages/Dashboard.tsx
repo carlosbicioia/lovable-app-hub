@@ -48,7 +48,6 @@ export default function Dashboard() {
   // Global KPIs (not filtered by date range)
   const totalServices = services.length;
   const pendingContact = services.filter((s) => s.status === "Pendiente_Contacto").length;
-  const pendingAssignment = services.filter((s) => s.status === "Pte_Asignacion").length;
   const assigned = services.filter((s) => s.status === "Asignado").length;
   const inProgress = services.filter((s) => s.status === "En_Curso").length;
   const urgent = services.filter((s) => s.urgency !== "Estándar" && !["Finalizado", "Liquidado", "Cancelado"].includes(s.status)).length;
