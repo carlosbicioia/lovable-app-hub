@@ -35,7 +35,7 @@ export default function UsersTab() {
 
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "", collaborator_id: "" });
-  const [editingUser, setEditingUser] = useState<{ id: string; full_name: string; email: string; role: string | null; collaborator_id: string | null } | null>(null);
+  const [editingUser, setEditingUser] = useState<{ id: string; auth_user_id: string | null; full_name: string; email: string; role: string | null; collaborator_id: string | null } | null>(null);
   const [editForm, setEditForm] = useState({ full_name: "", role: "", collaborator_id: "" });
   const [resetPwUser, setResetPwUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
