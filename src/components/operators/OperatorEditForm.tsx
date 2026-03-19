@@ -649,11 +649,6 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
               );
             })}
           </CardContent>
-        </Card>
-              );
-            })}
-          </CardContent>
-        </Card>
       </div>
 
       <div className="flex justify-end">
