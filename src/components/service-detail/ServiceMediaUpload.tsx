@@ -202,12 +202,12 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
               onClick={handleToggleNoMedia}
             >
               <Checkbox
-                checked={noMediaAvailable}
+                checked={effectiveNoMedia}
                 onCheckedChange={handleToggleNoMedia}
                 disabled={readOnly}
                 className={cn(
                   "h-3.5 w-3.5 transition-colors",
-                  noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+                  effectiveNoMedia ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
                 )}
               />
               <span className="text-xs text-muted-foreground">
