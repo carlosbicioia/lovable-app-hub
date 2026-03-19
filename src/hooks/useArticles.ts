@@ -82,6 +82,7 @@ export function useUpdateArticle() {
           has_known_pvp: article.hasKnownPvp,
           pvp: article.pvp,
           unit: article.unit,
+          margin: article.margin ?? 0,
         })
         .eq("id", article.id);
       if (error) throw error;
