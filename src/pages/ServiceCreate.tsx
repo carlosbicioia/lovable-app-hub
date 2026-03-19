@@ -295,7 +295,7 @@ export default function ServiceCreate() {
       collaborator_name: selectedCollab?.companyName ?? null,
       cluster_id: selectedClient?.clusterId ?? "",
       origin,
-      status: statusOverride ?? "Pendiente_Contacto",
+      status: statusOverride ?? "Pte_Aceptacion",
       urgency,
       specialty,
       service_type: serviceType,
@@ -448,7 +448,7 @@ export default function ServiceCreate() {
     setSaving(true);
     try {
       const serviceId = pendingServiceId ?? await generateServiceId();
-      const status = andSchedule ? "Agendado" : "Pendiente_Contacto";
+      const status = andSchedule ? "Agendado" : "Pte_Aceptacion";
       const payload = await buildServicePayload(serviceId, status);
       if (andSchedule) payload.contacted_at = new Date().toISOString();
 
