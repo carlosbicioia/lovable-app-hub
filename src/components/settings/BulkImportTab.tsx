@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   Upload, Download, FileSpreadsheet, CheckCircle2, AlertCircle,
   Truck, Users, Package, Handshake, Loader2, ArrowRight, ArrowLeft, X,
+  Wrench,
 } from "lucide-react";
 
 // ──────── Entity definitions ────────
@@ -23,6 +24,36 @@ interface EntityConfig {
 }
 
 const entities: EntityConfig[] = [
+  {
+    key: "operators",
+    label: "Operarios",
+    icon: <Wrench className="w-5 h-5" />,
+    table: "operators",
+    columns: [
+      { header: "id", dbField: "id", required: true },
+      { header: "nombre", dbField: "first_name", required: true },
+      { header: "apellidos", dbField: "last_name", required: true },
+      { header: "dni", dbField: "dni", required: false },
+      { header: "email", dbField: "email", required: false },
+      { header: "telefono", dbField: "phone", required: false },
+      { header: "especialidad", dbField: "specialty", required: false },
+      { header: "especialidad_secundaria", dbField: "secondary_specialty", required: false },
+      { header: "tipo", dbField: "operator_type", required: false },
+      { header: "estado", dbField: "status", required: false },
+      { header: "calle", dbField: "address", required: false },
+      { header: "numero", dbField: "street_number", required: false },
+      { header: "piso", dbField: "floor", required: false },
+      { header: "adicional", dbField: "address_extra", required: false },
+      { header: "ciudad", dbField: "city", required: false },
+      { header: "provincia", dbField: "province", required: false },
+      { header: "matricula", dbField: "vehicle_plate", required: false },
+      { header: "fecha_alta", dbField: "hire_date", required: false },
+    ],
+    sampleRows: [
+      ["OP-001", "Juan", "García López", "12345678A", "juan@empresa.es", "612345678", "Fontanería/Agua", "", "Plantilla", "Activo", "C/ Mayor", "10", "2ºA", "", "Madrid", "Madrid", "1234ABC", "2024-01-15"],
+      ["OP-002", "María", "Fernández Ruiz", "23456789B", "maria@empresa.es", "623456789", "Electricidad/Luz", "Clima", "Subcontratado", "Activo", "Av. Diagonal", "230", "", "", "Barcelona", "Barcelona", "", "2024-03-01"],
+    ],
+  },
   {
     key: "suppliers",
     label: "Proveedores",
@@ -56,10 +87,15 @@ const entities: EntityConfig[] = [
     icon: <Users className="w-5 h-5" />,
     table: "clients",
     columns: [
+      { header: "id", dbField: "id", required: true },
       { header: "nombre", dbField: "name", required: true },
+      { header: "apellidos", dbField: "last_name", required: false },
       { header: "dni", dbField: "dni", required: false },
       { header: "email", dbField: "email", required: false },
       { header: "telefono", dbField: "phone", required: false },
+      { header: "tipo_cliente", dbField: "client_type", required: false },
+      { header: "empresa", dbField: "company_name", required: false },
+      { header: "cif", dbField: "tax_id", required: false },
       { header: "calle", dbField: "address", required: false },
       { header: "numero", dbField: "street_number", required: false },
       { header: "piso", dbField: "floor", required: false },
@@ -67,11 +103,12 @@ const entities: EntityConfig[] = [
       { header: "codigo_postal", dbField: "postal_code", required: false },
       { header: "ciudad", dbField: "city", required: false },
       { header: "provincia", dbField: "province", required: false },
+      { header: "origen", dbField: "origin", required: false },
       { header: "plan", dbField: "plan_type", required: false },
     ],
     sampleRows: [
-      ["María García López", "12345678A", "maria@email.com", "612345678", "C/ Gran Vía", "45", "2ºA", "", "28013", "Madrid", "Madrid", "Agua"],
-      ["Carlos Fernández Ruiz", "23456789B", "carlos@email.com", "623456789", "Av. Diagonal", "230", "", "Esc. B", "08018", "Barcelona", "Barcelona", "Clima"],
+      ["CLI-001", "María", "García López", "12345678A", "maria@email.com", "612345678", "Particular", "", "", "C/ Gran Vía", "45", "2ºA", "", "28013", "Madrid", "Madrid", "Directo", "Agua"],
+      ["CLI-002", "Empresa ABC", "", "B87654321", "info@empresaabc.es", "934567890", "Empresa", "Empresa ABC SL", "B87654321", "Av. Diagonal", "230", "", "Esc. B", "08018", "Barcelona", "Barcelona", "B2B", "Clima"],
     ],
   },
   {
@@ -80,17 +117,20 @@ const entities: EntityConfig[] = [
     icon: <Package className="w-5 h-5" />,
     table: "articles",
     columns: [
+      { header: "id", dbField: "id", required: true },
       { header: "titulo", dbField: "title", required: true },
       { header: "descripcion", dbField: "description", required: false },
       { header: "categoria", dbField: "category", required: false },
       { header: "especialidad", dbField: "specialty", required: false },
       { header: "precio_coste", dbField: "cost_price", required: true },
+      { header: "pvp_conocido", dbField: "has_known_pvp", required: false },
       { header: "pvp", dbField: "pvp", required: false },
+      { header: "margen", dbField: "margin", required: false },
       { header: "unidad", dbField: "unit", required: false },
     ],
     sampleRows: [
-      ["Tubería cobre 22mm", "Tubería de cobre para agua, por metro lineal", "Material", "Fontanería/Agua", "14.25", "17.95", "m"],
-      ["Hora fontanero", "Mano de obra oficial fontanero", "Mano_de_Obra", "Fontanería/Agua", "35.00", "", "h"],
+      ["ART-001", "Tubería cobre 22mm", "Tubería de cobre para agua, por metro lineal", "Material", "Fontanería/Agua", "14.25", "si", "17.95", "0", "m"],
+      ["ART-002", "Hora fontanero", "Mano de obra oficial fontanero", "Mano_de_Obra", "Fontanería/Agua", "35.00", "no", "", "30", "h"],
     ],
   },
   {
@@ -105,14 +145,24 @@ const entities: EntityConfig[] = [
       { header: "email", dbField: "email", required: false },
       { header: "telefono", dbField: "phone", required: false },
       { header: "contacto", dbField: "contact_person", required: false },
+      { header: "cif", dbField: "tax_id", required: false },
+      { header: "calle", dbField: "address", required: false },
+      { header: "numero", dbField: "street_number", required: false },
+      { header: "piso", dbField: "floor", required: false },
+      { header: "adicional", dbField: "address_extra", required: false },
+      { header: "ciudad", dbField: "city", required: false },
+      { header: "provincia", dbField: "province", required: false },
+      { header: "codigo_postal", dbField: "postal_code", required: false },
+      { header: "web", dbField: "website", required: false },
+      { header: "comision", dbField: "commission_rate", required: false },
+      { header: "notas", dbField: "notes", required: false },
     ],
     sampleRows: [
-      ["COL-001", "Fincas Reunidas SL", "Administrador", "info@fincasreunidas.es", "911234567", "Antonio Pérez"],
-      ["COL-002", "InmoGest BCN", "Corredor", "contacto@inmogestbcn.es", "932345678", "Montse Vila"],
+      ["COL-001", "Fincas Reunidas SL", "Administrador", "info@fincasreunidas.es", "911234567", "Antonio Pérez", "B12345678", "C/ Mayor", "5", "1ºA", "", "Madrid", "Madrid", "28001", "www.fincasreunidas.es", "10", "Colaborador principal"],
+      ["COL-002", "InmoGest BCN", "Corredor", "contacto@inmogestbcn.es", "932345678", "Montse Vila", "B87654321", "Av. Diagonal", "100", "", "", "Barcelona", "Barcelona", "08018", "", "15", ""],
     ],
   },
 ];
-
 // ──────── CSV helpers ────────
 function generateCsv(entity: EntityConfig): string {
   const header = entity.columns.map((c) => c.header).join(";");
@@ -228,32 +278,35 @@ export default function BulkImportTab() {
       for (const col of selectedEntity.columns) {
         let val: any = row[col.dbField] ?? "";
         // Handle numeric fields
-        if (["due_days", "cost_price", "pvp"].includes(col.dbField)) {
-          val = val ? Number(val.replace(",", ".")) : col.dbField === "due_days" ? 30 : 0;
+        if (["due_days", "cost_price", "pvp", "margin", "commission_rate"].includes(col.dbField)) {
+          val = val ? Number(String(val).replace(",", ".")) : col.dbField === "due_days" ? 30 : 0;
+        }
+        // Handle boolean fields
+        if (col.dbField === "has_known_pvp") {
+          val = ["si", "sí", "true", "1", "yes"].includes(String(val).toLowerCase().trim());
         }
         if (val !== "" || col.required) {
           obj[col.dbField] = val;
         }
       }
+      // Compute operator display name
+      if (selectedEntity.key === "operators") {
+        const fn = obj.first_name || "";
+        const ln = obj.last_name || "";
+        obj.name = `${fn} ${ln}`.trim();
+      }
       return obj;
     });
 
-    // For clients/articles we don't have a real table yet — use mock approach
-    if (selectedEntity.table === "clients" || selectedEntity.table === "articles") {
-      // These are mock-only for now
-      toast.info(`Se han preparado ${insertRows.length} ${selectedEntity.label.toLowerCase()} para importar. La tabla de ${selectedEntity.label.toLowerCase()} se creará cuando se migre de datos mock.`);
-      success = insertRows.length;
-    } else {
-      // Insert in batches of 50
-      for (let i = 0; i < insertRows.length; i += 50) {
-        const batch = insertRows.slice(i, i + 50);
-        const { error } = await supabase.from(selectedEntity.table as any).insert(batch as any);
-        if (error) {
-          console.error("Bulk insert error:", error);
-          failed += batch.length;
-        } else {
-          success += batch.length;
-        }
+    // Insert in batches of 50
+    for (let i = 0; i < insertRows.length; i += 50) {
+      const batch = insertRows.slice(i, i + 50);
+      const { error } = await supabase.from(selectedEntity.table as any).insert(batch as any);
+      if (error) {
+        console.error("Bulk insert error:", error);
+        failed += batch.length;
+      } else {
+        success += batch.length;
       }
     }
 
@@ -272,7 +325,7 @@ export default function BulkImportTab() {
           <CardTitle className="text-base flex items-center gap-2">
             <Upload className="w-4 h-4 text-primary" /> Importación masiva de datos
           </CardTitle>
-          <CardDescription>Sube un archivo CSV para importar proveedores, clientes, artículos o colaboradores de forma masiva</CardDescription>
+          <CardDescription>Sube un archivo CSV para importar operarios, proveedores, clientes, artículos o colaboradores de forma masiva</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
