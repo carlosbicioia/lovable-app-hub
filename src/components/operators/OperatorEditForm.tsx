@@ -474,9 +474,6 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                 );
               })}
             </div>
-                );
-              })}
-            </div>
           </CardContent>
         </Card>
       </div>
