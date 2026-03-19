@@ -31,7 +31,7 @@ import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import ServiceHistory from "@/components/service-detail/ServiceHistory";
 import ServiceTimeRecords from "@/components/service-detail/ServiceTimeRecords";
 import ProtocolBreadcrumb from "@/components/service-detail/ProtocolBreadcrumb";
-import ServiceStatusPipeline from "@/components/service-detail/ServiceStatusPipeline";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -275,8 +275,6 @@ export default function ServiceDetail() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Status pipeline - read-only, shows service lifecycle */}
-          <ServiceStatusPipeline service={service} />
 
           {/* Protocol breadcrumb - visible across all tabs, hidden for urgent services */}
           {!isUrgent && <ProtocolBreadcrumb service={service} readOnly={isFinalized} />}
