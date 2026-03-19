@@ -266,7 +266,7 @@ export default function ServiceSidebar({ service }: Props) {
           <Select
             value={service.serviceType}
             onValueChange={(v) => handleUpdate("service_type", v)}
-            disabled={savingField === "service_type" || !!linkedBudget || isFinalized}
+            disabled={savingField === "service_type" || !!linkedBudget || isFinalized || isUrgent}
           >
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -276,7 +276,12 @@ export default function ServiceSidebar({ service }: Props) {
               <SelectItem value="Presupuesto">Con Presupuesto</SelectItem>
             </SelectContent>
           </Select>
-          {!!linkedBudget && (
+          {isUrgent && (
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Las urgencias siempre son reparación directa.
+            </p>
+          )}
+          {!!linkedBudget && !isUrgent && (
             <p className="text-[11px] text-muted-foreground mt-2">
               No se puede cambiar el tipo mientras haya un presupuesto vinculado.
             </p>
