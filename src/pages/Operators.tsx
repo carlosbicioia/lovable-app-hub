@@ -483,9 +483,22 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
                     <InfoRow icon={<MapPin className="w-4 h-4" />} label="Dirección" value={`${operator.address}, ${operator.city}`} />
                     <InfoRow icon={<ShieldCheck className="w-4 h-4" />} label="DNI" value={operator.dni} />
                     <InfoRow icon={<CalendarDays className="w-4 h-4" />} label="Alta" value={format(new Date(operator.hireDate), "d MMM yyyy", { locale: es })} />
-                    {operator.vehiclePlate && (
+                    {operatorVehicle ? (
+                      <div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Car className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Vehículo</span>
+                        </div>
+                        <div className="ml-6 mt-1 space-y-0.5">
+                          <p className="text-sm font-medium">{operatorVehicle.brand} {operatorVehicle.model} — {operatorVehicle.plate}</p>
+                          {operatorVehicle.color && <p className="text-xs text-muted-foreground">Color: {operatorVehicle.color}</p>}
+                          {operatorVehicle.fuelType && <p className="text-xs text-muted-foreground">Combustible: {operatorVehicle.fuelType}</p>}
+                          {operatorVehicle.mileage > 0 && <p className="text-xs text-muted-foreground">Km: {operatorVehicle.mileage.toLocaleString()}</p>}
+                        </div>
+                      </div>
+                    ) : operator.vehiclePlate ? (
                       <InfoRow icon={<Car className="w-4 h-4" />} label="Vehículo" value={operator.vehiclePlate} />
-                    )}
+                    ) : null}
                   </CardContent>
                 </Card>
 
