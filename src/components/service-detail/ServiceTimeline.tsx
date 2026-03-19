@@ -56,8 +56,8 @@ export default function ServiceTimeline({ serviceId }: Props) {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["service_timeline_events", serviceId] });
-      setNewDate("");
-      setNewTime("");
+      setNewDate(new Date().toISOString().slice(0, 10));
+      setNewTime(new Date().toTimeString().slice(0, 5));
       setNewComment("");
       setShowForm(false);
       toast.success("Entrada añadida a la cronología");
