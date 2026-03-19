@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /** Step IDs that are auto-computed */
-const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
+const AUTO_COMPUTED_STEPS = new Set(["diagnosis", "operator", "budget", "servicio_realizado"]);
 
 interface Props {
   service: Service;

@@ -17,7 +17,7 @@ interface Props {
 }
 
 /** Step IDs that are auto-computed and cannot be toggled manually */
-const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
+const AUTO_COMPUTED_STEPS = new Set(["diagnosis", "operator", "budget", "servicio_realizado"]);
 
 export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, setItem, loading: checksLoading } = useProtocolChecks(service.id);
@@ -138,7 +138,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                         <TooltipTrigger asChild>
                           <Lock className="w-3 h-3 inline ml-1.5 text-muted-foreground" />
                         </TooltipTrigger>
-                        <TooltipContent>Se marca automáticamente al subir archivos multimedia</TooltipContent>
+                        <TooltipContent>Este paso se marca automáticamente</TooltipContent>
                       </Tooltip>
                     )}
                   </p>
