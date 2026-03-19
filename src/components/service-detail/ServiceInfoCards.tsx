@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2, User } from "lucide-react";
+import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2, User, Star } from "lucide-react";
 import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import DirectRepairSalesOrderDialog from "./DirectRepairSalesOrderDialog";
 import { useOperators } from "@/hooks/useOperators";
@@ -491,6 +491,28 @@ export default function ServiceInfoCards({ service }: Props) {
             </SelectContent>
           </Select>
         </div>
+
+        {/* NPS — visible only when finalized/liquidated */}
+        {(service.status === "Finalizado" || service.status === "Liquidado") && (
+          <div className="bg-card rounded-lg border border-border p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Star className="w-3 h-3 text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">NPS</span>
+            </div>
+            {service.nps != null ? (
+              <p className={cn(
+                "text-sm font-bold",
+                service.nps >= 9 ? "text-success" : service.nps >= 7 ? "text-warning" : "text-destructive"
+              )}>
+                {service.nps}/10
+              </p>
+            ) : (
+              <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-semibold bg-muted text-muted-foreground border border-border">
+                Pendiente
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Budget prompt */}
