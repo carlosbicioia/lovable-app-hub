@@ -38,6 +38,7 @@ export default function ServiceSidebar({ service }: Props) {
   const linkedBudget = budgets.find((b) => b.serviceId === service.id);
   const npsNeedsReview = service.nps !== null && service.nps < 7;
   const isFinalized = service.status === "Finalizado" || service.status === "Liquidado";
+  const isUrgent = service.urgency === "24h" || service.urgency === "Inmediato";
 
   const availableOperators = operators.filter((o) => o.status === "Activo" && o.available);
   const assignedOpIds = serviceOps.map((so) => so.operatorId);
