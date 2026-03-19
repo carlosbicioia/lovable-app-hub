@@ -131,13 +131,43 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const handleToggleNoMedia = async () => {
+    if (readOnly) return;
+    await updateService(service.id, { no_media_available: !noMediaAvailable });
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Camera className="w-4 h-4 text-muted-foreground" />
-          Archivos Multimedia
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Camera className="w-4 h-4 text-muted-foreground" />
+            Archivos Multimedia
+          </CardTitle>
+          <div
+            className={cn(
+              "flex items-center gap-2",
+              !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
+            )}
+            onClick={handleToggleNoMedia}
+          >
+            <Checkbox
+              checked={noMediaAvailable}
+              onCheckedChange={handleToggleNoMedia}
+              disabled={readOnly}
+              className={cn(
+                "h-3.5 w-3.5 transition-colors",
+                noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+              )}
+            />
+            <span className={cn(
+              "text-xs",
+              noMediaAvailable ? "text-warning font-medium" : "text-muted-foreground"
+            )}>
+              No es posible obtener archivos multimedia
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Upload zone */}
