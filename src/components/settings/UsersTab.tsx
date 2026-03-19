@@ -272,7 +272,6 @@ export default function UsersTab() {
                 if (!confirm(`¿Eliminar permanentemente a ${editingUser.full_name || editingUser.email}? Esta acción no se puede deshacer.`)) return;
                 manageUser.mutate({ userId: editingUser.auth_user_id, action: "delete" }, { onSuccess: () => setEditingUser(null) });
               }}
-              disabled={manageUser.isPending}
             >
               {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
               Eliminar
