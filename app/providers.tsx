@@ -4,10 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { AuthProvider } from "@/hooks/useAuth";
+import { AuthGuard } from "./auth-guard";
 import { useState, type ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
-  // useState so that each request gets its own QueryClient instance (avoids sharing state)
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -24,7 +25,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {children}
+        <AuthProvider>
+          <AuthGuard>{children}</AuthGuard>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
