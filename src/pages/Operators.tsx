@@ -615,6 +615,60 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Row 3: Urgency Pricing */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Precios urgencias — Coste</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {([
+                      { id: operator.costArticleSalidaId, label: "Precio salida" },
+                      { id: operator.costArticleDiaGuardiaId, label: "Día guardia" },
+                      { id: operator.costArticleHoraGuardiaId, label: "Hora guardia" },
+                    ] as const).map(({ id, label }) => {
+                      const art = id ? articlesData.find((a) => a.id === id) : null;
+                      return (
+                        <div key={label} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground text-xs">{label}</span>
+                          {art ? (
+                            <span className="font-medium">€{art.costPrice.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Precios urgencias — Venta (PVP)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {([
+                      { id: operator.articleSalidaId, label: "Precio salida" },
+                      { id: operator.articleDiaGuardiaId, label: "Día guardia" },
+                      { id: operator.articleHoraGuardiaId, label: "Hora guardia" },
+                    ] as const).map(({ id, label }) => {
+                      const art = id ? articlesData.find((a) => a.id === id) : null;
+                      const sp = art ? (art.hasKnownPvp && art.pvp !== null ? art.pvp : art.costPrice * (1 + (art.margin ?? 0) / 100)) : null;
+                      return (
+                        <div key={label} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground text-xs">{label}</span>
+                          {sp !== null ? (
+                            <span className="font-medium">€{sp.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
             </>
           )}
         </TabsContent>

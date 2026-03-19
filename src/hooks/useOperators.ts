@@ -40,6 +40,13 @@ export interface DbOperator {
   costArticleStandardHourId: string | null;
   costArticleAppHourId: string | null;
   costArticleUrgencyHourId: string | null;
+  // Urgency pricing
+  costArticleSalidaId: string | null;
+  costArticleDiaGuardiaId: string | null;
+  costArticleHoraGuardiaId: string | null;
+  articleSalidaId: string | null;
+  articleDiaGuardiaId: string | null;
+  articleHoraGuardiaId: string | null;
   monthlyRevenue: { month: string; revenue: number; services: number }[];
 }
 
@@ -83,6 +90,12 @@ function mapRow(r: any, monthlyRevenue: any[]): DbOperator {
     costArticleStandardHourId: r.cost_article_standard_hour_id ?? null,
     costArticleAppHourId: r.cost_article_app_hour_id ?? null,
     costArticleUrgencyHourId: r.cost_article_urgency_hour_id ?? null,
+    costArticleSalidaId: r.cost_article_salida_id ?? null,
+    costArticleDiaGuardiaId: r.cost_article_dia_guardia_id ?? null,
+    costArticleHoraGuardiaId: r.cost_article_hora_guardia_id ?? null,
+    articleSalidaId: r.article_salida_id ?? null,
+    articleDiaGuardiaId: r.article_dia_guardia_id ?? null,
+    articleHoraGuardiaId: r.article_hora_guardia_id ?? null,
     monthlyRevenue: monthlyRevenue
       .filter((m: any) => m.operator_id === r.id)
       .sort((a: any, b: any) => a.month.localeCompare(b.month))
