@@ -54,12 +54,10 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
     if (mediaCount === null || checksLoading) return;
     const shouldBeChecked = mediaCount > 0 || noMediaAvailable;
     const isDiagnosisChecked = checkedItems.has("diagnosis");
-    if (shouldBeChecked && !isDiagnosisChecked) {
-      toggleItem("diagnosis");
-    } else if (!shouldBeChecked && isDiagnosisChecked) {
-      toggleItem("diagnosis");
+    if (shouldBeChecked !== isDiagnosisChecked) {
+      setItem("diagnosis", shouldBeChecked);
     }
-  }, [mediaCount, noMediaAvailable, checksLoading]);
+  }, [mediaCount, noMediaAvailable, checksLoading, checkedItems, setItem]);
 
   const loading = checksLoading || stepsLoading;
 
