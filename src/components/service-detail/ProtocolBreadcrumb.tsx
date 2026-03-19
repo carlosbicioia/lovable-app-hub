@@ -3,15 +3,48 @@ import { useProtocolChecks } from "@/hooks/useProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
 import { Check, ChevronRight } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import type { Service } from "@/types/urbango";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Step IDs that are auto-computed */
+const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
 
 interface Props {
-  serviceId: string;
+  service: Service;
   readOnly?: boolean;
 }
 
-export default function ProtocolBreadcrumb({ serviceId, readOnly }: Props) {
-  const { checkedItems, toggleItem } = useProtocolChecks(serviceId);
+export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
+  const { checkedItems, toggleItem } = useProtocolChecks(service.id);
   const { data: steps = [], isLoading } = useEnabledProtocolSteps();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const noMediaAvailable = service.noMediaAvailable ?? false;
+  const [mediaCount, setMediaCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchMediaCount = async () => {
+      const { count } = await supabase
+        .from("service_media")
+        .select("id", { count: "exact", head: true })
+        .eq("service_id", service.id);
+      setMediaCount(count ?? 0);
+    };
+    fetchMediaCount();
+
+    const channel = supabase
+      .channel(`breadcrumb-media-${service.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "service_media", filter: `service_id=eq.${service.id}` },
+        () => { fetchMediaCount(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [service.id]);
 
   if (isLoading || steps.length === 0) return null;
 
@@ -33,27 +66,36 @@ export default function ProtocolBreadcrumb({ serviceId, readOnly }: Props) {
       <div className="flex items-center gap-0.5 overflow-x-auto">
         {steps.map((step, idx) => {
           const done = checkedItems.has(step.stepId);
+          const isAuto = AUTO_COMPUTED_STEPS.has(step.stepId);
+          const isDiagnosisWarning = step.stepId === "diagnosis" && noMediaAvailable && (mediaCount === 0 || mediaCount === null);
+          // Gestor cannot toggle auto-computed steps, only admin can
+          const canToggle = !readOnly && (!isAuto || isAdmin);
+
           return (
             <div key={step.stepId} className="flex items-center">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => !readOnly && toggleItem(step.stepId)}
-                    disabled={readOnly}
+                    onClick={() => canToggle && toggleItem(step.stepId)}
+                    disabled={!canToggle}
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap",
-                      done
-                        ? "bg-success/15 text-success"
-                        : "bg-muted text-muted-foreground",
-                      !readOnly && "hover:opacity-80 cursor-pointer",
-                      readOnly && "cursor-default"
+                      isDiagnosisWarning
+                        ? "bg-warning/15 text-warning"
+                        : done
+                          ? "bg-success/15 text-success"
+                          : "bg-muted text-muted-foreground",
+                      canToggle && "hover:opacity-80 cursor-pointer",
+                      !canToggle && "cursor-default"
                     )}
                   >
                     <span className={cn(
                       "w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border shrink-0",
-                      done
-                        ? "bg-success text-success-foreground border-success"
-                        : "bg-muted border-border text-muted-foreground"
+                      isDiagnosisWarning
+                        ? "bg-warning text-warning-foreground border-warning"
+                        : done
+                          ? "bg-success text-success-foreground border-success"
+                          : "bg-muted border-border text-muted-foreground"
                     )}>
                       {done ? <Check className="w-2.5 h-2.5" /> : idx + 1}
                     </span>
@@ -63,9 +105,16 @@ export default function ProtocolBreadcrumb({ serviceId, readOnly }: Props) {
                 <TooltipContent side="bottom" className="text-xs max-w-[200px]">
                   <p className="font-medium">{step.label}</p>
                   {step.description && <p className="text-muted-foreground mt-0.5">{step.description}</p>}
-                  <p className={cn("mt-0.5 font-semibold", done ? "text-success" : "text-warning")}>
-                    {done ? "✓ Completado" : "Pendiente"}
-                  </p>
+                  {isDiagnosisWarning ? (
+                    <p className="mt-0.5 font-semibold text-warning">⚠ No es posible obtener multimedia</p>
+                  ) : (
+                    <p className={cn("mt-0.5 font-semibold", done ? "text-success" : "text-warning")}>
+                      {done ? "✓ Completado" : "Pendiente"}
+                    </p>
+                  )}
+                  {isAuto && !isAdmin && (
+                    <p className="mt-0.5 text-muted-foreground">Este paso es automático</p>
+                  )}
                 </TooltipContent>
               </Tooltip>
               {idx < steps.length - 1 && (

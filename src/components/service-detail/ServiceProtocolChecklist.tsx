@@ -132,9 +132,7 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                 <div className={cn("flex-1 min-w-0", canToggle && "cursor-pointer")} onClick={() => canToggle && toggleItem(check.id)}>
                   <p className={cn(
                     "text-sm font-medium transition-colors",
-                    isDiagnosisWithNoMedia
-                      ? "text-warning"
-                      : isDone ? "text-card-foreground" : "text-muted-foreground"
+                    isDone ? "text-card-foreground" : "text-muted-foreground"
                   )}>
                     {check.label}
                     {isAutoComputed && (
