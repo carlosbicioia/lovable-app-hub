@@ -33,9 +33,13 @@ export interface DbOperator {
   avgResponseTime: number;
   lastServiceDate: string | null;
   branchId: string | null;
+  operatorType: string;
   articleStandardHourId: string | null;
   articleAppHourId: string | null;
   articleUrgencyHourId: string | null;
+  costArticleStandardHourId: string | null;
+  costArticleAppHourId: string | null;
+  costArticleUrgencyHourId: string | null;
   monthlyRevenue: { month: string; revenue: number; services: number }[];
 }
 
@@ -72,9 +76,13 @@ function mapRow(r: any, monthlyRevenue: any[]): DbOperator {
     avgResponseTime: Number(r.avg_response_time),
     lastServiceDate: r.last_service_date,
     branchId: r.branch_id ?? null,
+    operatorType: r.operator_type ?? "Plantilla",
     articleStandardHourId: r.article_standard_hour_id ?? null,
     articleAppHourId: r.article_app_hour_id ?? null,
     articleUrgencyHourId: r.article_urgency_hour_id ?? null,
+    costArticleStandardHourId: r.cost_article_standard_hour_id ?? null,
+    costArticleAppHourId: r.cost_article_app_hour_id ?? null,
+    costArticleUrgencyHourId: r.cost_article_urgency_hour_id ?? null,
     monthlyRevenue: monthlyRevenue
       .filter((m: any) => m.operator_id === r.id)
       .sort((a: any, b: any) => a.month.localeCompare(b.month))

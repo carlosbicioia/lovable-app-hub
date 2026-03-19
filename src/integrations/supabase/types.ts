@@ -955,6 +955,9 @@ export type Database = {
           cluster_ids: string[]
           color: string
           completed_services: number
+          cost_article_app_hour_id: string | null
+          cost_article_standard_hour_id: string | null
+          cost_article_urgency_hour_id: string | null
           created_at: string
           dni: string
           email: string
@@ -966,6 +969,7 @@ export type Database = {
           last_service_date: string | null
           name: string
           nps_mean: number
+          operator_type: string
           phone: string
           photo: string
           province: string
@@ -993,6 +997,9 @@ export type Database = {
           cluster_ids?: string[]
           color?: string
           completed_services?: number
+          cost_article_app_hour_id?: string | null
+          cost_article_standard_hour_id?: string | null
+          cost_article_urgency_hour_id?: string | null
           created_at?: string
           dni?: string
           email?: string
@@ -1004,6 +1011,7 @@ export type Database = {
           last_service_date?: string | null
           name?: string
           nps_mean?: number
+          operator_type?: string
           phone?: string
           photo?: string
           province?: string
@@ -1031,6 +1039,9 @@ export type Database = {
           cluster_ids?: string[]
           color?: string
           completed_services?: number
+          cost_article_app_hour_id?: string | null
+          cost_article_standard_hour_id?: string | null
+          cost_article_urgency_hour_id?: string | null
           created_at?: string
           dni?: string
           email?: string
@@ -1042,6 +1053,7 @@ export type Database = {
           last_service_date?: string | null
           name?: string
           nps_mean?: number
+          operator_type?: string
           phone?: string
           photo?: string
           province?: string
