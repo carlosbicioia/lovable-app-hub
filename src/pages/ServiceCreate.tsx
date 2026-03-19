@@ -263,7 +263,7 @@ export default function ServiceCreate() {
   };
 
   // Helper: build the service insert payload
-  const buildServicePayload = (serviceId: string, statusOverride?: string) => {
+  const buildServicePayload = async (serviceId: string, statusOverride?: string) => {
     const selectedCollab = collaborators.find((c) => c.id === collaboratorId);
     let scheduledAtIso: string | null = null;
     let scheduledEndAtIso: string | null = null;
@@ -279,6 +279,12 @@ export default function ServiceCreate() {
       d.setHours(h, m, 0, 0);
       scheduledEndAtIso = d.toISOString();
     }
+
+    // Get current user info for creator/manager
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? "";
+    const userName = user?.user_metadata?.full_name ?? userEmail;
+
     return {
       id: serviceId,
       client_id: clientId,
@@ -314,6 +320,10 @@ export default function ServiceCreate() {
       internal_notes: internalNotes,
       collaborator_notes: collaboratorNotes,
       assistance_service_number: assistanceServiceNumber,
+      created_by_email: userEmail,
+      created_by_name: userName,
+      managed_by_email: userEmail,
+      managed_by_name: userName,
     };
   };
 
@@ -326,7 +336,7 @@ export default function ServiceCreate() {
     setSaving(true);
     try {
       const newId = pendingServiceId ?? await generateServiceId();
-      const payload = buildServicePayload(newId);
+      const payload = await buildServicePayload(newId);
 
       if (pendingServiceId) {
         // Update existing
@@ -439,7 +449,7 @@ export default function ServiceCreate() {
     try {
       const serviceId = pendingServiceId ?? await generateServiceId();
       const status = andSchedule ? "Agendado" : "Pendiente_Contacto";
-      const payload = buildServicePayload(serviceId, status);
+      const payload = await buildServicePayload(serviceId, status);
       if (andSchedule) payload.contacted_at = new Date().toISOString();
 
       if (pendingServiceId) {

@@ -93,6 +93,10 @@ function mapDbToService(row: any, opsMap: Map<string, ServiceOperatorRef[]>): Se
     managerComments: [],
     timelineEvents: [],
     materials: [],
+    createdByEmail: row.created_by_email ?? "",
+    createdByName: row.created_by_name ?? "",
+    managedByEmail: row.managed_by_email ?? "",
+    managedByName: row.managed_by_name ?? "",
   };
 }
 
