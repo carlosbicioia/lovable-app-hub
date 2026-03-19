@@ -295,7 +295,7 @@ export default function ServiceCreate() {
       collaborator_name: selectedCollab?.companyName ?? null,
       cluster_id: selectedClient?.clusterId ?? "",
       origin,
-      status: statusOverride ?? "Pendiente_Contacto",
+      status: statusOverride ?? "Pte_Aceptacion",
       urgency,
       specialty,
       service_type: serviceType,
