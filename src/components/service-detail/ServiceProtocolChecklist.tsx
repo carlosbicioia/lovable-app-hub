@@ -23,7 +23,8 @@ const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
 export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
   const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
-  const { updateService } = useServices();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
   const [mediaCount, setMediaCount] = useState<number | null>(null);
 
   const noMediaAvailable = service.noMediaAvailable ?? false;
