@@ -1,41 +1,71 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Plus } from "lucide-react";
+import { Clock, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
-import type { Service, TimelineEvent } from "@/types/urbango";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
-  service: Service;
+  serviceId: string;
 }
 
-export default function ServiceTimeline({ service }: Props) {
-  const [events, setEvents] = useState<TimelineEvent[]>(service.timelineEvents ?? []);
+export default function ServiceTimeline({ serviceId }: Props) {
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [newComment, setNewComment] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const sorted = [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ["service_timeline_events", serviceId],
+    enabled: !!serviceId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_timeline_events" as any)
+        .select("*")
+        .eq("service_id", serviceId)
+        .order("event_date", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newDate || !newComment.trim()) return;
-    const dateStr = `${newDate}T${newTime || "00:00"}:00`;
-    const newEvent: TimelineEvent = {
-      id: `TE-NEW-${Date.now()}`,
-      date: dateStr,
-      comment: newComment.trim(),
-      author: "Usuario",
-    };
-    setEvents((prev) => [...prev, newEvent]);
-    setNewDate("");
-    setNewTime("");
-    setNewComment("");
-    setShowForm(false);
+    setSaving(true);
+    try {
+      const dateStr = `${newDate}T${newTime || "00:00"}:00`;
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { error } = await supabase
+        .from("service_timeline_events" as any)
+        .insert({
+          service_id: serviceId,
+          event_date: dateStr,
+          comment: newComment.trim(),
+          author_email: user?.email ?? "Usuario",
+          author_id: user?.id ?? null,
+        } as any);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["service_timeline_events", serviceId] });
+      setNewDate("");
+      setNewTime("");
+      setNewComment("");
+      setShowForm(false);
+      toast.success("Entrada añadida a la cronología");
+    } catch {
+      toast.error("Error al guardar la entrada");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -69,30 +99,41 @@ export default function ServiceTimeline({ service }: Props) {
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-              <Button size="sm" onClick={handleAdd} disabled={!newDate || !newComment.trim()}>Guardar</Button>
+              <Button size="sm" onClick={handleAdd} disabled={!newDate || !newComment.trim() || saving}>
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                Guardar
+              </Button>
             </div>
           </div>
         )}
 
-        <div className="relative">
-          <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
-          <div className="space-y-4">
-            {sorted.map((ev) => (
-              <div key={ev.id} className="flex gap-3 relative">
-                <div className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center shrink-0 z-10">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                </div>
-                <div className="flex-1 pt-1">
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(ev.date), "dd MMM yyyy · HH:mm", { locale: es })}
-                    {ev.author && <span className="ml-2 font-medium text-muted-foreground">— {ev.author}</span>}
-                  </p>
-                  <p className="text-sm text-card-foreground mt-0.5">{ev.comment}</p>
-                </div>
-              </div>
-            ))}
+        {isLoading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
-        </div>
+        ) : events.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">No hay entradas en la cronología</p>
+        ) : (
+          <div className="relative">
+            <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
+            <div className="space-y-4">
+              {events.map((ev: any) => (
+                <div key={ev.id} className="flex gap-3 relative">
+                  <div className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center shrink-0 z-10">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(ev.event_date), "dd MMM yyyy · HH:mm", { locale: es })}
+                      {ev.author_email && <span className="ml-2 font-medium text-muted-foreground">— {ev.author_email}</span>}
+                    </p>
+                    <p className="text-sm text-card-foreground mt-0.5">{ev.comment}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
