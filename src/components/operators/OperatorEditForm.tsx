@@ -573,7 +573,83 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                   {selected && sp !== null && (
                     <p className="text-[10px] text-muted-foreground">PVP: €{sp.toFixed(2)}/h</p>
                   )}
+      </div>
+
+      {/* ROW 3: Urgency Pricing */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* ── PRECIOS URGENCIAS - COSTE ── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Precios urgencias — Coste</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {([
+              { key: "cost_article_salida_id", label: "Precio salida" },
+              { key: "cost_article_dia_guardia_id", label: "Precio día guardia" },
+              { key: "cost_article_hora_guardia_id", label: "Precio hora guardia" },
+            ] as const).map(({ key, label }) => {
+              const selected = articlesData.find((a) => a.id === (form as any)[key]);
+              return (
+                <div key={key} className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
+                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin asignar</SelectItem>
+                      {moArticles.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.title} — €{a.costPrice.toFixed(2)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selected && (
+                    <p className="text-[10px] text-muted-foreground">Coste: €{selected.costPrice.toFixed(2)}</p>
+                  )}
                 </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        {/* ── PRECIOS URGENCIAS - VENTA ── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Precios urgencias — Venta (PVP)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {([
+              { key: "article_salida_id", label: "Precio salida" },
+              { key: "article_dia_guardia_id", label: "Precio día guardia" },
+              { key: "article_hora_guardia_id", label: "Precio hora guardia" },
+            ] as const).map(({ key, label }) => {
+              const selected = articlesData.find((a) => a.id === (form as any)[key]);
+              const sp = selected ? getSalePrice(selected) : null;
+              return (
+                <div key={key} className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
+                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin asignar</SelectItem>
+                      {moArticles.map((a) => {
+                        const price = getSalePrice(a);
+                        return (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.title} — €{price.toFixed(2)}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {selected && sp !== null && (
+                    <p className="text-[10px] text-muted-foreground">PVP: €{sp.toFixed(2)}</p>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
               );
             })}
           </CardContent>
