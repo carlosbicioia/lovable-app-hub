@@ -389,13 +389,25 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
               </div>
             </div>
 
-            {/* Artículos de tarifa horaria */}
+            {/* Tipo de operario */}
+            <div className="space-y-1 pt-2 border-t border-border">
+              <Label className="text-xs font-semibold">Tipo de operario</Label>
+              <Select value={form.operator_type} onValueChange={(v) => set("operator_type", v)}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Plantilla">Plantilla</SelectItem>
+                  <SelectItem value="Subcontratado">Subcontratado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Artículos de tarifa horaria - Costes */}
             <div className="space-y-2 pt-2 border-t border-border">
-              <Label className="text-xs font-semibold">Tarifas horarias (artículos)</Label>
+              <Label className="text-xs font-semibold">Precios de coste (artículos)</Label>
               {([
-                { key: "article_standard_hour_id", label: "Precio hora estándar" },
-                { key: "article_app_hour_id", label: "Precio hora APP" },
-                { key: "article_urgency_hour_id", label: "Precio hora urgencia" },
+                { key: "cost_article_standard_hour_id", label: "Coste hora estándar" },
+                { key: "cost_article_app_hour_id", label: "Coste hora APP" },
+                { key: "cost_article_urgency_hour_id", label: "Coste hora urgencia" },
               ] as const).map(({ key, label }) => {
                 const selectedArticle = articlesData.find((a) => a.id === (form as any)[key]);
                 return (
@@ -411,15 +423,57 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                           .filter((a) => a.category === "Mano_de_Obra")
                           .map((a) => (
                             <SelectItem key={a.id} value={a.id}>
-                              {a.title} — €{a.costPrice.toFixed(2)}/h (PVP)
+                              {a.title} — €{a.costPrice.toFixed(2)}/h
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                     {selectedArticle && (
-                      <p className="text-[10px] text-muted-foreground">PVP: €{selectedArticle.costPrice.toFixed(2)}/h</p>
+                      <p className="text-[10px] text-muted-foreground">Coste: €{selectedArticle.costPrice.toFixed(2)}/h</p>
                     )}
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Artículos de tarifa horaria - Venta */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Label className="text-xs font-semibold">Precios de venta (artículos)</Label>
+              {([
+                { key: "article_standard_hour_id", label: "PVP hora estándar" },
+                { key: "article_app_hour_id", label: "PVP hora APP" },
+                { key: "article_urgency_hour_id", label: "PVP hora urgencia" },
+              ] as const).map(({ key, label }) => {
+                const selectedArticle = articlesData.find((a) => a.id === (form as any)[key]);
+                const salePrice = selectedArticle ? (selectedArticle.hasKnownPvp && selectedArticle.pvp !== null ? selectedArticle.pvp : selectedArticle.costPrice * (1 + (selectedArticle.margin ?? 0) / 100)) : null;
+                return (
+                  <div key={key} className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                    <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Seleccionar artículo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin asignar</SelectItem>
+                        {articlesData
+                          .filter((a) => a.category === "Mano_de_Obra")
+                          .map((a) => {
+                            const sp = a.hasKnownPvp && a.pvp !== null ? a.pvp : a.costPrice * (1 + (a.margin ?? 0) / 100);
+                            return (
+                              <SelectItem key={a.id} value={a.id}>
+                                {a.title} — €{sp.toFixed(2)}/h (PVP)
+                              </SelectItem>
+                            );
+                          })}
+                      </SelectContent>
+                    </Select>
+                    {selectedArticle && salePrice !== null && (
+                      <p className="text-[10px] text-muted-foreground">PVP: €{salePrice.toFixed(2)}/h</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
                 );
               })}
             </div>
