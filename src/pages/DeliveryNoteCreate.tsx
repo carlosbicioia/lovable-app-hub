@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { ArrowLeft, Plus, Trash2, Loader2, Truck, Upload, FileText, X, ShoppingCart, PackageOpen } from "lucide-react";
