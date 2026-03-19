@@ -160,10 +160,7 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
                 noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
               )}
             />
-            <span className={cn(
-              "text-xs",
-              noMediaAvailable ? "text-warning font-medium" : "text-muted-foreground"
-            )}>
+            <span className="text-xs text-muted-foreground">
               No es posible obtener archivos multimedia
             </span>
           </div>
