@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2, User } from "lucide-react";
+import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, AlertTriangle, ChevronRight, FileText, Pencil, CheckCircle2, User, Star } from "lucide-react";
 import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import DirectRepairSalesOrderDialog from "./DirectRepairSalesOrderDialog";
 import { useOperators } from "@/hooks/useOperators";
