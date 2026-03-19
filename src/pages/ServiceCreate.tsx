@@ -1027,7 +1027,7 @@ export default function ServiceCreate() {
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
         <Button variant="secondary" onClick={() => handleSave(false)} disabled={saving}>
-          <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Contacto)"}
+          <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Aceptación)"}
         </Button>
         <Button onClick={() => handleSave(true)} disabled={saving}>
           <Send className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar y Agendar"}
