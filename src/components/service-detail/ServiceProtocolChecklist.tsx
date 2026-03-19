@@ -171,32 +171,6 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
                 )}
               </div>
 
-              {/* No media available checkbox under diagnosis step */}
-              {check.id === "diagnosis" && (
-                <div
-                  className={cn(
-                    "ml-7 mt-1.5 flex items-center gap-2",
-                    !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
-                  )}
-                  onClick={handleToggleNoMedia}
-                >
-                  <Checkbox
-                    checked={noMediaAvailable}
-                    onCheckedChange={handleToggleNoMedia}
-                    disabled={readOnly}
-                    className={cn(
-                      "h-3.5 w-3.5 transition-colors",
-                      noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
-                    )}
-                  />
-                  <span className={cn(
-                    "text-xs",
-                    noMediaAvailable ? "text-warning font-medium" : "text-muted-foreground"
-                  )}>
-                    No es posible obtener archivos multimedia
-                  </span>
-                </div>
-              )}
             </div>
           );
         })}
