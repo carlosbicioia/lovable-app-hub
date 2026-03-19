@@ -283,18 +283,22 @@ export default function UsersTab() {
                 disabled={!editForm.full_name}
                 onClick={async () => {
                   if (!editingUser) return;
-                  const { error: profileErr } = await supabase.from("profiles").update({ full_name: editForm.full_name }).eq("id", editingUser.id);
-                  if (profileErr) { toast.error("Error al actualizar perfil"); return; }
+                  // Update app_users name
+                  await supabase.from("app_users").update({ name: editForm.full_name } as any).eq("id", editingUser.id);
+                  // Update profile if auth user exists
+                  if (editingUser.auth_user_id) {
+                    await supabase.from("profiles").update({ full_name: editForm.full_name }).eq("id", editingUser.auth_user_id);
+                  }
                   const roleChanged = editForm.role !== (editingUser.role ?? "");
                   const collabChanged = editForm.collaborator_id !== (editingUser.collaborator_id ?? "");
-                  if (roleChanged || collabChanged) {
-                    const { data: existing } = await supabase.from("user_roles").select("id").eq("user_id", editingUser.id).limit(1);
+                  if ((roleChanged || collabChanged) && editingUser.auth_user_id) {
+                    const { data: existing } = await supabase.from("user_roles").select("id").eq("user_id", editingUser.auth_user_id).limit(1);
                     const updateData: Record<string, unknown> = { role: editForm.role };
                     if (editForm.role === "colaborador") { updateData.collaborator_id = editForm.collaborator_id || null; } else { updateData.collaborator_id = null; }
                     if (existing && existing.length > 0) {
-                      await supabase.from("user_roles").update(updateData as any).eq("user_id", editingUser.id);
+                      await supabase.from("user_roles").update(updateData as any).eq("user_id", editingUser.auth_user_id);
                     } else {
-                      await supabase.from("user_roles").insert({ user_id: editingUser.id, ...updateData } as any);
+                      await supabase.from("user_roles").insert({ user_id: editingUser.auth_user_id, ...updateData } as any);
                     }
                   }
                   toast.success("Usuario actualizado");
