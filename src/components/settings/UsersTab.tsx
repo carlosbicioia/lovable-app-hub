@@ -327,7 +327,7 @@ export default function UsersTab() {
             <Button variant="outline" onClick={() => setResetPwUser(null)}>Cancelar</Button>
             <Button
               disabled={newPassword.length < 8 || manageUser.isPending}
-              onClick={() => { manageUser.mutate({ userId: resetPwUser!.id, action: "reset_password", new_password: newPassword }, { onSuccess: () => setResetPwUser(null) }); }}
+              onClick={() => { manageUser.mutate({ userId: resetPwUser!.auth_user_id, action: "reset_password", new_password: newPassword }, { onSuccess: () => setResetPwUser(null) }); }}
             >
               {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Actualizar contraseña"}
             </Button>
