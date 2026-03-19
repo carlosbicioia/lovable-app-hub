@@ -74,7 +74,6 @@ export default function TvDashboard() {
 
   const statusCards = [
     { label: "Pte. Contacto", value: stats.pendingContact, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    { label: "Pte. Asignación", value: stats.pendingAssign, icon: UserPlus, color: "text-info", bg: "bg-info/10" },
     { label: "Asignado", value: stats.assigned, icon: UserCheck, color: "text-foreground", bg: "bg-muted" },
     { label: "Agendado", value: stats.scheduled, icon: Wrench, color: "text-primary", bg: "bg-primary/10" },
     { label: "En Curso", value: stats.inProgress, icon: TrendingUp, color: "text-info", bg: "bg-info/10" },
