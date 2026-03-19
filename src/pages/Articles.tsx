@@ -175,7 +175,8 @@ export default function Articles() {
                     <td className="px-5 py-3 text-right text-muted-foreground">{a.costPrice.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">
                       {sale.toFixed(2)} €
-                      {!a.hasKnownPvp && <span className="ml-1 text-[10px] text-muted-foreground">(+30%)</span>}
+                      {a.category !== "Mano_de_Obra" && !a.hasKnownPvp && <span className="ml-1 text-[10px] text-muted-foreground">(+30%)</span>}
+                      {a.category === "Mano_de_Obra" && a.margin > 0 && <span className="ml-1 text-[10px] text-muted-foreground">(+{a.margin}%)</span>}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <span className={cn(
