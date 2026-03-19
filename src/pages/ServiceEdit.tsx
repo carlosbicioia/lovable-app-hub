@@ -528,30 +528,29 @@ export default function ServiceEdit() {
               </Select>
             </div>
 
-            {!isUrgent && (
-              <div className="space-y-2">
-                <Label>Estado reclamación</Label>
-                <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Abierto">Abierto</SelectItem>
-                    <SelectItem value="En_Valoración">En valoración</SelectItem>
-                    <SelectItem value="Aceptado">Aceptado</SelectItem>
-                    <SelectItem value="Rechazado">Rechazado</SelectItem>
-                    <SelectItem value="Cerrado">Cerrado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label className={isUrgent ? "text-muted-foreground" : ""}>Estado reclamación</Label>
+              <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)} disabled={isUrgent}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Abierto">Abierto</SelectItem>
+                  <SelectItem value="En_Valoración">En valoración</SelectItem>
+                  <SelectItem value="Aceptado">Aceptado</SelectItem>
+                  <SelectItem value="Rechazado">Rechazado</SelectItem>
+                  <SelectItem value="Cerrado">Cerrado</SelectItem>
+                </SelectContent>
+              </Select>
+              {isUrgent && (
+                <p className="text-[11px] text-muted-foreground">No aplica en urgencias</p>
+              )}
+            </div>
 
-            {!isUrgent && (
-              <div className="flex items-end gap-3 pb-1">
-                <div className="flex items-center gap-2">
-                  <Switch checked={diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" />
-                  <Label htmlFor="diagnosis" className="text-sm font-normal">Diagnóstico completado</Label>
-                </div>
+            <div className="flex items-end gap-3 pb-1">
+              <div className="flex items-center gap-2">
+                <Switch checked={isUrgent ? false : diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" disabled={isUrgent} />
+                <Label htmlFor="diagnosis" className={cn("text-sm font-normal", isUrgent && "text-muted-foreground")}>Diagnóstico completado</Label>
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
