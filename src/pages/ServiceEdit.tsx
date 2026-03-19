@@ -493,7 +493,7 @@ export default function ServiceEdit() {
 
             <div className="space-y-2">
               <Label>Urgencia</Label>
-              <Select value={urgency} onValueChange={(v) => setUrgency(v as UrgencyLevel)}>
+              <Select value={urgency} onValueChange={handleUrgencyChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Estándar">Estándar</SelectItem>
@@ -505,13 +505,16 @@ export default function ServiceEdit() {
 
             <div className="space-y-2">
               <Label>Tipo de servicio</Label>
-              <Select value={serviceType} onValueChange={handleServiceTypeChange}>
+              <Select value={serviceType} onValueChange={handleServiceTypeChange} disabled={isUrgent}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Reparación_Directa">Reparación directa</SelectItem>
                   <SelectItem value="Presupuesto">Requiere presupuesto</SelectItem>
                 </SelectContent>
               </Select>
+              {isUrgent && (
+                <p className="text-[11px] text-muted-foreground">Las urgencias siempre son reparación directa</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -525,26 +528,30 @@ export default function ServiceEdit() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Estado reclamación</Label>
-              <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Abierto">Abierto</SelectItem>
-                  <SelectItem value="En_Valoración">En valoración</SelectItem>
-                  <SelectItem value="Aceptado">Aceptado</SelectItem>
-                  <SelectItem value="Rechazado">Rechazado</SelectItem>
-                  <SelectItem value="Cerrado">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end gap-3 pb-1">
-              <div className="flex items-center gap-2">
-                <Switch checked={diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" />
-                <Label htmlFor="diagnosis" className="text-sm font-normal">Diagnóstico completado</Label>
+            {!isUrgent && (
+              <div className="space-y-2">
+                <Label>Estado reclamación</Label>
+                <Select value={claimStatus} onValueChange={(v) => setClaimStatus(v as ClaimStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Abierto">Abierto</SelectItem>
+                    <SelectItem value="En_Valoración">En valoración</SelectItem>
+                    <SelectItem value="Aceptado">Aceptado</SelectItem>
+                    <SelectItem value="Rechazado">Rechazado</SelectItem>
+                    <SelectItem value="Cerrado">Cerrado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
+            )}
+
+            {!isUrgent && (
+              <div className="flex items-end gap-3 pb-1">
+                <div className="flex items-center gap-2">
+                  <Switch checked={diagnosisComplete} onCheckedChange={setDiagnosisComplete} id="diagnosis" />
+                  <Label htmlFor="diagnosis" className="text-sm font-normal">Diagnóstico completado</Label>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
