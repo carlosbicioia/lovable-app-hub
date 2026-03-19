@@ -266,10 +266,11 @@ export default function UsersTab() {
             <Button
               variant="destructive"
               size="sm"
+              disabled={manageUser.isPending || !editingUser?.auth_user_id}
               onClick={() => {
-                if (!editingUser) return;
+                if (!editingUser?.auth_user_id) return;
                 if (!confirm(`¿Eliminar permanentemente a ${editingUser.full_name || editingUser.email}? Esta acción no se puede deshacer.`)) return;
-                manageUser.mutate({ userId: editingUser.id, action: "delete" }, { onSuccess: () => setEditingUser(null) });
+                manageUser.mutate({ userId: editingUser.auth_user_id, action: "delete" }, { onSuccess: () => setEditingUser(null) });
               }}
               disabled={manageUser.isPending}
             >
