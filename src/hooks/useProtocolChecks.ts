@@ -64,5 +64,25 @@ export function useProtocolChecks(serviceId: string) {
     );
   }, [serviceId, checkedItems]);
 
-  return { checkedItems, toggleItem, loading };
+  /** Set a check to a specific value (not toggle). Avoids race conditions in auto-sync. */
+  const setItem = useCallback(async (checkId: string, checked: boolean) => {
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(checkId);
+      else next.delete(checkId);
+      return next;
+    });
+
+    await supabase.from("protocol_checks").upsert(
+      {
+        service_id: serviceId,
+        check_id: checkId,
+        checked,
+        checked_at: checked ? new Date().toISOString() : null,
+      },
+      { onConflict: "service_id,check_id" }
+    );
+  }, [serviceId]);
+
+  return { checkedItems, toggleItem, setItem, loading };
 }

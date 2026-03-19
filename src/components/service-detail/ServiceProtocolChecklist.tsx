@@ -20,7 +20,7 @@ interface Props {
 const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
 
 export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
-  const { checkedItems, toggleItem, loading: checksLoading } = useProtocolChecks(service.id);
+  const { checkedItems, toggleItem, setItem, loading: checksLoading } = useProtocolChecks(service.id);
   const { data: steps, isLoading: stepsLoading } = useEnabledProtocolSteps();
   const [mediaCount, setMediaCount] = useState<number | null>(null);
 
@@ -54,12 +54,10 @@ export default function ServiceProtocolChecklist({ service, readOnly }: Props) {
     if (mediaCount === null || checksLoading) return;
     const shouldBeChecked = mediaCount > 0 || noMediaAvailable;
     const isDiagnosisChecked = checkedItems.has("diagnosis");
-    if (shouldBeChecked && !isDiagnosisChecked) {
-      toggleItem("diagnosis");
-    } else if (!shouldBeChecked && isDiagnosisChecked) {
-      toggleItem("diagnosis");
+    if (shouldBeChecked !== isDiagnosisChecked) {
+      setItem("diagnosis", shouldBeChecked);
     }
-  }, [mediaCount, noMediaAvailable, checksLoading]);
+  }, [mediaCount, noMediaAvailable, checksLoading, checkedItems, setItem]);
 
   const loading = checksLoading || stepsLoading;
 
