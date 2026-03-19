@@ -278,32 +278,35 @@ export default function BulkImportTab() {
       for (const col of selectedEntity.columns) {
         let val: any = row[col.dbField] ?? "";
         // Handle numeric fields
-        if (["due_days", "cost_price", "pvp"].includes(col.dbField)) {
-          val = val ? Number(val.replace(",", ".")) : col.dbField === "due_days" ? 30 : 0;
+        if (["due_days", "cost_price", "pvp", "margin", "commission_rate"].includes(col.dbField)) {
+          val = val ? Number(String(val).replace(",", ".")) : col.dbField === "due_days" ? 30 : 0;
+        }
+        // Handle boolean fields
+        if (col.dbField === "has_known_pvp") {
+          val = ["si", "sí", "true", "1", "yes"].includes(String(val).toLowerCase().trim());
         }
         if (val !== "" || col.required) {
           obj[col.dbField] = val;
         }
       }
+      // Compute operator display name
+      if (selectedEntity.key === "operators") {
+        const fn = obj.first_name || "";
+        const ln = obj.last_name || "";
+        obj.name = `${fn} ${ln}`.trim();
+      }
       return obj;
     });
 
-    // For clients/articles we don't have a real table yet — use mock approach
-    if (selectedEntity.table === "clients" || selectedEntity.table === "articles") {
-      // These are mock-only for now
-      toast.info(`Se han preparado ${insertRows.length} ${selectedEntity.label.toLowerCase()} para importar. La tabla de ${selectedEntity.label.toLowerCase()} se creará cuando se migre de datos mock.`);
-      success = insertRows.length;
-    } else {
-      // Insert in batches of 50
-      for (let i = 0; i < insertRows.length; i += 50) {
-        const batch = insertRows.slice(i, i + 50);
-        const { error } = await supabase.from(selectedEntity.table as any).insert(batch as any);
-        if (error) {
-          console.error("Bulk insert error:", error);
-          failed += batch.length;
-        } else {
-          success += batch.length;
-        }
+    // Insert in batches of 50
+    for (let i = 0; i < insertRows.length; i += 50) {
+      const batch = insertRows.slice(i, i + 50);
+      const { error } = await supabase.from(selectedEntity.table as any).insert(batch as any);
+      if (error) {
+        console.error("Bulk insert error:", error);
+        failed += batch.length;
+      } else {
+        success += batch.length;
       }
     }
 
