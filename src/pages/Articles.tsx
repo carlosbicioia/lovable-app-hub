@@ -276,10 +276,25 @@ export default function Articles() {
             <div className="flex items-center gap-3 pt-1">
               <Switch checked={form.hasKnownPvp} onCheckedChange={(v) => setForm({ ...form, hasKnownPvp: v, pvp: v ? form.costPrice * 1.30 : null })} />
               <Label className="text-sm font-normal">PVP conocido del proveedor</Label>
-              {!form.hasKnownPvp && (
+              {!form.hasKnownPvp && form.category !== "Mano_de_Obra" && (
                 <span className="text-xs text-muted-foreground ml-auto">Se aplica +30% sobre coste</span>
               )}
             </div>
+
+            {form.category === "Mano_de_Obra" && (
+              <div className="space-y-2">
+                <Label>Margen mano de obra (%)</Label>
+                <Input
+                  type="number" min={0} step={0.1}
+                  value={form.margin}
+                  onChange={(e) => setForm({ ...form, margin: parseFloat(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  PVP = Coste × (1 + margen/100) = {(form.costPrice * (1 + form.margin / 100)).toFixed(2)} €
+                </p>
+              </div>
+            )}
 
             {/* Preview */}
             <div className="bg-muted/50 rounded-lg p-3 border border-border">
