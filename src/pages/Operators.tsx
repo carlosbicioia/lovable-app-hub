@@ -353,6 +353,8 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: Opera
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: articlesData = [] } = useArticles();
+  const { data: vehicles = [] } = useVehicles();
+  const assignedVehicle = vehicles.find((v) => v.operatorId === operator.id);
 
   const getSpecIcon = (name: string) => {
     const sp = (dbSpecialties ?? []).find(s => s.name === name);
