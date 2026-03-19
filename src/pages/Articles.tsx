@@ -18,7 +18,7 @@ const units = ["ud", "m", "m²", "h", "kg"];
 
 const emptyArticle: Omit<Article, "id"> = {
   title: "", description: "", category: "Material", specialty: "Fontanería/Agua",
-  costPrice: 0, hasKnownPvp: false, pvp: null, unit: "ud",
+  costPrice: 0, hasKnownPvp: false, pvp: null, unit: "ud", margin: 0,
 };
 
 export default function Articles() {
