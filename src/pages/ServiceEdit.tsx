@@ -58,7 +58,10 @@ export default function ServiceEdit() {
       .then(({ data }) => setHasBudget((data?.length ?? 0) > 0));
   }, [id]);
 
+  const isUrgent = urgency === "24h" || urgency === "Inmediato";
+
   const handleServiceTypeChange = (v: string) => {
+    if (isUrgent) return;
     if (v === "Reparación_Directa" && hasBudget) {
       toast({ title: "No permitido", description: "No se puede cambiar a reparación directa porque ya existe un presupuesto vinculado. Elimina el servicio y créalo de nuevo.", variant: "destructive" });
       return;
@@ -66,6 +69,13 @@ export default function ServiceEdit() {
     setServiceType(v as ServiceType);
     if (v === "Presupuesto" && service?.serviceType !== "Presupuesto") {
       setShowBudgetPrompt(true);
+    }
+  };
+
+  const handleUrgencyChange = (v: string) => {
+    setUrgency(v as UrgencyLevel);
+    if (v === "24h" || v === "Inmediato") {
+      setServiceType("Reparación_Directa");
     }
   };
   // ── All state ──
