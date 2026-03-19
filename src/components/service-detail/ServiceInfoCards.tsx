@@ -26,10 +26,9 @@ interface Props {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  Pte_Aceptacion: ["Pendiente_Contacto", "Pte_Asignacion"],
-  Pendiente_Contacto: ["Pte_Asignacion", "Asignado", "Agendado"],
-  Pte_Asignacion: ["Pendiente_Contacto", "Asignado", "Agendado"],
-  Asignado: ["Pte_Asignacion", "Agendado"],
+  Pte_Aceptacion: ["Pendiente_Contacto", "Asignado"],
+  Pendiente_Contacto: ["Asignado", "Agendado"],
+  Asignado: ["Pendiente_Contacto", "Agendado"],
   Agendado: ["Asignado"],
   En_Curso: ["Agendado", "Finalizado"],
   Finalizado: ["En_Curso", "Liquidado"],
@@ -41,7 +40,6 @@ const CONFIRM_STATUSES = ["Finalizado", "Liquidado"];
 const STATUS_PIPELINE: { key: string; label: string; short: string; description: string }[] = [
   { key: "Pte_Aceptacion", label: "Pte. Aceptación", short: "Pte.Ac", description: "El servicio ha sido recibido y está pendiente de ser aceptado por el gestor." },
   { key: "Pendiente_Contacto", label: "Pte. Contacto", short: "Pte.C", description: "El servicio está aceptado y se debe contactar al cliente para coordinar." },
-  { key: "Pte_Asignacion", label: "Pte. Asignación", short: "Pte.A", description: "El cliente ha sido contactado; falta asignar un técnico operario." },
   { key: "Asignado", label: "Asignado", short: "Asig.", description: "Hay un técnico asignado al servicio, pendiente de agendar fecha." },
   { key: "Agendado", label: "Agendado", short: "Agend.", description: "El servicio tiene fecha y hora programados. Pasará a En Curso automáticamente." },
   { key: "En_Curso", label: "En Curso", short: "Curso", description: "El técnico está realizando el trabajo. Transición automática al llegar la hora." },

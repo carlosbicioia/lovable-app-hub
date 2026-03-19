@@ -128,7 +128,6 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" onClick={() => navigate("/servicios")} />
         <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" onClick={() => navigate("/servicios?status=Pendiente_Contacto")} />
-        <KpiCard title="Pte. Asignación" value={pendingAssignment} subtitle="Sin técnico asignado" icon={UserPlus} variant="info" onClick={() => navigate("/servicios?status=Pte_Asignacion")} />
         <KpiCard title="Asignado" value={assigned} subtitle="Con técnico, sin cita" icon={UserCheck} variant="default" onClick={() => navigate("/servicios?status=Asignado")} />
         <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos trabajando" icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
         <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />

@@ -26,7 +26,6 @@ export const specialtyColor: Record<Specialty, string> = {
 export const statusLabels: Record<string, string> = {
   Pte_Aceptacion: "Pte. Aceptación",
   Pendiente_Contacto: "Pendiente contacto",
-  Pte_Asignacion: "Pte. Asignación",
   Asignado: "Asignado",
   Agendado: "Agendado",
   En_Curso: "En curso",

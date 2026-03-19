@@ -19,7 +19,6 @@ interface Props {
 
 const statusLabels: Record<string, string> = {
   Pendiente_Contacto: "Pte. Contacto",
-  Pte_Asignacion: "Pte. Asignación",
   Asignado: "Asignado",
   Agendado: "Agendado",
   En_Curso: "En Curso",

@@ -38,7 +38,6 @@ export default function TvDashboard() {
 
   const stats = useMemo(() => {
     const pendingContact = services.filter(s => s.status === "Pendiente_Contacto").length;
-    const pendingAssign = services.filter(s => s.status === "Pte_Asignacion").length;
     const assigned = services.filter(s => s.status === "Asignado").length;
     const scheduled = services.filter(s => s.status === "Agendado").length;
     const inProgress = services.filter(s => s.status === "En_Curso").length;

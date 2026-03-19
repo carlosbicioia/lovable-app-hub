@@ -21,7 +21,6 @@ import type { UrgencyLevel, Specialty } from "@/types/urbango";
 const statusLabels: Record<string, string> = {
   Pte_Aceptacion: "Pendiente aceptación",
   Pendiente_Contacto: "Pendiente contacto",
-  Pte_Asignacion: "Pte. Asignación",
   Asignado: "Asignado",
   Agendado: "Agendado",
   En_Curso: "En curso",
