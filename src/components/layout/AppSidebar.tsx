@@ -1,4 +1,7 @@
-import { NavLink, useLocation } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -46,7 +49,7 @@ const configItems = [
 export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isAdminOrGestor = isAdmin || roles.includes("gestor");
@@ -54,7 +57,7 @@ export default function AppSidebar() {
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   // Listen for custom event from TopBar hamburger
   useEffect(() => {
@@ -64,11 +67,11 @@ export default function AppSidebar() {
   }, []);
 
   const renderNavItem = (item: typeof navItems[0]) => {
-    const isActive = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
+    const isActive = pathname === item.to || (item.to !== "/" && (pathname ?? "").startsWith(item.to));
     return (
-      <NavLink
+      <Link
         key={item.to}
-        to={item.to}
+        href={item.to}
         className={cn(
           "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
           isActive
@@ -78,7 +81,7 @@ export default function AppSidebar() {
       >
         <item.icon className="w-5 h-5 shrink-0" />
         {!collapsed && <span>{item.label}</span>}
-      </NavLink>
+      </Link>
     );
   };
 
