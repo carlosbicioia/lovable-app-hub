@@ -1,0 +1,1 @@
+ALTER TABLE public.articles ADD COLUMN margin numeric NOT NULL DEFAULT 0;
