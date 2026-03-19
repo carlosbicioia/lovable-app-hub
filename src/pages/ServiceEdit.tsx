@@ -462,7 +462,7 @@ export default function ServiceEdit() {
           <CardTitle className="text-base">2. Estado y Clasificación</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
             <div className="space-y-2">
               <Label>Estado del servicio</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as ServiceStatus)}>
