@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, Trash2, Loader2, X, Play, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useServices } from "@/hooks/useServices";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Service } from "@/types/urbango";
 
 interface MediaFile {
@@ -36,7 +37,10 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
   const [media, setMedia] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dragging, setDragging] = useState(false);
+  const [lightboxItem, setLightboxItem] = useState<MediaFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
 
   const getPublicUrl = (filePath: string) =>
     `${SUPABASE_URL}/storage/v1/object/public/service-media/${filePath}`;
@@ -63,15 +67,12 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
     fetchMedia();
   }, [serviceId]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
+  const uploadFiles = async (files: File[]) => {
+    if (!files.length) return;
     setUploading(true);
     let uploadedCount = 0;
 
-    for (const file of Array.from(files)) {
-      // Validate size (20MB)
+    for (const file of files) {
       if (file.size > 20 * 1024 * 1024) {
         toast({ title: "Error", description: `${file.name} supera los 20MB`, variant: "destructive" });
         continue;
@@ -96,7 +97,6 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
         continue;
       }
 
-      // Save metadata
       await supabase.from("service_media").insert({
         service_id: serviceId,
         file_name: file.name,
@@ -114,9 +114,46 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
     }
 
     setUploading(false);
-    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await uploadFiles(Array.from(files));
+  };
+
+  // Drag & drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if leaving the drop zone entirely
+    if (dropRef.current && !dropRef.current.contains(e.relatedTarget as Node)) {
+      setDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await uploadFiles(files);
+    }
+  }, [serviceId]);
 
   const handleDelete = async (item: MediaFile) => {
     await supabase.storage.from("service-media").remove([item.file_path]);
@@ -137,121 +174,167 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Camera className="w-4 h-4 text-muted-foreground" />
-            Archivos Multimedia
-          </CardTitle>
-          <div
-            className={cn(
-              "flex items-center gap-2",
-              !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
-            )}
-            onClick={handleToggleNoMedia}
-          >
-            <Checkbox
-              checked={noMediaAvailable}
-              onCheckedChange={handleToggleNoMedia}
-              disabled={readOnly}
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Camera className="w-4 h-4 text-muted-foreground" />
+              Archivos Multimedia
+            </CardTitle>
+            <div
               className={cn(
-                "h-3.5 w-3.5 transition-colors",
-                noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+                "flex items-center gap-2",
+                !readOnly ? "cursor-pointer" : "opacity-60 cursor-default"
               )}
-            />
-            <span className="text-xs text-muted-foreground">
-              No es posible obtener archivos multimedia
-            </span>
+              onClick={handleToggleNoMedia}
+            >
+              <Checkbox
+                checked={noMediaAvailable}
+                onCheckedChange={handleToggleNoMedia}
+                disabled={readOnly}
+                className={cn(
+                  "h-3.5 w-3.5 transition-colors",
+                  noMediaAvailable ? "data-[state=checked]:bg-warning data-[state=checked]:border-warning" : ""
+                )}
+              />
+              <span className="text-xs text-muted-foreground">
+                No es posible obtener archivos multimedia
+              </span>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Upload zone */}
-        <div
-          className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
-            uploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50"
-          )}
-          onClick={() => !uploading && fileInputRef.current?.click()}
-        >
-          {uploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="w-7 h-7 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">Subiendo archivos...</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Upload / Drop zone */}
+          <div
+            ref={dropRef}
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
+              dragging
+                ? "border-primary bg-primary/10"
+                : uploading
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border hover:border-primary/50"
+            )}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
+                <p className="text-sm text-muted-foreground">Subiendo archivos...</p>
+              </div>
+            ) : (
+              <>
+                <Camera className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
+                <p className="text-sm text-muted-foreground">
+                  {dragging ? (
+                    <span className="text-primary font-medium">Suelta los archivos aquí</span>
+                  ) : (
+                    <>
+                      Arrastra archivos o{" "}
+                      <span className="text-primary font-medium">seleccionar</span>
+                    </>
+                  )}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  JPG, PNG, MP4 · Máx. 20MB por archivo
+                </p>
+              </>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              className="hidden"
+              onChange={handleUpload}
+            />
+          </div>
+
+          {/* Media grid - thumbnails */}
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : media.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {media.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative group rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square cursor-pointer"
+                  onClick={() => setLightboxItem(item)}
+                >
+                  {item.file_type === "video" ? (
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <Play className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <img
+                      src={item.publicUrl}
+                      alt={item.file_name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-end">
+                    <div className="w-full p-1.5 bg-gradient-to-t from-foreground/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-[10px] text-white truncate">{item.file_name}</p>
+                    </div>
+                  </div>
+                  {/* Delete button */}
+                  {!readOnly && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item);
+                      }}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-destructive/80 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <>
-              <Camera className="w-7 h-7 text-muted-foreground mx-auto mb-1.5" />
-              <p className="text-sm text-muted-foreground">
-                Arrastra archivos o{" "}
-                <span className="text-primary font-medium">seleccionar</span>
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                JPG, PNG, MP4 · Máx. 20MB por archivo
-              </p>
-            </>
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Sin archivos multimedia adjuntos
+            </p>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            className="hidden"
-            onChange={handleUpload}
-          />
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Media grid */}
-        {loading ? (
-          <div className="flex justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : media.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {media.map((item) => (
-              <div
-                key={item.id}
-                className="relative group rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square"
-              >
-                {item.file_type === "video" ? (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                    <Play className="w-10 h-10 text-muted-foreground" />
-                  </div>
-                ) : (
-                  <img
-                    src={item.publicUrl}
-                    alt={item.file_name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                )}
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-end">
-                  <div className="w-full p-2 bg-gradient-to-t from-foreground/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-[11px] text-white truncate">{item.file_name}</p>
-                    <p className="text-[10px] text-white/70">{formatSize(item.file_size)}</p>
-                  </div>
-                </div>
-                {/* Delete button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(item);
-                  }}
-                  className="absolute top-1.5 right-1.5 p-1 rounded-full bg-destructive/80 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+      {/* Lightbox dialog */}
+      <Dialog open={!!lightboxItem} onOpenChange={(open) => !open && setLightboxItem(null)}>
+        <DialogContent className="max-w-4xl w-[95vw] p-2 sm:p-4">
+          {lightboxItem && (
+            <div className="flex flex-col items-center gap-3">
+              {lightboxItem.file_type === "video" ? (
+                <video
+                  src={lightboxItem.publicUrl}
+                  controls
+                  className="max-h-[75vh] w-full rounded-lg"
+                />
+              ) : (
+                <img
+                  src={lightboxItem.publicUrl}
+                  alt={lightboxItem.file_name}
+                  className="max-h-[75vh] w-auto rounded-lg object-contain"
+                />
+              )}
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{lightboxItem.file_name}</span>
+                <span>{formatSize(lightboxItem.file_size)}</span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Sin archivos multimedia adjuntos
-          </p>
-        )}
-      </CardContent>
-    </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
