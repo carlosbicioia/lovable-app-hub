@@ -573,6 +573,11 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
                   {selected && sp !== null && (
                     <p className="text-[10px] text-muted-foreground">PVP: €{sp.toFixed(2)}/h</p>
                   )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
       </div>
 
       {/* ROW 3: Urgency Pricing */}
@@ -649,6 +654,7 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
               );
             })}
           </CardContent>
+        </Card>
       </div>
 
       <div className="flex justify-end">
