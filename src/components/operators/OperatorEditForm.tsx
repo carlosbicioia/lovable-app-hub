@@ -505,154 +505,125 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
           </CardContent>
         </Card>
 
-        {/* ── PRECIOS DE COSTE ── */}
-        <Card>
+        {/* ── PRECIOS UNIFICADOS ── */}
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Precios de coste</CardTitle>
+            <CardTitle className="text-sm">Tarifas del operario</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {([
-              { key: "cost_article_standard_hour_id", label: "Hora estándar" },
-              { key: "cost_article_app_hour_id", label: "Hora APP" },
-              { key: "cost_article_urgency_hour_id", label: "Hora urgencia" },
-            ] as const).map(({ key, label }) => {
-              const selected = articlesData.find((a) => a.id === (form as any)[key]);
-              return (
-                <div key={key} className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
-                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin asignar</SelectItem>
-                      {moArticles.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.title} — €{a.costPrice.toFixed(2)}/h
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selected && (
-                    <p className="text-[10px] text-muted-foreground">Coste: €{selected.costPrice.toFixed(2)}/h</p>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+          <CardContent className="space-y-5">
+            {/* Precios estándar */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Horas de trabajo</p>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Concepto</th>
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Coste</th>
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">PVP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {([
+                      { label: "Hora estándar", costKey: "cost_article_standard_hour_id", saleKey: "article_standard_hour_id" },
+                      { label: "Hora APP", costKey: "cost_article_app_hour_id", saleKey: "article_app_hour_id" },
+                      { label: "Hora urgencia", costKey: "cost_article_urgency_hour_id", saleKey: "article_urgency_hour_id" },
+                    ] as const).map(({ label, costKey, saleKey }, idx) => {
+                      const costArticle = articlesData.find((a) => a.id === (form as any)[costKey]);
+                      const saleArticle = articlesData.find((a) => a.id === (form as any)[saleKey]);
+                      const sp = saleArticle ? getSalePrice(saleArticle) : null;
+                      return (
+                        <tr key={costKey} className={idx < 2 ? "border-b border-border/50" : ""}>
+                          <td className="py-2.5 px-3 text-xs font-medium text-foreground whitespace-nowrap">{label}</td>
+                          <td className="py-1.5 px-3">
+                            <Select value={(form as any)[costKey] || "none"} onValueChange={(v) => set(costKey, v === "none" ? "" : v)}>
+                              <SelectTrigger className="h-7 text-xs w-full"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sin asignar</SelectItem>
+                                {moArticles.map((a) => (
+                                  <SelectItem key={a.id} value={a.id}>{a.title} — €{a.costPrice.toFixed(2)}/h</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {costArticle && <p className="text-[10px] text-muted-foreground mt-0.5">€{costArticle.costPrice.toFixed(2)}/h</p>}
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <Select value={(form as any)[saleKey] || "none"} onValueChange={(v) => set(saleKey, v === "none" ? "" : v)}>
+                              <SelectTrigger className="h-7 text-xs w-full"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sin asignar</SelectItem>
+                                {moArticles.map((a) => {
+                                  const price = getSalePrice(a);
+                                  return <SelectItem key={a.id} value={a.id}>{a.title} — €{price.toFixed(2)}/h</SelectItem>;
+                                })}
+                              </SelectContent>
+                            </Select>
+                            {saleArticle && sp !== null && <p className="text-[10px] text-muted-foreground mt-0.5">€{sp.toFixed(2)}/h</p>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        {/* ── PRECIOS DE VENTA ── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Precios de venta (PVP)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {([
-              { key: "article_standard_hour_id", label: "Hora estándar" },
-              { key: "article_app_hour_id", label: "Hora APP" },
-              { key: "article_urgency_hour_id", label: "Hora urgencia" },
-            ] as const).map(({ key, label }) => {
-              const selected = articlesData.find((a) => a.id === (form as any)[key]);
-              const sp = selected ? getSalePrice(selected) : null;
-              return (
-                <div key={key} className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
-                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin asignar</SelectItem>
-                      {moArticles.map((a) => {
-                        const price = getSalePrice(a);
-                        return (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.title} — €{price.toFixed(2)}/h
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  {selected && sp !== null && (
-                    <p className="text-[10px] text-muted-foreground">PVP: €{sp.toFixed(2)}/h</p>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ROW 3: Urgency Pricing */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* ── PRECIOS URGENCIAS - COSTE ── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Precios urgencias — Coste</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {([
-              { key: "cost_article_salida_id", label: "Precio salida" },
-              { key: "cost_article_dia_guardia_id", label: "Precio día guardia" },
-              { key: "cost_article_hora_guardia_id", label: "Precio hora guardia" },
-            ] as const).map(({ key, label }) => {
-              const selected = articlesData.find((a) => a.id === (form as any)[key]);
-              return (
-                <div key={key} className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
-                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin asignar</SelectItem>
-                      {moArticles.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.title} — €{a.costPrice.toFixed(2)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selected && (
-                    <p className="text-[10px] text-muted-foreground">Coste: €{selected.costPrice.toFixed(2)}</p>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        {/* ── PRECIOS URGENCIAS - VENTA ── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Precios urgencias — Venta (PVP)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {([
-              { key: "article_salida_id", label: "Precio salida" },
-              { key: "article_dia_guardia_id", label: "Precio día guardia" },
-              { key: "article_hora_guardia_id", label: "Precio hora guardia" },
-            ] as const).map(({ key, label }) => {
-              const selected = articlesData.find((a) => a.id === (form as any)[key]);
-              const sp = selected ? getSalePrice(selected) : null;
-              return (
-                <div key={key} className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                  <Select value={(form as any)[key] || "none"} onValueChange={(v) => set(key, v === "none" ? "" : v)}>
-                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin asignar</SelectItem>
-                      {moArticles.map((a) => {
-                        const price = getSalePrice(a);
-                        return (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.title} — €{price.toFixed(2)}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  {selected && sp !== null && (
-                    <p className="text-[10px] text-muted-foreground">PVP: €{sp.toFixed(2)}</p>
-                  )}
-                </div>
-              );
-            })}
+            {/* Precios urgencias */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Urgencias / Guardias</p>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Concepto</th>
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Coste</th>
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">PVP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {([
+                      { label: "Salida", costKey: "cost_article_salida_id", saleKey: "article_salida_id" },
+                      { label: "Día guardia", costKey: "cost_article_dia_guardia_id", saleKey: "article_dia_guardia_id" },
+                      { label: "Hora guardia", costKey: "cost_article_hora_guardia_id", saleKey: "article_hora_guardia_id" },
+                    ] as const).map(({ label, costKey, saleKey }, idx) => {
+                      const costArticle = articlesData.find((a) => a.id === (form as any)[costKey]);
+                      const saleArticle = articlesData.find((a) => a.id === (form as any)[saleKey]);
+                      const sp = saleArticle ? getSalePrice(saleArticle) : null;
+                      return (
+                        <tr key={costKey} className={idx < 2 ? "border-b border-border/50" : ""}>
+                          <td className="py-2.5 px-3 text-xs font-medium text-foreground whitespace-nowrap">{label}</td>
+                          <td className="py-1.5 px-3">
+                            <Select value={(form as any)[costKey] || "none"} onValueChange={(v) => set(costKey, v === "none" ? "" : v)}>
+                              <SelectTrigger className="h-7 text-xs w-full"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sin asignar</SelectItem>
+                                {moArticles.map((a) => (
+                                  <SelectItem key={a.id} value={a.id}>{a.title} — €{a.costPrice.toFixed(2)}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {costArticle && <p className="text-[10px] text-muted-foreground mt-0.5">€{costArticle.costPrice.toFixed(2)}</p>}
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <Select value={(form as any)[saleKey] || "none"} onValueChange={(v) => set(saleKey, v === "none" ? "" : v)}>
+                              <SelectTrigger className="h-7 text-xs w-full"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sin asignar</SelectItem>
+                                {moArticles.map((a) => {
+                                  const price = getSalePrice(a);
+                                  return <SelectItem key={a.id} value={a.id}>{a.title} — €{price.toFixed(2)}</SelectItem>;
+                                })}
+                              </SelectContent>
+                            </Select>
+                            {saleArticle && sp !== null && <p className="text-[10px] text-muted-foreground mt-0.5">€{sp.toFixed(2)}</p>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
