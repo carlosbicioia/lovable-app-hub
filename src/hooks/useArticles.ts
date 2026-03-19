@@ -13,6 +13,7 @@ function mapRow(r: any): Article {
     hasKnownPvp: r.has_known_pvp,
     pvp: r.pvp !== null ? Number(r.pvp) : null,
     unit: r.unit,
+    margin: Number(r.margin ?? 0),
   };
 }
 
