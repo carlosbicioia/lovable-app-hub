@@ -306,6 +306,60 @@ export default function ServiceInfoCards({ service }: Props) {
         )}
       </div>
 
+      {/* Creator & Manager row */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Creado por — read only */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <User className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Creado por</span>
+          </div>
+          <p className="text-xs font-medium text-card-foreground truncate">{service.createdByName || service.createdByEmail || "—"}</p>
+          {service.createdByEmail && service.createdByName && (
+            <p className="text-[10px] text-muted-foreground truncate">{service.createdByEmail}</p>
+          )}
+        </div>
+
+        {/* Gestionado por — editable */}
+        <div className="bg-card rounded-lg border border-border p-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <User className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Gestionado por</span>
+          </div>
+          {isLocked ? (
+            <>
+              <p className="text-xs font-medium text-card-foreground truncate">{service.managedByName || service.managedByEmail || "—"}</p>
+              {service.managedByEmail && service.managedByName && (
+                <p className="text-[10px] text-muted-foreground truncate">{service.managedByEmail}</p>
+              )}
+            </>
+          ) : (
+            <Select
+              value={service.managedByEmail || ""}
+              onValueChange={(email) => {
+                const user = gestorUsers.find(u => u.email === email);
+                if (user) {
+                  updateService(service.id, {
+                    managed_by_email: user.email,
+                    managed_by_name: user.name,
+                  });
+                }
+              }}
+              disabled={saving === "managed_by_email"}
+            >
+              <SelectTrigger className="h-6 border-none shadow-none px-0 text-xs font-medium text-card-foreground bg-transparent focus:ring-0">
+                <SelectValue placeholder="Seleccionar gestor" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                {gestorUsers.map(u => (
+                  <SelectItem key={u.id} value={u.email}>{u.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
       {/* Info grid — compact horizontal layout */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {/* Cita */}
