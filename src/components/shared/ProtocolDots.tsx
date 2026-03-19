@@ -7,6 +7,9 @@ export interface ProtocolStep {
   label: string;
 }
 
+/** Step IDs that are auto-computed and cannot be toggled manually */
+const AUTO_COMPUTED_STEPS = new Set(["diagnosis"]);
+
 interface Props {
   steps: ProtocolStep[];
   checkedIds: Set<string>;
@@ -21,16 +24,17 @@ export default function ProtocolDots({ steps, checkedIds, onToggle }: Props) {
     <div className="flex items-center gap-1.5">
       {steps.map((step) => {
         const done = checkedIds.has(step.id);
+        const isAuto = AUTO_COMPUTED_STEPS.has(step.id);
         return (
           <Tooltip key={step.id}>
             <TooltipTrigger asChild>
               <span
                 className={cn(
                   "inline-flex",
-                  onToggle && "cursor-pointer"
+                  onToggle && !isAuto && "cursor-pointer"
                 )}
                 onClick={(e) => {
-                  if (onToggle) {
+                  if (onToggle && !isAuto) {
                     e.stopPropagation();
                     onToggle(step.id);
                   }
@@ -51,6 +55,7 @@ export default function ProtocolDots({ steps, checkedIds, onToggle }: Props) {
             <TooltipContent side="top" className="text-xs">
               <span className={done ? "text-success" : ""}>
                 {step.label}: {done ? "Completado" : "Pendiente"}
+                {isAuto ? " (automático)" : ""}
               </span>
             </TooltipContent>
           </Tooltip>
