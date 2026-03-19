@@ -306,8 +306,8 @@ export default function ServiceInfoCards({ service }: Props) {
         )}
       </div>
 
-      {/* Creator & Manager row */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Info grid — all in one row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
         {/* Creado por — read only */}
         <div className="bg-card rounded-lg border border-border p-2.5">
           <div className="flex items-center gap-1.5 mb-1">
@@ -315,9 +315,6 @@ export default function ServiceInfoCards({ service }: Props) {
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Creado por</span>
           </div>
           <p className="text-xs font-medium text-card-foreground truncate">{service.createdByName || service.createdByEmail || "—"}</p>
-          {service.createdByEmail && service.createdByName && (
-            <p className="text-[10px] text-muted-foreground truncate">{service.createdByEmail}</p>
-          )}
         </div>
 
         {/* Gestionado por — editable */}
@@ -327,12 +324,7 @@ export default function ServiceInfoCards({ service }: Props) {
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Gestionado por</span>
           </div>
           {isLocked ? (
-            <>
-              <p className="text-xs font-medium text-card-foreground truncate">{service.managedByName || service.managedByEmail || "—"}</p>
-              {service.managedByEmail && service.managedByName && (
-                <p className="text-[10px] text-muted-foreground truncate">{service.managedByEmail}</p>
-              )}
-            </>
+            <p className="text-xs font-medium text-card-foreground truncate">{service.managedByName || service.managedByEmail || "—"}</p>
           ) : (
             <Select
               value={service.managedByEmail || ""}
@@ -358,10 +350,7 @@ export default function ServiceInfoCards({ service }: Props) {
             </Select>
           )}
         </div>
-      </div>
 
-      {/* Info grid — compact horizontal layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {/* Cita */}
         <div className="bg-card rounded-lg border border-border p-2.5">
           <div className="flex items-center gap-1.5 mb-1">
