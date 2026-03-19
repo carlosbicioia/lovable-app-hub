@@ -103,7 +103,6 @@ export default function UsersTab() {
                         disabled={u.banned}
                         onValueChange={(v) => { if (v === "sin_rol" || !u.auth_user_id) return; updateRole.mutate({ userId: u.auth_user_id, role: v }); }}
                       >
-                      >
                         <SelectTrigger className={cn(
                           "h-7 w-[140px] text-xs font-medium",
                           u.role === "admin" ? "border-primary/30 text-primary" :
