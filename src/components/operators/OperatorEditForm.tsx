@@ -76,6 +76,14 @@ export default function OperatorEditForm({ operator, onSaved }: Props) {
     article_standard_hour_id: operator.articleStandardHourId ?? "",
     article_app_hour_id: operator.articleAppHourId ?? "",
     article_urgency_hour_id: operator.articleUrgencyHourId ?? "",
+    // Urgency pricing - Cost
+    cost_article_salida_id: operator.costArticleSalidaId ?? "",
+    cost_article_dia_guardia_id: operator.costArticleDiaGuardiaId ?? "",
+    cost_article_hora_guardia_id: operator.costArticleHoraGuardiaId ?? "",
+    // Urgency pricing - Sale
+    article_salida_id: operator.articleSalidaId ?? "",
+    article_dia_guardia_id: operator.articleDiaGuardiaId ?? "",
+    article_hora_guardia_id: operator.articleHoraGuardiaId ?? "",
   });
 
   const set = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
