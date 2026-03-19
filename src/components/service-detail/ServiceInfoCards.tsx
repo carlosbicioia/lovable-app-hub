@@ -7,6 +7,7 @@ import { Wrench, Zap, Activity, CalendarClock, ClipboardList, ShieldAlert, Alert
 import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
 import DirectRepairSalesOrderDialog from "./DirectRepairSalesOrderDialog";
 import { useOperators } from "@/hooks/useOperators";
+import { useAppUsers } from "@/hooks/useAppUsers";
 import { useCollaborators } from "@/hooks/useCollaborators";
 import type { Service } from "@/types/urbango";
 import { useServices } from "@/hooks/useServices";
