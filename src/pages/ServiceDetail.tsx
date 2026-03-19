@@ -120,14 +120,9 @@ export default function ServiceDetail() {
 
   const handleDeleteService = async () => {
     try {
-      if (linkedBudget) {
-        await supabase.from("budget_lines").delete().eq("budget_id", linkedBudget.id);
-        await supabase.from("budgets").delete().eq("id", linkedBudget.id);
-      }
-      await supabase.from("service_media").delete().eq("service_id", service.id);
+      // The cascade_delete_service_documents trigger handles all child records
       const { error } = await supabase.from("services").delete().eq("id", service.id);
       if (error) throw error;
-      await logServiceAction(service.id, "Servicio eliminado");
       toast.success("Servicio eliminado correctamente");
       navigate("/servicios");
     } catch (err: any) {
