@@ -59,6 +59,7 @@ export function useCreateArticle() {
         has_known_pvp: article.hasKnownPvp,
         pvp: article.pvp,
         unit: article.unit,
+        margin: article.margin ?? 0,
       });
       if (error) throw error;
     },
