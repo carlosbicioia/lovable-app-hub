@@ -156,7 +156,16 @@ export function useServices() {
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
 
-  return { services, loading, getService, updateService, refetch };
+  // Wrapped updateService that invalidates cache after success
+  const wrappedUpdateService = async (id: string, updates: Record<string, any>) => {
+    const result = await updateService(id, updates);
+    if (!result.error) {
+      queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
+    }
+    return result;
+  };
+
+  return { services, loading, getService, updateService: wrappedUpdateService, refetch };
 }
 
 /* ── Mutation helper (used directly, not from context) ── */
