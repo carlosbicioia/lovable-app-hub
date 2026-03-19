@@ -258,6 +258,7 @@ export default function ServiceInfoCards({ service }: Props) {
     <div className="space-y-4">
       {/* Status Pipeline - visual stepper */}
       <div className="bg-card rounded-xl border border-border p-4">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Estado del servicio</p>
         <div className="flex items-center gap-1 overflow-x-auto">
           {STATUS_PIPELINE.map((step, idx) => {
             const isPast = idx < currentIdx;
