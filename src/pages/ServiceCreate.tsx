@@ -487,7 +487,7 @@ export default function ServiceCreate() {
         title: andSchedule ? "Servicio creado y agendado" : "Servicio registrado",
         description: andSchedule
           ? `El servicio ${serviceId} ha sido asignado a ${selectedOperator?.name} para el ${format(scheduledDate!, "d MMM yyyy", { locale: es })}`
-          : `El servicio ${serviceId} se ha registrado como Pendiente de Contacto.`,
+          : `El servicio ${serviceId} se ha registrado como Pendiente de Aceptación.`,
       });
       navigate("/servicios");
     } catch (err: any) {
@@ -1027,7 +1027,7 @@ export default function ServiceCreate() {
       <div className="flex flex-col sm:flex-row justify-end gap-3 pb-6">
         <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
         <Button variant="secondary" onClick={() => handleSave(false)} disabled={saving}>
-          <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Contacto)"}
+          <Save className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar (Pte. Aceptación)"}
         </Button>
         <Button onClick={() => handleSave(true)} disabled={saving}>
           <Send className="w-4 h-4 mr-2" /> {saving ? "Guardando..." : "Registrar y Agendar"}
