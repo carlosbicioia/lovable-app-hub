@@ -11,40 +11,48 @@ export interface SystemUser {
   role: string | null;
   collaborator_id: string | null;
   banned: boolean;
+  /** The auth user id (from profiles) if the user has logged in */
+  auth_user_id: string | null;
 }
 
 export function useSystemUsers() {
   return useQuery({
     queryKey: ["system_users"],
     queryFn: async () => {
-      const [{ data: profiles, error: e1 }, { data: roles, error: e2 }, { data: appUsers, error: e3 }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email, avatar_url, created_at").order("created_at"),
+      const [{ data: appUsers, error: e1 }, { data: profiles, error: e2 }, { data: roles, error: e3 }] = await Promise.all([
+        supabase.from("app_users").select("id, name, email, role, active, created_at").order("created_at"),
+        supabase.from("profiles").select("id, full_name, email, avatar_url"),
         supabase.from("user_roles").select("user_id, role, collaborator_id"),
-        supabase.from("app_users").select("email, active"),
       ]);
       if (e1) throw e1;
-      if (e2) throw e2;
 
+      // Map profiles by email for cross-reference
+      const profileByEmail = new Map<string, { id: string; avatar_url: string | null }>();
+      (profiles ?? []).forEach((p: any) => {
+        profileByEmail.set(p.email, { id: p.id, avatar_url: p.avatar_url });
+      });
+
+      // Map roles by auth user id
       const roleMap = new Map<string, { role: string; collaborator_id: string | null }>();
       (roles ?? []).forEach((r: any) => {
         roleMap.set(r.user_id, { role: r.role, collaborator_id: r.collaborator_id });
       });
 
-      const activeMap = new Map<string, boolean>();
-      (appUsers ?? []).forEach((a: any) => {
-        activeMap.set(a.email, a.active);
-      });
-
-      return (profiles ?? []).map((p: any) => ({
-        id: p.id,
-        full_name: p.full_name || "",
-        email: p.email || "",
-        avatar_url: p.avatar_url,
-        created_at: p.created_at,
-        role: roleMap.get(p.id)?.role ?? null,
-        collaborator_id: roleMap.get(p.id)?.collaborator_id ?? null,
-        banned: activeMap.get(p.email) === false,
-      })) as SystemUser[];
+      return (appUsers ?? []).map((u: any) => {
+        const profile = profileByEmail.get(u.email);
+        const authRole = profile ? roleMap.get(profile.id) : null;
+        return {
+          id: u.id,
+          full_name: u.name || "",
+          email: u.email || "",
+          avatar_url: profile?.avatar_url ?? null,
+          created_at: u.created_at,
+          role: authRole?.role ?? u.role ?? null,
+          collaborator_id: authRole?.collaborator_id ?? null,
+          banned: u.active === false,
+          auth_user_id: profile?.id ?? null,
+        };
+      }) as SystemUser[];
     },
   });
 }
