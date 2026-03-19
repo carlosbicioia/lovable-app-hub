@@ -261,7 +261,7 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>
           ) : media.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-11 gap-1.5">
               {media.map((item) => (
                 <div
                   key={item.id}
