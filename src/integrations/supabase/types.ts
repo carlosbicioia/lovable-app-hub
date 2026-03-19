@@ -1759,11 +1759,15 @@ export type Database = {
           contact_phone: string
           contacted_at: string | null
           created_at: string
+          created_by_email: string
+          created_by_name: string
           description: string | null
           diagnosis_complete: boolean
           floor: string
           id: string
           internal_notes: string
+          managed_by_email: string
+          managed_by_name: string
           no_media_available: boolean
           nps: number | null
           operator_id: string | null
@@ -1804,11 +1808,15 @@ export type Database = {
           contact_phone?: string
           contacted_at?: string | null
           created_at?: string
+          created_by_email?: string
+          created_by_name?: string
           description?: string | null
           diagnosis_complete?: boolean
           floor?: string
           id: string
           internal_notes?: string
+          managed_by_email?: string
+          managed_by_name?: string
           no_media_available?: boolean
           nps?: number | null
           operator_id?: string | null
@@ -1849,11 +1857,15 @@ export type Database = {
           contact_phone?: string
           contacted_at?: string | null
           created_at?: string
+          created_by_email?: string
+          created_by_name?: string
           description?: string | null
           diagnosis_complete?: boolean
           floor?: string
           id?: string
           internal_notes?: string
+          managed_by_email?: string
+          managed_by_name?: string
           no_media_available?: boolean
           nps?: number | null
           operator_id?: string | null
