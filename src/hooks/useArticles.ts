@@ -13,6 +13,7 @@ function mapRow(r: any): Article {
     hasKnownPvp: r.has_known_pvp,
     pvp: r.pvp !== null ? Number(r.pvp) : null,
     unit: r.unit,
+    margin: Number(r.margin ?? 0),
   };
 }
 
@@ -58,6 +59,7 @@ export function useCreateArticle() {
         has_known_pvp: article.hasKnownPvp,
         pvp: article.pvp,
         unit: article.unit,
+        margin: article.margin ?? 0,
       });
       if (error) throw error;
     },
@@ -80,6 +82,7 @@ export function useUpdateArticle() {
           has_known_pvp: article.hasKnownPvp,
           pvp: article.pvp,
           unit: article.unit,
+          margin: article.margin ?? 0,
         })
         .eq("id", article.id);
       if (error) throw error;
@@ -102,15 +105,17 @@ export function useDeleteArticle() {
   });
 }
 
-export function getArticleSalePrice(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp"> & { category?: string }): number {
-  // Labor articles: costPrice IS the sale price (no margin applied)
-  if (a.category === "Mano_de_Obra") return a.costPrice;
+export function getArticleSalePrice(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp" | "margin"> & { category?: string }): number {
+  // Labor articles: apply manual margin if set
+  if (a.category === "Mano_de_Obra") {
+    const m = a.margin ?? 0;
+    return a.costPrice * (1 + m / 100);
+  }
   return a.hasKnownPvp && a.pvp !== null ? a.pvp : a.costPrice * 1.30;
 }
 
-export function getArticleMargin(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp"> & { category?: string }): number {
-  // Labor articles have no margin (costPrice = sale price)
-  if (a.category === "Mano_de_Obra") return 0;
+export function getArticleMargin(a: Pick<Article, "costPrice" | "hasKnownPvp" | "pvp" | "margin"> & { category?: string }): number {
+  if (a.category === "Mano_de_Obra") return a.margin ?? 0;
   const sale = getArticleSalePrice(a);
   if (a.costPrice === 0) return 0;
   return ((sale - a.costPrice) / a.costPrice) * 100;

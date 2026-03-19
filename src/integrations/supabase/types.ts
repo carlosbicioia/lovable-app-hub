@@ -53,6 +53,7 @@ export type Database = {
           description: string
           has_known_pvp: boolean
           id: string
+          margin: number
           pvp: number | null
           sort_order: number
           specialty: string
@@ -68,6 +69,7 @@ export type Database = {
           description?: string
           has_known_pvp?: boolean
           id: string
+          margin?: number
           pvp?: number | null
           sort_order?: number
           specialty?: string
@@ -83,6 +85,7 @@ export type Database = {
           description?: string
           has_known_pvp?: boolean
           id?: string
+          margin?: number
           pvp?: number | null
           sort_order?: number
           specialty?: string

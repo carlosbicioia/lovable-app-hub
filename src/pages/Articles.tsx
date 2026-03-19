@@ -18,7 +18,7 @@ const units = ["ud", "m", "m²", "h", "kg"];
 
 const emptyArticle: Omit<Article, "id"> = {
   title: "", description: "", category: "Material", specialty: "Fontanería/Agua",
-  costPrice: 0, hasKnownPvp: false, pvp: null, unit: "ud",
+  costPrice: 0, hasKnownPvp: false, pvp: null, unit: "ud", margin: 0,
 };
 
 export default function Articles() {
@@ -52,7 +52,7 @@ export default function Articles() {
 
   const openEdit = (a: Article) => {
     setEditing(a);
-    setForm({ title: a.title, description: a.description, category: a.category, specialty: a.specialty, costPrice: a.costPrice, hasKnownPvp: a.hasKnownPvp, pvp: a.pvp, unit: a.unit });
+    setForm({ title: a.title, description: a.description, category: a.category, specialty: a.specialty, costPrice: a.costPrice, hasKnownPvp: a.hasKnownPvp, pvp: a.pvp, unit: a.unit, margin: a.margin ?? 0 });
     setDialogOpen(true);
   };
 
@@ -175,7 +175,8 @@ export default function Articles() {
                     <td className="px-5 py-3 text-right text-muted-foreground">{a.costPrice.toFixed(2)} €</td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">
                       {sale.toFixed(2)} €
-                      {!a.hasKnownPvp && <span className="ml-1 text-[10px] text-muted-foreground">(+30%)</span>}
+                      {a.category !== "Mano_de_Obra" && !a.hasKnownPvp && <span className="ml-1 text-[10px] text-muted-foreground">(+30%)</span>}
+                      {a.category === "Mano_de_Obra" && a.margin > 0 && <span className="ml-1 text-[10px] text-muted-foreground">(+{a.margin}%)</span>}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <span className={cn(
@@ -276,10 +277,25 @@ export default function Articles() {
             <div className="flex items-center gap-3 pt-1">
               <Switch checked={form.hasKnownPvp} onCheckedChange={(v) => setForm({ ...form, hasKnownPvp: v, pvp: v ? form.costPrice * 1.30 : null })} />
               <Label className="text-sm font-normal">PVP conocido del proveedor</Label>
-              {!form.hasKnownPvp && (
+              {!form.hasKnownPvp && form.category !== "Mano_de_Obra" && (
                 <span className="text-xs text-muted-foreground ml-auto">Se aplica +30% sobre coste</span>
               )}
             </div>
+
+            {form.category === "Mano_de_Obra" && (
+              <div className="space-y-2">
+                <Label>Margen mano de obra (%)</Label>
+                <Input
+                  type="number" min={0} step={0.1}
+                  value={form.margin}
+                  onChange={(e) => setForm({ ...form, margin: parseFloat(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  PVP = Coste × (1 + margen/100) = {(form.costPrice * (1 + form.margin / 100)).toFixed(2)} €
+                </p>
+              </div>
+            )}
 
             {/* Preview */}
             <div className="bg-muted/50 rounded-lg p-3 border border-border">

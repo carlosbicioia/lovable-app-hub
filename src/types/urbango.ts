@@ -223,4 +223,5 @@ export interface Article {
   hasKnownPvp: boolean;
   pvp: number | null; // if known; otherwise calculated as costPrice * 1.30
   unit: string; // "ud", "m", "m²", "h", "kg"
+  margin: number; // manual margin % (used for Mano_de_Obra)
 }
