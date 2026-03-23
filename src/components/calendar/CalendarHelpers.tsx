@@ -3,7 +3,7 @@ import { format, getHours, getMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import type { Service } from "@/types/urbango";
 import { type CalendarService, specialtyIcon, statusLabels, getOperatorColor } from "./calendarUtils";
 
@@ -33,7 +33,7 @@ export function DroppableCell({
 }
 
 export function ServiceChip({ service, showTime = false, spanHeight }: { service: CalendarService; showTime?: boolean; spanHeight?: number }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const colors = getOperatorColor(service._displayOperatorId ?? service.operatorId);
   const timeStr = service.scheduledAt
     ? format(new Date(service.scheduledAt), "HH:mm") + (service.scheduledEndAt ? "–" + format(new Date(service.scheduledEndAt), "HH:mm") : "")
@@ -46,7 +46,7 @@ export function ServiceChip({ service, showTime = false, spanHeight }: { service
         <button
           draggable
           onDragStart={(e) => handleDragStart(e as any, service)}
-          onClick={() => navigate(`/servicios/${service.id}`)}
+          onClick={() => router.push(`/servicios/${service.id}`)}
           className={cn(
             "w-full text-left px-2 py-1 rounded-md text-xs font-medium border transition-colors hover:ring-1 hover:ring-ring cursor-grab active:cursor-grabbing",
             isSpanning ? "h-full flex flex-col overflow-hidden" : "truncate"

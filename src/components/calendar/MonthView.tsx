@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useServices } from "@/hooks/useServices";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import type { Service } from "@/types/urbango";
 import { specialtyIcon, statusLabels, getOperatorColor, getServicesForDate, isMultiDay, computeBarSegments } from "./calendarUtils";
 import { handleDragStart, DroppableCell, ServiceChip } from "./CalendarHelpers";
@@ -18,7 +18,7 @@ interface MonthViewProps {
 export default function MonthView({ date, onDropService, filteredServices }: MonthViewProps) {
   const { services: allServices } = useServices();
   const services = filteredServices ?? allServices;
-  const navigate = useNavigate();
+  const router = useRouter();
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
   const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
@@ -77,7 +77,7 @@ export default function MonthView({ date, onDropService, filteredServices }: Mon
                         return (
                           <Tooltip key={bar.service.id}>
                             <TooltipTrigger asChild>
-                              <button draggable onDragStart={(e) => handleDragStart(e as any, bar.service)} onClick={() => navigate(`/servicios/${bar.service.id}`)}
+                              <button draggable onDragStart={(e) => handleDragStart(e as any, bar.service)} onClick={() => router.push(`/servicios/${bar.service.id}`)}
                                 className={cn("h-[18px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-grab active:cursor-grabbing transition-colors hover:ring-1 hover:ring-ring px-1.5", startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0", endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0")}
                                 style={{ gridColumn: `${bar.colStart} / ${bar.colEnd}`, backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                               >

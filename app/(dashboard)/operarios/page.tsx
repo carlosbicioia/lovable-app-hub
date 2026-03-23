@@ -264,7 +264,7 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
       {/* Operator cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((op) => {
-          const stCfg = statusConfig[op.status];
+          const stCfg = statusConfig[op.status as OperatorStatus];
           const assignedServices = services.filter(
             (s) => s.operatorId === op.id && ["En_Curso", "Agendado", "Asignado"].includes(s.status)
           ).length;
@@ -357,7 +357,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
   const operator = allOperators.find((o) => o.id === initialOperator.id) ?? initialOperator;
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
-  const stCfg = statusConfig[operator.status];
+  const stCfg = statusConfig[operator.status as OperatorStatus];
   const { services } = useServices();
   const { data: dbSpecialties } = useSpecialties();
   const { data: articlesData = [] } = useArticles();
@@ -384,7 +384,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
     ? operator.totalRevenue / operator.completedServices
     : 0;
 
-  const chartData = operator.monthlyRevenue.map((m) => ({
+  const chartData = operator.monthlyRevenue.map((m: { month: string; revenue: number; services: number }) => ({
     month: format(new Date(m.month + "-01"), "MMM", { locale: es }),
     revenue: m.revenue,
     services: m.services,
@@ -510,7 +510,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Clústeres asignados</p>
                       <div className="flex gap-1 flex-wrap">
-                        {operator.clusterIds.map((c) => (
+                        {operator.clusterIds.map((c: string) => (
                           <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
                         ))}
                       </div>
@@ -519,7 +519,7 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Certificaciones</p>
                         <div className="flex gap-1 flex-wrap">
-                          {operator.certifications.map((cert) => (
+                          {operator.certifications.map((cert: string) => (
                             <Badge key={cert} variant="outline" className="text-xs">
                               <ShieldCheck className="w-3 h-3 mr-1" /> {cert}
                             </Badge>
@@ -772,8 +772,8 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
                       className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", specialtyColor[s.specialty])}>
-                          {specialtyIcon[s.specialty]}
+                        <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", specialtyColor[s.specialty as string] ?? "bg-muted text-muted-foreground border-border")}>
+                          {specialtyIcon[s.specialty as string]}
                         </span>
                         <div>
                           <p className="text-sm font-medium text-foreground">{s.id} · {s.clientName}</p>

@@ -4,7 +4,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useServices } from "@/hooks/useServices";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import type { Service } from "@/types/urbango";
 import { specialtyIcon, statusLabels, getOperatorColor, isMultiDay, computeBarSegments } from "./calendarUtils";
 import { handleDragStart, DroppableCell, ServiceChip, CurrentTimeLine } from "./CalendarHelpers";
@@ -18,7 +18,7 @@ interface WeekViewProps {
 
 export default function WeekView({ date, onDropService, onHourRangeSelect, filteredServices }: WeekViewProps) {
   const { services: allServices } = useServices();
-  const navigate = useNavigate();
+  const router = useRouter();
   const weekScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function WeekView({ date, onDropService, onHourRangeSelect, filte
                     <TooltipTrigger asChild>
                       <button
                         draggable onDragStart={(e) => handleDragStart(e as any, bar.service)}
-                        onClick={() => navigate(`/servicios/${bar.service.id}`)}
+                        onClick={() => router.push(`/servicios/${bar.service.id}`)}
                         className={cn("h-[20px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-grab active:cursor-grabbing transition-colors hover:ring-1 hover:ring-ring px-1.5", startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0", endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0")}
                         style={{ gridColumn: `${bar.colStart + 1} / ${bar.colEnd + 1}`, backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                       >

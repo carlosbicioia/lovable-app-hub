@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import { ArrowLeft, Save, Send, CalendarIcon, Image, FileText, ExternalLink, X, Plus } from "lucide-react";
+import { ArrowLeft, Save, Send, CalendarIcon, Upload, Image, FileText, ExternalLink, Camera, File, X, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
+import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
@@ -171,9 +172,9 @@ export default function ServiceCreatePage() {
   }, []);
 
   useEffect(() => {
-    const dateParam = searchParams.get("date");
-    const startTimeParam = searchParams.get("startTime");
-    const endTimeParam = searchParams.get("endTime");
+    const dateParam = searchParams?.get("date");
+    const startTimeParam = searchParams?.get("startTime");
+    const endTimeParam = searchParams?.get("endTime");
     if (dateParam) {
       const d = new Date(dateParam + "T00:00:00");
       if (!isNaN(d.getTime())) { setScheduledDate(d); setScheduledEndDate(d); }
@@ -515,7 +516,7 @@ export default function ServiceCreatePage() {
         <CardHeader><CardTitle className="text-base">4. Fotografías</CardTitle></CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label className="flex items-center gap-2"><Image className="w-4 h-4 text-muted-foreground" /> Estado actual</Label>
+            <Label className="flex items-center gap-2"><Camera className="w-4 h-4 text-muted-foreground" /> Estado actual</Label>
             <p className="text-xs text-muted-foreground">Fotos del estado actual antes de la intervención</p>
             <input ref={currentStateRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { const files = Array.from(e.target.files ?? []); setCurrentStateImages((prev) => [...prev, ...files]); e.target.value = ""; }} />
             {currentStateImages.length > 0 && (

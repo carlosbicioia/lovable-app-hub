@@ -178,7 +178,7 @@ export default function CalendarView() {
             >
               <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: `hsl(${op.color})` }} />
               {op.name.split(" ")[0]}
-              <span className={cn("text-[10px] px-1 py-0 rounded-full border", specialtyColor[op.specialty])}>{specialtyIcon[op.specialty]}</span>
+              <span className={cn("text-[10px] px-1 py-0 rounded-full border", specialtyColor[op.specialty as Specialty])}>{specialtyIcon[op.specialty as Specialty]}</span>
             </button>
           ))}
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-muted/50 text-muted-foreground border-border">
