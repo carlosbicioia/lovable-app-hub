@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { Providers } from "./providers";
+import DashboardShell from "./dashboard-shell";
 import "@/index.css";
 
 const inter = Inter({
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <DashboardShell>{children}</DashboardShell>
+        </Providers>
       </body>
     </html>
   );
