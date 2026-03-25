@@ -1074,12 +1074,12 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
                     <div className="h-7 flex items-center text-xs font-semibold font-mono px-2 bg-muted rounded-md">
                       {editCalculatedHours ? hoursToHHMM(editCalculatedHours) : "—"}
                     </div>
-                    <Select value={editServiceId} onValueChange={setEditServiceId}>
+                    <Select value={editServiceId || "__none__"} onValueChange={(v) => setEditServiceId(v === "__none__" ? "" : v)}>
                       <SelectTrigger className="h-7 text-xs">
                         <SelectValue placeholder="Sin servicio" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sin servicio</SelectItem>
+                        <SelectItem value="__none__">Sin servicio</SelectItem>
                         {availableServices.map((s) => (
                           <SelectItem key={s.id} value={s.id}>{s.id}</SelectItem>
                         ))}
