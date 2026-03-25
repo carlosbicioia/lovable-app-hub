@@ -267,11 +267,11 @@ export default function ServiceInfoCards({ service }: Props) {
             const isCurrent = idx === currentIdx;
             const isFuture = idx > currentIdx;
             // Special case: Pendiente_Contacto shows as completed (green) when contacted_at is set
-            const isContactedPending = step.key === "Pendiente_Contacto" && isCurrent && !!service.contactedAt;
-            // Special case: Agendado shows as completed (green) when scheduledAt is set, even if status hasn't reached it
-            const isScheduledButNotAgendado = step.key === "Agendado" && isFuture && !!service.scheduledAt;
-            const showAsCompleted = isPast || isContactedPending || isScheduledButNotAgendado;
-            const showAsCurrent = isCurrent && !isContactedPending;
+            const isContactedPending = step.key === "Pendiente_Contacto" && (isCurrent || isPast) && !!service.contactedAt;
+            // Special case: Agendado shows as completed (green) when scheduledAt is set
+            const isScheduledDone = step.key === "Agendado" && (isCurrent || isFuture) && !!service.scheduledAt;
+            const showAsCompleted = isPast || isContactedPending || isScheduledDone;
+            const showAsCurrent = isCurrent && !isContactedPending && !isScheduledDone;
             return (
               <div key={step.key} className="flex items-center">
                 <Tooltip>
