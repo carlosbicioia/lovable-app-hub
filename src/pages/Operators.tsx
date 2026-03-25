@@ -3,7 +3,7 @@ import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useBranches } from "@/hooks/useBranches";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
-import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord } from "@/hooks/useTimeRecords";
+import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord, useUpdateTimeRecord } from "@/hooks/useTimeRecords";
 import { useToast } from "@/hooks/use-toast";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
