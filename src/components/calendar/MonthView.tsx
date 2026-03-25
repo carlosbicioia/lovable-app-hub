@@ -1,13 +1,10 @@
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday } from "date-fns";
-import { es } from "date-fns/locale";
+"use client";
+
+import { isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, getMonth, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useServices } from "@/hooks/useServices";
-import { useNavigate } from "react-router-dom";
 import type { Service } from "@/types/urbango";
-import { specialtyIcon, statusLabels, getOperatorColor, getServicesForDate, isMultiDay, computeBarSegments } from "./calendarUtils";
-import { handleDragStart, DroppableCell, ServiceChip } from "./CalendarHelpers";
+import { specialtyColor } from "./calendarUtils";
 
 interface MonthViewProps {
   date: Date;
@@ -15,103 +12,94 @@ interface MonthViewProps {
   filteredServices?: Service[];
 }
 
+const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
 export default function MonthView({ date, onDropService, filteredServices }: MonthViewProps) {
   const { services: allServices } = useServices();
   const services = filteredServices ?? allServices;
-  const navigate = useNavigate();
+
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
-  const calendarStart = startOfWeek(monthStart, { locale: es, weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { locale: es, weekStartsOn: 1 });
-  const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
-  const weeks: Date[][] = [];
-  for (let i = 0; i < allDays.length; i += 7) weeks.push(allDays.slice(i, i + 7));
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
 
-  const rangeServices = services.filter((s) => {
-    if (!s.scheduledAt) return false;
-    const start = new Date(s.scheduledAt);
-    const startD = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const endD = s.scheduledEndAt ? new Date(new Date(s.scheduledEndAt).getFullYear(), new Date(s.scheduledEndAt).getMonth(), new Date(s.scheduledEndAt).getDate()) : startD;
-    const calStartD = new Date(calendarStart.getFullYear(), calendarStart.getMonth(), calendarStart.getDate());
-    const calEndD = new Date(calendarEnd.getFullYear(), calendarEnd.getMonth(), calendarEnd.getDate());
-    return endD >= calStartD && startD <= calEndD;
-  });
+  const handleDrop = (e: React.DragEvent, day: Date) => {
+    e.preventDefault();
+    const serviceId = e.dataTransfer.getData("serviceId");
+    if (serviceId) onDropService(serviceId, day);
+  };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="grid grid-cols-7 gap-0 border border-border rounded-t-lg overflow-hidden shrink-0">
-        {weekDayLabels.map((d) => (
-          <div key={d} className="py-1.5 text-center text-xs font-semibold text-muted-foreground border-b border-border bg-muted/50">{d}</div>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="grid grid-cols-7 border-b border-border">
+        {DAY_LABELS.map((label) => (
+          <div key={label} className="text-center text-xs font-semibold text-muted-foreground py-2">
+            {label}
+          </div>
         ))}
       </div>
-      <div className="border-x border-b border-border rounded-b-lg overflow-hidden flex-1 flex flex-col">
-        {weeks.map((weekDays, wi) => {
-          const barSegments = computeBarSegments(weekDays, rangeServices);
-          const maxBarRows = barSegments.length > 0 ? Math.max(...barSegments.map((b) => b.row)) + 1 : 0;
+
+      {/* Days grid */}
+      <div className="flex-1 grid grid-cols-7 auto-rows-fr">
+        {days.map((day) => {
+          const dayServices = services.filter(
+            (s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), day)
+          );
+          const isCurrentMonth = getMonth(day) === getMonth(date);
+
           return (
-            <div key={wi} className="flex-1 min-h-0 flex flex-col border-b border-border last:border-b-0">
-              <div className="grid grid-cols-7 shrink-0">
-                {weekDays.map((day) => {
-                  const isCurrentMonth = isSameMonth(day, date);
-                  const dayServices = getServicesForDate(rangeServices, day);
-                  return (
-                    <DroppableCell key={day.toISOString()} date={day} onDropService={onDropService} className={cn("flex justify-between items-center px-1.5 py-0.5 border-r border-border last:border-r-0", !isCurrentMonth && "opacity-40")}>
-                      <span className={cn("text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full", isToday(day) && "bg-primary text-primary-foreground")}>{format(day, "d")}</span>
-                      {dayServices.length > 0 && <Badge variant="secondary" className="text-[10px] h-4 px-1">{dayServices.length}</Badge>}
-                    </DroppableCell>
-                  );
-                })}
-              </div>
-              {maxBarRows > 0 && (
-                <div className="shrink-0">
-                  {Array.from({ length: Math.min(maxBarRows, 3) }, (_, rowIdx) => (
-                    <div key={rowIdx} className="grid grid-cols-7 gap-0 px-0.5" style={{ height: 20 }}>
-                      {barSegments.filter((b) => b.row === rowIdx).map((bar) => {
-                        const colors = getOperatorColor(bar.service.operatorId);
-                        const sStart = new Date(bar.service.scheduledAt!);
-                        const sEnd = new Date(bar.service.scheduledEndAt!);
-                        const startsThisWeek = isSameDay(sStart, weekDays[bar.colStart - 1]) || sStart < weekDays[0];
-                        const endsThisWeek = isSameDay(sEnd, weekDays[bar.colEnd - 2]) || sEnd > weekDays[6];
-                        return (
-                          <Tooltip key={bar.service.id}>
-                            <TooltipTrigger asChild>
-                              <button draggable onDragStart={(e) => handleDragStart(e as any, bar.service)} onClick={() => navigate(`/servicios/${bar.service.id}`)}
-                                className={cn("h-[18px] flex items-center gap-1 text-[10px] font-semibold truncate border cursor-grab active:cursor-grabbing transition-colors hover:ring-1 hover:ring-ring px-1.5", startsThisWeek ? "rounded-l-md" : "rounded-l-none border-l-0", endsThisWeek ? "rounded-r-md" : "rounded-r-none border-r-0")}
-                                style={{ gridColumn: `${bar.colStart} / ${bar.colEnd}`, backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
-                              >
-                                {specialtyIcon[bar.service.specialty]}
-                                <span className="truncate">{bar.service.id} · {bar.service.operatorName ?? "Sin asignar"}</span>
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-xs">
-                              <div className="space-y-1">
-                                <p className="font-semibold">{bar.service.id} – {bar.service.clientName}</p>
-                                <p className="text-xs"><span className="text-muted-foreground">Periodo:</span> {format(sStart, "d MMM", { locale: es })} – {format(sEnd, "d MMM", { locale: es })}</p>
-                                <p className="text-xs"><span className="text-muted-foreground">Operario:</span> {bar.service.operatorName ?? "Sin asignar"}</p>
-                                <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[bar.service.status] ?? bar.service.status}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  ))}
-                  {maxBarRows > 3 && <p className="text-[10px] text-muted-foreground text-center">+{maxBarRows - 3} más</p>}
-                </div>
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "border-b border-r border-border/30 p-1 min-h-[80px]",
+                !isCurrentMonth && "bg-muted/30"
               )}
-              <div className="grid grid-cols-7 gap-0 flex-1 min-h-0 overflow-hidden">
-                {weekDays.map((day) => {
-                  const isCurrentMonth = isSameMonth(day, date);
-                  const singleDayServices = getServicesForDate(rangeServices, day).filter((s) => !isMultiDay(s));
-                  return (
-                    <DroppableCell key={day.toISOString()} date={day} onDropService={onDropService} className={cn("px-0.5 pb-0.5 space-y-0.5 overflow-y-auto border-r border-border last:border-r-0", !isCurrentMonth && "opacity-40")}>
-                      {singleDayServices.slice(0, 3).map((s) => <ServiceChip key={s.id} service={s} showTime />)}
-                      {singleDayServices.length > 3 && <p className="text-[10px] text-muted-foreground text-center">+{singleDayServices.length - 3} más</p>}
-                    </DroppableCell>
-                  );
-                })}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, day)}
+            >
+              {/* Day number */}
+              <span
+                className={cn(
+                  "text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full",
+                  isToday(day) && "bg-primary text-primary-foreground",
+                  !isCurrentMonth && "text-muted-foreground",
+                  isCurrentMonth && !isToday(day) && "text-foreground"
+                )}
+              >
+                {day.getDate()}
+              </span>
+
+              {/* Service chips */}
+              <div className="mt-0.5 space-y-0.5">
+                {dayServices.slice(0, 3).map((s) => (
+                  <div
+                    key={s.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("serviceId", s.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    className={cn(
+                      "text-[9px] rounded px-1 truncate cursor-grab border",
+                      specialtyColor[s.specialty] ?? "bg-muted text-muted-foreground border-border"
+                    )}
+                    title={`${s.id} — ${s.clientName || s.clientId}`}
+                  >
+                    {s.id}
+                  </div>
+                ))}
+                {dayServices.length > 3 && (
+                  <div className="text-[9px] text-muted-foreground pl-1">
+                    +{dayServices.length - 3} más
+                  </div>
+                )}
               </div>
             </div>
           );

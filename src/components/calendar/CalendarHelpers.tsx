@@ -1,109 +1,114 @@
-import { useState, useEffect, DragEvent } from "react";
-import { format, getHours, getMinutes } from "date-fns";
-import { cn } from "@/lib/utils";
-import { MapPin } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
-import type { Service } from "@/types/urbango";
-import { type CalendarService, specialtyIcon, statusLabels, getOperatorColor } from "./calendarUtils";
+"use client";
 
-export function handleDragStart(e: DragEvent, service: Service) {
-  e.dataTransfer.setData("text/plain", service.id);
-  e.dataTransfer.effectAllowed = "move";
+import { cn } from "@/lib/utils";
+import type { Service } from "@/types/urbango";
+import { specialtyColor } from "./calendarUtils";
+
+// ── DroppableCell ────────────────────────────────────────────────────────────
+
+interface DroppableCellProps {
+  date: Date;
+  hour?: number;
+  onDrop?: (serviceId: string, date: Date) => void;
+  onMouseDown?: () => void;
+  onMouseEnter?: () => void;
+  onMouseUp?: () => void;
+  isSelected?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export function DroppableCell({
-  date, children, className, onDropService, style,
-}: {
-  date: Date; children: React.ReactNode; className?: string;
-  onDropService: (serviceId: string, targetDate: Date) => void; style?: React.CSSProperties;
-}) {
-  const [over, setOver] = useState(false);
+  date,
+  hour,
+  onDrop,
+  onMouseDown,
+  onMouseEnter,
+  onMouseUp,
+  isSelected,
+  children,
+  className,
+  style,
+}: DroppableCellProps) {
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const serviceId = e.dataTransfer.getData("serviceId");
+    if (serviceId && onDrop) onDrop(serviceId, date);
+  };
+
   return (
     <div
-      className={cn(className, over && "ring-2 ring-primary/50 bg-primary/5")}
+      className={cn(
+        "border-b border-border/50 hover:bg-accent/30 transition-colors cursor-pointer",
+        isSelected && "bg-primary/10",
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseUp={onMouseUp}
       style={style}
-      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setOver(true); }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData("text/plain"); if (id) onDropService(id, date); }}
     >
       {children}
     </div>
   );
 }
 
-export function ServiceChip({ service, showTime = false, spanHeight }: { service: CalendarService; showTime?: boolean; spanHeight?: number }) {
-  const navigate = useNavigate();
-  const colors = getOperatorColor(service._displayOperatorId ?? service.operatorId);
-  const timeStr = service.scheduledAt
-    ? format(new Date(service.scheduledAt), "HH:mm") + (service.scheduledEndAt ? "–" + format(new Date(service.scheduledEndAt), "HH:mm") : "")
-    : "";
-  const isSpanning = spanHeight !== undefined && spanHeight > 30;
+// ── ServiceChip ──────────────────────────────────────────────────────────────
+
+interface ServiceChipProps {
+  service: Service | any;
+  style?: React.CSSProperties;
+  onClick?: () => void;
+  showTime?: boolean;
+  spanHeight?: number;
+}
+
+export function ServiceChip({ service, style, onClick }: ServiceChipProps) {
+  const colorClass = specialtyColor[service.specialty] ?? "bg-muted text-muted-foreground border-border";
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("serviceId", service.id);
+    e.dataTransfer.effectAllowed = "move";
+  };
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          draggable
-          onDragStart={(e) => handleDragStart(e as any, service)}
-          onClick={() => navigate(`/servicios/${service.id}`)}
-          className={cn(
-            "w-full text-left px-2 py-1 rounded-md text-xs font-medium border transition-colors hover:ring-1 hover:ring-ring cursor-grab active:cursor-grabbing",
-            isSpanning ? "h-full flex flex-col overflow-hidden" : "truncate"
-          )}
-          style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
-        >
-          <span className="flex items-center gap-1">
-            {specialtyIcon[service.specialty]}
-            <span className="truncate">{showTime && timeStr ? `${timeStr} ` : ""}{service.id} · {service._displayOperatorName ?? service.operatorName ?? "Sin asignar"}</span>
-          </span>
-          {isSpanning && (
-            <>
-              <span className="truncate text-[10px] opacity-80 mt-0.5">{service.clientName} · {service.specialty}</span>
-              {service.address && (
-                <span className="truncate text-[10px] opacity-60 flex items-center gap-0.5">
-                  <MapPin className="w-2.5 h-2.5 shrink-0" />{service.address}
-                </span>
-              )}
-            </>
-          )}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="max-w-xs">
-        <div className="space-y-1">
-          <p className="font-semibold">{service.id} – {service.clientName}</p>
-          <p className="text-xs"><span className="text-muted-foreground">Tipo:</span> {service.serviceType === "Presupuesto" ? "Con presupuesto" : "Reparación directa"}</p>
-          <p className="text-xs"><span className="text-muted-foreground">Especialidad:</span> {service.specialty}</p>
-          <p className="text-xs"><span className="text-muted-foreground">Operarios:</span> {service.operators.length > 0 ? service.operators.map(o => o.name).join(", ") : service.operatorName ?? "Sin asignar"}</p>
-          <p className="text-xs"><span className="text-muted-foreground">Colaborador:</span> {service.collaboratorName ?? "Sin colaborador"}</p>
-          {service.address && <p className="text-xs"><span className="text-muted-foreground">Dirección:</span> {service.address}</p>}
-          <p className="text-xs"><span className="text-muted-foreground">Estado:</span> {statusLabels[service.status] ?? service.status}</p>
-          {timeStr && <p className="text-xs"><span className="text-muted-foreground">Horario:</span> {timeStr}</p>}
-        </div>
-      </TooltipContent>
-    </Tooltip>
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onClick={onClick}
+      style={style}
+      className={cn(
+        "absolute left-0.5 right-0.5 text-[10px] rounded px-1 py-0.5 overflow-hidden cursor-grab active:cursor-grabbing border truncate z-10",
+        colorClass
+      )}
+      title={`${service.id} — ${service.clientName || service.clientId}`}
+    >
+      {service.id}
+    </div>
   );
 }
 
-export function useCurrentTime() {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
+// ── CurrentTimeLine ──────────────────────────────────────────────────────────
 
-export function CurrentTimeLine({ hour, colStart, colSpan }: { hour: number; colStart: number; colSpan: number }) {
-  const now = useCurrentTime();
-  if (getHours(now) !== hour) return null;
-  const topPercent = (getMinutes(now) / 60) * 100;
+export function CurrentTimeLine({ hour, colStart, colSpan }: { hour?: number; colStart?: number; colSpan?: number } = {}) {
+  const now = new Date();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const top = (minutes / (24 * 60)) * 100;
+
   return (
-    <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${topPercent}%`, gridColumn: `${colStart} / span ${colSpan}` }}>
-      <div className="flex items-center">
-        <div className="w-2 h-2 rounded-full bg-destructive shrink-0 -ml-1" />
-        <div className="flex-1 h-[2px] bg-destructive" />
-      </div>
+    <div
+      className="absolute left-0 right-0 border-t-2 border-destructive z-20 pointer-events-none"
+      style={{ top: `${top}%` }}
+    >
+      <div className="w-2 h-2 rounded-full bg-destructive -mt-1 -ml-1" />
     </div>
   );
 }

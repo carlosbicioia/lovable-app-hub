@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +16,7 @@ import {
  * Works with the legacy <BrowserRouter> (no data router required).
  */
 export function useUnsavedChanges(isDirty: boolean) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [showDialog, setShowDialog] = useState(false);
   const pendingPath = useRef<string | null>(null);
   const isConfirmed = useRef(false);
@@ -85,9 +85,9 @@ export function useUnsavedChanges(isDirty: boolean) {
     if (path === "__back__") {
       window.history.back();
     } else if (path) {
-      navigate(path);
+      router.push(path);
     }
-  }, [navigate]);
+  }, [router]);
 
   const handleCancel = useCallback(() => {
     setShowDialog(false);

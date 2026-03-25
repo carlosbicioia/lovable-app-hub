@@ -1,0 +1,305 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Building2, Star, Pencil, Trash2, Users, Wrench, Settings, Upload, Plus, X, HelpCircle, Send, Copy, Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { VoiceTextarea as Textarea } from "@/components/ui/voice-textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+import type { Collaborator, CollaboratorCategory } from "@/types/urbango";
+
+const categoryColors: Record<string, string> = {
+  Administrador: "bg-info/15 text-info border-info/30",
+  Corredor: "bg-primary/15 text-primary border-primary/30",
+  Gestoría: "bg-success/15 text-success border-success/30",
+  Otros: "bg-muted text-muted-foreground border-border",
+};
+
+const categories: CollaboratorCategory[] = ["Administrador", "Corredor", "Gestoría", "Otros"];
+
+interface AssignedClient { id: string; clientName: string; clientId: string; address: string; }
+interface AssignedService { id: string; clientName: string; specialty: string; status: string; scheduledAt: string | null; urgency: string; }
+
+const statusColors: Record<string, string> = {
+  Pendiente_Contacto: "bg-warning/15 text-warning border-warning/30",
+  Agendado: "bg-info/15 text-info border-info/30",
+  En_Curso: "bg-primary/15 text-primary border-primary/30",
+  Finalizado: "bg-success/15 text-success border-success/30",
+  Liquidado: "bg-muted text-muted-foreground border-border",
+};
+
+export default function CollaboratorDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [collaborator, setCollaborator] = useState<Collaborator | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({
+    companyName: "", category: "Administrador" as CollaboratorCategory,
+    email: "", phone: "", contactPerson: "",
+    taxId: "", address: "", streetNumber: "", floor: "", addressExtra: "",
+    city: "", province: "", postalCode: "",
+    website: "", notes: "", commissionRate: 10,
+  });
+  const [saving, setSaving] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [clients, setClients] = useState<AssignedClient[]>([]);
+  const [services, setServices] = useState<AssignedService[]>([]);
+  const [portalEnabled, setPortalEnabled] = useState(false);
+  const [portalEmail, setPortalEmail] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [contacts, setContacts] = useState<{ name: string; email: string; phone: string }[]>([]);
+  const [sendingAccess, setSendingAccess] = useState(false);
+  const [accessCredentials, setAccessCredentials] = useState<{ email: string; password: string } | null>(null);
+
+  const fetchCollaborator = useCallback(async () => {
+    if (!id) return;
+    const { data, error } = await supabase.from("collaborators" as any).select("*").eq("id", id).single();
+    if (error || !data) { toast({ title: "Error", description: "Colaborador no encontrado", variant: "destructive" }); router.push("/colaboradores"); return; }
+    const row = data as any;
+    const c: Collaborator = {
+      id: row.id, companyName: row.company_name, category: row.category,
+      email: row.email, phone: row.phone, contactPerson: row.contact_person,
+      npsMean: Number(row.nps_mean), activeServices: row.active_services, totalClients: row.total_clients,
+      taxId: row.tax_id ?? "", address: row.address ?? "",
+      streetNumber: row.street_number ?? "", floor: row.floor ?? "", addressExtra: row.address_extra ?? "",
+      city: row.city ?? "", province: row.province ?? "", postalCode: row.postal_code ?? "",
+      website: row.website ?? "", notes: row.notes ?? "", branchId: row.branch_id ?? null,
+      commissionRate: Number(row.commission_rate ?? 10),
+    };
+    setCollaborator(c);
+    setForm({ companyName: c.companyName, category: c.category, email: c.email, phone: c.phone, contactPerson: c.contactPerson, taxId: c.taxId, address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra, city: c.city, province: c.province, postalCode: c.postalCode, website: c.website, notes: c.notes, commissionRate: c.commissionRate });
+    setPortalEnabled(!!row.portal_enabled);
+    setPortalEmail(row.portal_email || c.email);
+    setLogoUrl(row.logo_url || "");
+    setContacts(Array.isArray(row.additional_contacts) ? row.additional_contacts : []);
+    setLoading(false);
+  }, [id, router]);
+
+  const fetchClients = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase.from("services" as any).select("client_name, client_id, address").eq("collaborator_id", id);
+    if (data) {
+      const unique = new Map<string, AssignedClient>();
+      (data as any[]).forEach((s) => { if (!unique.has(s.client_id)) unique.set(s.client_id, { id: s.client_id, clientName: s.client_name, clientId: s.client_id, address: s.address || "" }); });
+      setClients(Array.from(unique.values()));
+    }
+  }, [id]);
+
+  const fetchServices = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase.from("services" as any).select("id, client_name, specialty, status, scheduled_at, urgency").eq("collaborator_id", id).order("created_at", { ascending: false });
+    if (data) setServices((data as any[]).map((s) => ({ id: s.id, clientName: s.client_name, specialty: s.specialty, status: s.status, scheduledAt: s.scheduled_at, urgency: s.urgency })));
+  }, [id]);
+
+  useEffect(() => { fetchCollaborator(); fetchClients(); fetchServices(); }, [fetchCollaborator, fetchClients, fetchServices]);
+
+  const handleSave = async () => {
+    if (!id || !form.companyName.trim()) return;
+    if (!form.taxId.trim()) { toast({ title: "Error", description: "El NIF/CIF es obligatorio", variant: "destructive" }); return; }
+    if (!form.phone.trim()) { toast({ title: "Error", description: "El teléfono es obligatorio", variant: "destructive" }); return; }
+    if (!form.address.trim()) { toast({ title: "Error", description: "La dirección es obligatoria", variant: "destructive" }); return; }
+    setSaving(true);
+    const { error } = await supabase.from("collaborators" as any).update({ company_name: form.companyName, category: form.category, email: form.email, phone: form.phone, contact_person: form.contactPerson, tax_id: form.taxId, address: form.address, street_number: form.streetNumber, floor: form.floor, address_extra: form.addressExtra, city: form.city, province: form.province, postal_code: form.postalCode, website: form.website, notes: form.notes, commission_rate: form.commissionRate } as any).eq("id", id);
+    setSaving(false);
+    if (error) { toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" }); }
+    else { toast({ title: "Colaborador actualizado" }); setEditing(false); fetchCollaborator(); }
+  };
+
+  const addContact = () => setContacts((c) => [...c, { name: "", email: "", phone: "" }]);
+  const removeContact = (i: number) => setContacts((c) => c.filter((_, idx) => idx !== i));
+  const updateContact = (i: number, field: string, value: string) => setContacts((c) => c.map((ct, idx) => idx === i ? { ...ct, [field]: value } : ct));
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let pw = "";
+    for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    pw = pw[0].toUpperCase() + pw.slice(1, 9) + String(Math.floor(Math.random() * 10));
+    return pw;
+  };
+
+  const handleSendAccess = async () => {
+    if (!id || !portalEmail.trim()) { toast({ title: "Error", description: "Indica un email de acceso válido", variant: "destructive" }); return; }
+    setSendingAccess(true);
+    try {
+      const password = generatePassword();
+      const { data, error } = await supabase.functions.invoke("register-user", { body: { email: portalEmail.trim(), full_name: collaborator?.companyName || id, password, role: "colaborador", collaborator_id: id } });
+      if (error) throw error;
+      if (data?.error) { toast({ title: "Error", description: data.error, variant: "destructive" }); return; }
+      setAccessCredentials({ email: portalEmail.trim(), password });
+      toast({ title: "Acceso creado correctamente" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo crear el acceso", variant: "destructive" });
+    } finally { setSendingAccess(false); }
+  };
+
+  const handleSaveConfig = async () => {
+    if (!id) return;
+    setSavingConfig(true);
+    const { error } = await supabase.from("collaborators" as any).update({ portal_enabled: portalEnabled, portal_email: portalEmail, logo_url: logoUrl || null, additional_contacts: contacts } as any).eq("id", id);
+    setSavingConfig(false);
+    if (error) { toast({ title: "Error", description: "No se pudo guardar la configuración", variant: "destructive" }); }
+    else { toast({ title: "Configuración guardada" }); }
+  };
+
+  if (loading) return (<div className="space-y-6"><Skeleton className="h-8 w-64" /><Skeleton className="h-48 w-full rounded-xl" /></div>);
+  if (!collaborator) return null;
+
+  return (
+    <>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => router.push("/colaboradores")}><ArrowLeft className="w-5 h-5" /></Button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Building2 className="w-5 h-5 text-primary" /></div>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-display font-bold text-foreground truncate">{collaborator.companyName}</h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border", categoryColors[collaborator.category])}>{collaborator.category}</span>
+                <span className="text-sm text-muted-foreground">{collaborator.id}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-6 text-center">
+            <div><p className="text-xl font-display font-bold text-foreground">{collaborator.activeServices}</p><p className="text-xs text-muted-foreground">Servicios activos</p></div>
+            <div><p className="text-xl font-display font-bold text-foreground">{collaborator.totalClients}</p><p className="text-xs text-muted-foreground">Clientes</p></div>
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 text-primary fill-primary" />
+              <p className="text-xl font-display font-bold text-foreground">{collaborator.npsMean}</p>
+              <p className="text-xs text-muted-foreground ml-1">NPS</p>
+              <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild><HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help ml-0.5" /></TooltipTrigger><TooltipContent side="top" className="max-w-[220px] text-xs">Media de las puntuaciones NPS (0-10) de los servicios finalizados de este colaborador.</TooltipContent></Tooltip></TooltipProvider>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-0">
+          <TabsTrigger value="general" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2.5"><Building2 className="w-4 h-4 mr-2" /> Datos generales</TabsTrigger>
+          <TabsTrigger value="clients" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2.5"><Users className="w-4 h-4 mr-2" /> Clientes asignados</TabsTrigger>
+          <TabsTrigger value="services" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2.5"><Wrench className="w-4 h-4 mr-2" /> Servicios asignados</TabsTrigger>
+          <TabsTrigger value="config" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2.5"><Settings className="w-4 h-4 mr-2" /> Configuración</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="mt-6">
+          <div className="bg-card rounded-xl border border-border p-6 max-w-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-card-foreground">Información del colaborador</h2>
+              {!editing ? (
+                <Button variant="outline" size="sm" onClick={() => setEditing(true)}><Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar</Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm({ companyName: collaborator.companyName, category: collaborator.category, email: collaborator.email, phone: collaborator.phone, contactPerson: collaborator.contactPerson, taxId: collaborator.taxId, address: collaborator.address, streetNumber: collaborator.streetNumber, floor: collaborator.floor, addressExtra: collaborator.addressExtra, city: collaborator.city, province: collaborator.province, postalCode: collaborator.postalCode, website: collaborator.website, notes: collaborator.notes, commissionRate: collaborator.commissionRate }); }}>Cancelar</Button>
+                  <Button size="sm" onClick={handleSave} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-1.5"><Label>Nombre de empresa</Label>{editing ? <Input value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.companyName}</p>}</div>
+              <div className="space-y-1.5"><Label>Categoría</Label>{editing ? (<Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as CollaboratorCategory }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{categories.map((cat) => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent></Select>) : <p className="text-sm text-foreground">{collaborator.category}</p>}</div>
+              <div className="space-y-1.5"><Label>Persona de contacto</Label>{editing ? <Input value={form.contactPerson} onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.contactPerson || "—"}</p>}</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5"><Label>Email</Label>{editing ? <Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.email || "—"}</p>}</div>
+                <div className="space-y-1.5"><Label>Teléfono</Label>{editing ? <Input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.phone || "—"}</p>}</div>
+              </div>
+              <div className="space-y-1.5"><Label>NIF / CIF</Label>{editing ? <Input value={form.taxId} onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))} placeholder="B12345678" /> : <p className="text-sm text-foreground">{collaborator.taxId || "—"}</p>}</div>
+              <div className="space-y-1.5"><Label>Dirección</Label>{editing ? (<div className="grid grid-cols-12 gap-2"><div className="col-span-6"><Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder="Calle" /></div><div className="col-span-2"><Input value={form.streetNumber} onChange={(e) => setForm((f) => ({ ...f, streetNumber: e.target.value }))} placeholder="Nº" /></div><div className="col-span-2"><Input value={form.floor} onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))} placeholder="Piso" /></div><div className="col-span-2"><Input value={form.addressExtra} onChange={(e) => setForm((f) => ({ ...f, addressExtra: e.target.value }))} placeholder="Esc..." /></div></div>) : <p className="text-sm text-foreground">{[collaborator.address, collaborator.streetNumber, collaborator.floor, collaborator.addressExtra].filter(Boolean).join(", ") || "—"}</p>}</div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5"><Label>Ciudad</Label>{editing ? <Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.city || "—"}</p>}</div>
+                <div className="space-y-1.5"><Label>Provincia</Label>{editing ? <Input value={form.province} onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.province || "—"}</p>}</div>
+                <div className="space-y-1.5"><Label>C.P.</Label>{editing ? <Input value={form.postalCode} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} /> : <p className="text-sm text-foreground">{collaborator.postalCode || "—"}</p>}</div>
+              </div>
+              <div className="space-y-1.5"><Label>Web</Label>{editing ? <Input value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="www.empresa.es" /> : <p className="text-sm text-foreground">{collaborator.website || "—"}</p>}</div>
+              <div className="space-y-1.5"><Label>Comisión (%)</Label>{editing ? <Input type="number" min={0} max={100} step={0.5} value={form.commissionRate} onChange={(e) => setForm((f) => ({ ...f, commissionRate: parseFloat(e.target.value) || 0 }))} /> : <p className="text-sm text-foreground">{collaborator.commissionRate}%</p>}</div>
+              <div className="space-y-1.5"><Label>Notas</Label>{editing ? <Input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Observaciones internas..." /> : <p className="text-sm text-foreground">{collaborator.notes || "—"}</p>}</div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="clients" className="mt-6">
+          <div className="bg-card rounded-xl border border-border">
+            <div className="p-5 border-b border-border"><h2 className="text-lg font-semibold text-card-foreground">Clientes asignados <span className="text-sm font-normal text-muted-foreground ml-2">({clients.length})</span></h2><p className="text-sm text-muted-foreground mt-0.5">Clientes que tienen servicios vinculados a este colaborador</p></div>
+            {clients.length === 0 ? (<div className="text-center py-12 text-muted-foreground"><Users className="w-8 h-8 mx-auto mb-2 opacity-40" /><p>No hay clientes asignados</p></div>) : (
+              <Table><TableHeader><TableRow><TableHead>ID Cliente</TableHead><TableHead>Nombre</TableHead><TableHead>Dirección</TableHead></TableRow></TableHeader><TableBody>{clients.map((c) => (<TableRow key={c.id}><TableCell className="font-mono text-xs text-muted-foreground">{c.clientId}</TableCell><TableCell className="font-medium">{c.clientName}</TableCell><TableCell className="text-muted-foreground">{c.address || "—"}</TableCell></TableRow>))}</TableBody></Table>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="services" className="mt-6">
+          <div className="bg-card rounded-xl border border-border">
+            <div className="p-5 border-b border-border"><h2 className="text-lg font-semibold text-card-foreground">Servicios asignados <span className="text-sm font-normal text-muted-foreground ml-2">({services.length})</span></h2></div>
+            {services.length === 0 ? (<div className="text-center py-12 text-muted-foreground"><Wrench className="w-8 h-8 mx-auto mb-2 opacity-40" /><p>No hay servicios asignados</p></div>) : (
+              <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Especialidad</TableHead><TableHead>Estado</TableHead><TableHead>Urgencia</TableHead><TableHead>Fecha programada</TableHead></TableRow></TableHeader>
+              <TableBody>{services.map((s) => (<TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/servicios/${s.id}`)}><TableCell className="font-mono text-xs text-muted-foreground">{s.id}</TableCell><TableCell className="font-medium">{s.clientName}</TableCell><TableCell>{s.specialty}</TableCell><TableCell><span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border", statusColors[s.status] || "bg-muted text-muted-foreground border-border")}>{s.status.replace(/_/g, " ")}</span></TableCell><TableCell>{s.urgency}</TableCell><TableCell className="text-muted-foreground">{s.scheduledAt ? new Date(s.scheduledAt).toLocaleDateString("es-ES") : "—"}</TableCell></TableRow>))}</TableBody></Table>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="config" className="mt-6 space-y-6 max-w-2xl">
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h2 className="text-lg font-semibold text-card-foreground mb-1">Acceso al portal</h2>
+            <p className="text-sm text-muted-foreground mb-4">Configura el acceso del colaborador a su portal de gestión</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between"><div><Label>Portal habilitado</Label><p className="text-xs text-muted-foreground">Permite al colaborador acceder al portal</p></div><Switch checked={portalEnabled} onCheckedChange={setPortalEnabled} /></div>
+              {portalEnabled && (<div className="space-y-1.5"><Label>Email de acceso</Label><div className="flex gap-2"><Input value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} placeholder="email@empresa.es" className="flex-1" /><Button onClick={handleSendAccess} disabled={sendingAccess || !portalEmail.trim()} size="sm" className="shrink-0">{sendingAccess ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}Enviar acceso</Button></div><p className="text-xs text-muted-foreground">Se creará una cuenta de acceso al portal del colaborador</p></div>)}
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h2 className="text-lg font-semibold text-card-foreground mb-1">Logo del colaborador</h2>
+            <p className="text-sm text-muted-foreground mb-4">Logo que aparecerá en documentos y presupuestos asociados</p>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30">{logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" /> : <Upload className="w-6 h-6 text-muted-foreground" />}</div>
+              <div>
+                <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" id="logo-upload" onChange={async (e) => { const file = e.target.files?.[0]; if (!file || !id) return; const ext = file.name.split(".").pop(); const path = `collaborator-logos/${id}.${ext}`; const { error: uploadError } = await supabase.storage.from("service-media").upload(path, file, { upsert: true }); if (uploadError) { toast({ title: "Error", description: "No se pudo subir el logo", variant: "destructive" }); return; } const { data: urlData } = supabase.storage.from("service-media").getPublicUrl(path); setLogoUrl(urlData.publicUrl); toast({ title: "Logo subido" }); }} />
+                <Button variant="outline" size="sm" onClick={() => document.getElementById("logo-upload")?.click()}><Upload className="w-3.5 h-3.5 mr-1.5" /> Subir logo</Button>
+                <p className="text-xs text-muted-foreground mt-1">PNG, JPG hasta 2MB</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-6">
+            <div className="flex items-center justify-between mb-4"><div><h2 className="text-lg font-semibold text-card-foreground">Contactos asignados</h2><p className="text-sm text-muted-foreground">Personas de contacto adicionales del colaborador</p></div><Button variant="outline" size="sm" onClick={addContact}><Plus className="w-3.5 h-3.5 mr-1.5" /> Añadir contacto</Button></div>
+            {contacts.length === 0 ? (<p className="text-sm text-muted-foreground text-center py-6">No hay contactos adicionales</p>) : (
+              <div className="space-y-3">{contacts.map((ct, i) => (<div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border"><div className="flex-1 grid grid-cols-3 gap-3"><div className="space-y-1"><Label className="text-xs">Nombre</Label><Input value={ct.name} onChange={(e) => updateContact(i, "name", e.target.value)} placeholder="Nombre" className="h-8 text-sm" /></div><div className="space-y-1"><Label className="text-xs">Email</Label><Input value={ct.email} onChange={(e) => updateContact(i, "email", e.target.value)} placeholder="Email" className="h-8 text-sm" /></div><div className="space-y-1"><Label className="text-xs">Teléfono</Label><Input value={ct.phone} onChange={(e) => updateContact(i, "phone", e.target.value)} placeholder="Teléfono" className="h-8 text-sm" /></div></div><Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0 mt-5" onClick={() => removeContact(i)}><X className="w-3.5 h-3.5" /></Button></div>))}</div>
+            )}
+          </div>
+
+          <div className="flex justify-end"><Button onClick={handleSaveConfig} disabled={savingConfig}>{savingConfig ? "Guardando..." : "Guardar configuración"}</Button></div>
+        </TabsContent>
+      </Tabs>
+    </div>
+
+    <Dialog open={!!accessCredentials} onOpenChange={() => setAccessCredentials(null)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Acceso creado correctamente</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">Se ha creado la cuenta de acceso al portal para <strong>{collaborator?.companyName}</strong>. Comparte estas credenciales con el colaborador:</p>
+          <div className="bg-muted/50 rounded-lg border border-border p-4 space-y-3">
+            <div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Email</p><p className="text-sm font-medium text-foreground">{accessCredentials?.email}</p></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.email || ""); toast({ title: "Email copiado" }); }}><Copy className="w-3.5 h-3.5" /></Button></div>
+            <div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Contraseña</p><p className="text-sm font-mono font-medium text-foreground">{accessCredentials?.password}</p></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(accessCredentials?.password || ""); toast({ title: "Contraseña copiada" }); }}><Copy className="w-3.5 h-3.5" /></Button></div>
+          </div>
+          <p className="text-xs text-muted-foreground">⚠️ Guarda estas credenciales. La contraseña no se podrá consultar de nuevo.</p>
+        </div>
+        <DialogFooter><Button onClick={() => setAccessCredentials(null)}>Cerrar</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
+  );
+}
