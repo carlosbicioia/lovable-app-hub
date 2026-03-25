@@ -286,15 +286,17 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
                   {/* Avatar with color indicator */}
                   <div className="relative">
                     {op.photo ? (
-                      <img
-                        src={op.photo}
-                        alt={op.name}
-                        className="w-14 h-14 rounded-xl object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
-                      />
-                      <div className="hidden w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
-                        {op.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
-                      </div>
+                      <>
+                        <img
+                          src={op.photo}
+                          alt={op.name}
+                          className="w-14 h-14 rounded-xl object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement?.querySelector<HTMLDivElement>("[data-fallback]")?.classList.remove("hidden"); }}
+                        />
+                        <div data-fallback className="hidden w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
+                          {op.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                      </>
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
                         {op.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
