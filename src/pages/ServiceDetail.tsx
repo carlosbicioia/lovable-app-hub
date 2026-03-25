@@ -410,14 +410,23 @@ export default function ServiceDetail() {
                   </p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste Compras</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {totalPurchaseCost > 0 ? `€${totalPurchaseCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}` : "—"}
-                  </p>
-                </CardContent>
-              </Card>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="cursor-help">
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste Compras</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {totalPurchaseCost > 0 ? fmtCost(totalPurchaseCost) : "—"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs space-y-1">
+                  <p>Órdenes compra: {fmtCost(purchaseCostBreakdown.po)}</p>
+                  <p>Albaranes (sin OC): {fmtCost(purchaseCostBreakdown.dn)}</p>
+                  <p>Facturas (sin OC): {fmtCost(purchaseCostBreakdown.inv)}</p>
+                </TooltipContent>
+              </Tooltip>
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Órdenes venta</p>
