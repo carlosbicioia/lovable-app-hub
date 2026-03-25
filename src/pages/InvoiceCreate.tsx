@@ -233,7 +233,7 @@ export default function InvoiceCreate() {
           total: l.total,
         })),
       },
-      { onSuccess: () => navigate("/compras") }
+      { onSuccess: () => navigate(preServiceId ? `/servicios/${preServiceId}` : "/compras") }
     );
   };
 

@@ -144,7 +144,7 @@ export default function DeliveryNoteCreate() {
             costPrice: l.costPrice,
           })),
         },
-        { onSuccess: () => navigate("/compras") }
+        { onSuccess: () => navigate(preServiceId ? `/servicios/${preServiceId}` : "/compras") }
       );
     } finally {
       setUploading(false);

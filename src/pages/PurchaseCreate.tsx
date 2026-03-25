@@ -88,7 +88,7 @@ export default function PurchaseCreate() {
         notes,
         lines,
       },
-      { onSuccess: () => navigate("/compras") }
+      { onSuccess: () => navigate(preServiceId ? `/servicios/${preServiceId}` : "/compras") }
     );
   };
 

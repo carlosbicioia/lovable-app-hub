@@ -169,6 +169,8 @@ export default function BudgetCreate() {
     const pendingData = sessionStorage.getItem("pendingServiceCreate");
     if (pendingData) {
       navigate("/servicios/nuevo");
+    } else if (serviceId) {
+      navigate(`/servicios/${serviceId}`);
     } else {
       navigate("/presupuestos");
     }
