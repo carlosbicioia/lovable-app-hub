@@ -302,11 +302,21 @@ export default function ServiceDetail() {
                       {service.realHours != null ? hoursToHHMM(service.realHours) : "—"}
                     </p>
                   </div>
-                  <div className="bg-card rounded-lg border border-border p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Coste Compras</p>
-                    <p className="text-base font-bold text-card-foreground">
-                      {totalPurchaseCost > 0 ? `€${totalPurchaseCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}` : "—"}
-                    </p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-card rounded-lg border border-border p-3 cursor-help">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Coste Compras</p>
+                        <p className="text-base font-bold text-card-foreground">
+                          {totalPurchaseCost > 0 ? fmtCost(totalPurchaseCost) : "—"}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs space-y-1">
+                      <p>Órdenes compra: {fmtCost(purchaseCostBreakdown.po)}</p>
+                      <p>Albaranes (sin OC): {fmtCost(purchaseCostBreakdown.dn)}</p>
+                      <p>Facturas (sin OC): {fmtCost(purchaseCostBreakdown.inv)}</p>
+                    </TooltipContent>
+                  </Tooltip>
                   </div>
                   {service.nps !== null && (
                     <div className="bg-card rounded-lg border border-border p-3">
