@@ -68,6 +68,7 @@ export default function Services() {
   const { data: branches = [] } = useBranches();
   const activeBranches = branches.filter((b) => b.active);
   const { services, loading, updateService, refetch } = useServices();
+  const { data: laborCostsMap = {} } = useBulkServiceLaborCosts(services);
   const { toast } = useToast();
   const { data: appUsers = [] } = useAppUsers();
 
