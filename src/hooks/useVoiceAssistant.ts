@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
 import { toast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   role: "user" | "assistant";
@@ -36,7 +36,7 @@ export function useVoiceAssistant() {
   const accumulatedTextRef = useRef("");
   const handleUserInputRef = useRef<(text: string) => void>(() => {});
   const { refetch } = useServices();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -329,7 +329,7 @@ export function useVoiceAssistant() {
           if (serviceId) {
             setTimeout(() => {
               setOpen(false);
-              router.push(`/servicios/${serviceId}`);
+              navigate(`/servicios/${serviceId}`);
             }, 2000);
           }
         } else {
@@ -344,7 +344,7 @@ export function useVoiceAssistant() {
         startListening();
       }
     },
-    [speak, createService, parseServiceData, cleanDisplayText, router, startListening]
+    [speak, createService, parseServiceData, cleanDisplayText, navigate, startListening]
   );
 
   // Keep the ref in sync so startListening's closure always calls the latest version

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ interface BudgetData {
 }
 
 export default function ServiceInfoCards({ service }: Props) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { updateService } = useServices();
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
@@ -228,7 +228,7 @@ export default function ServiceInfoCards({ service }: Props) {
   const handleModifyBudgetAndCancel = () => {
     setShowFinalizadoPrompt(false);
     if (budgetData) {
-      router.push(`/presupuestos/${budgetData.id}/editar`);
+      navigate(`/presupuestos/${budgetData.id}/editar`);
     }
   };
 
@@ -520,7 +520,7 @@ export default function ServiceInfoCards({ service }: Props) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Más tarde</AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.push(`/presupuestos/nuevo?serviceId=${service.id}`)}>
+            <AlertDialogAction onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}>
               Crear presupuesto
             </AlertDialogAction>
           </AlertDialogFooter>

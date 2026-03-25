@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function ServiceSidebar({ service }: Props) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { budgets } = useBudgets();
   const { data: operators = [] } = useOperators();
   const { collaborators } = useCollaborators();
@@ -300,7 +300,7 @@ export default function ServiceSidebar({ service }: Props) {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Nº Presupuesto</span>
                 <button
-                  onClick={() => router.push(`/presupuestos/${linkedBudget.id}`)}
+                  onClick={() => navigate(`/presupuestos/${linkedBudget.id}`)}
                   className="text-sm font-medium text-primary hover:underline cursor-pointer"
                 >
                   {linkedBudget.id}
@@ -342,7 +342,7 @@ export default function ServiceSidebar({ service }: Props) {
               </p>
               {service.serviceType === "Presupuesto" && (
                 <button
-                  onClick={() => router.push(`/presupuestos/nuevo?serviceId=${service.id}`)}
+                  onClick={() => navigate(`/presupuestos/nuevo?serviceId=${service.id}`)}
                   className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5" />

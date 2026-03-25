@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ interface BudgetKanbanProps {
 }
 
 export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<BudgetStatus | null>(null);
   const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
@@ -125,7 +125,7 @@ export default function BudgetKanban({ budgets, onStatusChange }: BudgetKanbanPr
                     draggable
                     onDragStart={(e) => handleDragStart(e, b.id)}
                     onDragEnd={handleDragEnd}
-                    onClick={() => router.push(`/presupuestos/${b.id}`)}
+                    onClick={() => navigate(`/presupuestos/${b.id}`)}
                     className={cn(
                       "bg-card rounded-lg border border-border p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group",
                       isDragging && "opacity-40 scale-95"

@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useEffect, useRef, useState, useCallback } from "react";
 import { Bell, Clock, AlertTriangle, ShoppingCart, UserX, Wrench, CheckCheck, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,7 +6,7 @@ import { useServices } from "@/hooks/useServices";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, parseISO, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,7 +40,7 @@ function useDismissedNotifications() {
 }
 
 export default function NotificationsPopover() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { services } = useServices();
   const { data: purchaseOrders = [] } = usePurchaseOrders();
@@ -240,7 +238,7 @@ export default function NotificationsPopover() {
                   variantStyles[n.variant]
                 )}
                 style={{ animationDelay: `${i * 50}ms` }}
-                onClick={() => router.push(n.href)}
+                onClick={() => navigate(n.href)}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 shrink-0">{n.icon}</div>

@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Plus, FileText, Package, Truck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ interface ServicePurchasesProps {
 }
 
 export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: orders = [] } = usePurchaseOrders(serviceId);
   const { data: deliveryNotes = [] } = useDeliveryNotes(serviceId);
   const { data: invoices = [] } = usePurchaseInvoices(serviceId);
@@ -78,13 +78,13 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
       </div>
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => router.push(`/compras/nueva?serviceId=${serviceId}`)}>
+        <Button size="sm" onClick={() => navigate(`/compras/nueva?serviceId=${serviceId}`)}>
           <Plus className="w-4 h-4 mr-1" /> Nueva OC
         </Button>
-        <Button size="sm" variant="outline" onClick={() => router.push(`/compras/albaran/nuevo?serviceId=${serviceId}`)}>
+        <Button size="sm" variant="outline" onClick={() => navigate(`/compras/albaran/nuevo?serviceId=${serviceId}`)}>
           <Plus className="w-4 h-4 mr-1" /> Nuevo albarán
         </Button>
-        <Button size="sm" variant="outline" onClick={() => router.push(`/compras/factura/nueva?serviceId=${serviceId}`)}>
+        <Button size="sm" variant="outline" onClick={() => navigate(`/compras/factura/nueva?serviceId=${serviceId}`)}>
           <Plus className="w-4 h-4 mr-1" /> Nueva factura
         </Button>
       </div>
@@ -125,7 +125,7 @@ export default function ServicePurchases({ serviceId }: ServicePurchasesProps) {
                   {orders.map((o) => {
                     const sc = ocStatusCfg[o.status];
                     return (
-                      <div key={o.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => router.push(`/compras/${o.id}`)}>
+                      <div key={o.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/compras/${o.id}`)}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className="font-mono text-sm font-semibold text-foreground">{o.id}</span>

@@ -22,7 +22,7 @@ export default function DayView({ date, onDropService, onHourRangeSelect, filter
   const scheduledServices = services.filter((s) => s.scheduledAt && isSameDay(new Date(s.scheduledAt), date));
 
   const { data: allOps = [] } = useOperators();
-  setOperatorsCache(allOps as any);
+  setOperatorsCache(allOps);
   const operators = selectedOperatorId ? allOps.filter((op) => op.id === selectedOperatorId) : allOps;
   const unassigned = scheduledServices.filter((s) => s.operators.length === 0 && !s.operatorId);
 
@@ -86,9 +86,9 @@ export default function DayView({ date, onDropService, onHourRangeSelect, filter
               {operators.map((op) => {
                 const opServices = scheduledServices.filter(
                   (s) => (s.operators.some((o) => o.id === op.id) || s.operatorId === op.id) && s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour
-                ).map((s) => ({ ...s, _displayOperatorId: op.id, _displayOperatorName: op.name } as any));
+                ).map((s): CalendarService => ({ ...s, _displayOperatorId: op.id, _displayOperatorName: op.name }));
                 return (
-                  <DroppableCell key={op.id} date={date} onDrop={onDropService} className="relative p-0 border-r border-border last:border-r-0" style={{ overflow: 'visible' }}>
+                  <DroppableCell key={op.id} date={date} onDropService={onDropService} className="relative p-0 border-r border-border last:border-r-0" style={{ overflow: 'visible' }}>
                     {opServices.map((s) => {
                       const start = new Date(s.scheduledAt!);
                       const end = s.scheduledEndAt ? new Date(s.scheduledEndAt) : null;
@@ -107,7 +107,7 @@ export default function DayView({ date, onDropService, onHourRangeSelect, filter
                 );
               })}
               {unassigned.length > 0 && (
-                <DroppableCell date={date} onDrop={onDropService} className="relative p-0" style={{ overflow: 'visible' }}>
+                <DroppableCell date={date} onDropService={onDropService} className="relative p-0" style={{ overflow: 'visible' }}>
                   {unassigned.filter((s) => s.scheduledAt && getHours(new Date(s.scheduledAt)) === hour).map((s) => {
                     const start = new Date(s.scheduledAt!);
                     const end = s.scheduledEndAt ? new Date(s.scheduledEndAt) : null;
