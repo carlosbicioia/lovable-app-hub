@@ -67,17 +67,38 @@ export default function ServiceDetail() {
     },
   });
 
-  // Real-time materials count
-  const { data: materialsCount = 0 } = useQuery({
-    queryKey: ["service_materials_count", id],
+  // Real-time total purchase cost: PO totals + delivery notes without PO + invoices without PO
+  const { data: totalPurchaseCost = 0 } = useQuery({
+    queryKey: ["service_total_purchase_cost", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_materials_used")
-        .select("id")
+      // 1. Sum of purchase order totals
+      const { data: poData, error: e1 } = await supabase
+        .from("purchase_orders")
+        .select("total_cost")
         .eq("service_id", id!);
-      if (error) throw error;
-      return (data ?? []).length;
+      if (e1) throw e1;
+      const poTotal = (poData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
+
+      // 2. Sum of delivery notes NOT linked to a PO
+      const { data: dnData, error: e2 } = await supabase
+        .from("delivery_notes")
+        .select("total_cost, purchase_order_id")
+        .eq("service_id", id!)
+        .is("purchase_order_id", null);
+      if (e2) throw e2;
+      const dnTotal = (dnData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
+
+      // 3. Sum of purchase invoice lines for this service NOT linked to a PO
+      const { data: invLines, error: e3 } = await supabase
+        .from("purchase_invoice_lines")
+        .select("total, purchase_order_id")
+        .eq("service_id", id!)
+        .is("purchase_order_id", null);
+      if (e3) throw e3;
+      const invTotal = (invLines ?? []).reduce((s, r) => s + Number(r.total ?? 0), 0);
+
+      return poTotal + dnTotal + invTotal;
     },
   });
 
