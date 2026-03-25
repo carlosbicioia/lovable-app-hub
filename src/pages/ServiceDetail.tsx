@@ -31,6 +31,7 @@ import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import ServiceHistory from "@/components/service-detail/ServiceHistory";
 import ServiceTimeRecords from "@/components/service-detail/ServiceTimeRecords";
 import ProtocolBreadcrumb from "@/components/service-detail/ProtocolBreadcrumb";
+import { useServiceLaborCost } from "@/hooks/useServiceLaborCost";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -94,6 +95,19 @@ export default function ServiceDetail() {
   const linkedOrders = allPurchaseOrders;
   const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
   const isUrgent = service?.urgency === "24h" || service?.urgency === "Inmediato";
+  const isDirectRepair = service?.serviceType === "Reparación_Directa";
+
+  // Labor cost calculated from time records × operator rates (for Reparación Directa)
+  const { data: laborCost } = useServiceLaborCost(id, {
+    urgency: service?.urgency,
+    origin: service?.origin,
+    enabled: !!service && isDirectRepair,
+  });
+
+  // Effective "importe" — for direct repairs use labor cost, otherwise budget total
+  const effectiveImporte = isDirectRepair
+    ? (laborCost?.total ?? 0) > 0 ? laborCost!.total : null
+    : service?.budgetTotal ?? null;
 
   if (servicesLoading) {
     return (
@@ -293,7 +307,7 @@ export default function ServiceDetail() {
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
                     <p className="text-base font-bold text-card-foreground">
-                      {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                      {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
@@ -391,13 +405,15 @@ export default function ServiceDetail() {
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {linkedBudget && linkedBudget.lines.length > 0
-                      ? `€${linkedBudget.lines.reduce((sum, l) => {
-                          const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
-                          const subtotal = Math.round(salePrice * l.units * 100) / 100;
-                          return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
-                        }, 0).toFixed(2)}`
-                      : "—"}
+                    {isDirectRepair
+                      ? (effectiveImporte ? `€${effectiveImporte.toFixed(2)}` : "—")
+                      : linkedBudget && linkedBudget.lines.length > 0
+                        ? `€${linkedBudget.lines.reduce((sum, l) => {
+                            const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                            const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                            return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                          }, 0).toFixed(2)}`
+                        : "—"}
                   </p>
                 </CardContent>
               </Card>
@@ -584,9 +600,11 @@ export default function ServiceDetail() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {/* Importe presupuestado */}
                       <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe presupuestado</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                          {isDirectRepair ? "Importe (mano de obra)" : "Importe presupuestado"}
+                        </p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                          {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
                         </p>
                       </div>
 
@@ -618,11 +636,11 @@ export default function ServiceDetail() {
                       <div className="rounded-lg border border-border p-4">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste / hora</p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.budgetTotal && service.realHours
-                            ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                          {effectiveImporte && totalHours > 0
+                            ? `€${(effectiveImporte / totalHours).toFixed(2)}`
                             : "—"}
                         </p>
-                        {service.budgetTotal && service.realHours && (
+                        {effectiveImporte && totalHours > 0 && (
                           <p className="text-[10px] text-muted-foreground mt-0.5">Importe / horas reales</p>
                         )}
                       </div>

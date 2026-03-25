@@ -1,4 +1,5 @@
 import { useServices } from "@/hooks/useServices";
+import { useBulkServiceLaborCosts } from "@/hooks/useBulkServiceLaborCosts";
 import { useAppUsers } from "@/hooks/useAppUsers";
 import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
@@ -67,6 +68,7 @@ export default function Services() {
   const { data: branches = [] } = useBranches();
   const activeBranches = branches.filter((b) => b.active);
   const { services, loading, updateService, refetch } = useServices();
+  const { data: laborCostsMap = {} } = useBulkServiceLaborCosts(services);
   const { toast } = useToast();
   const { data: appUsers = [] } = useAppUsers();
 
@@ -464,7 +466,7 @@ export default function Services() {
                 {sla === "expired" && <span className="text-destructive font-semibold">⏰ SLA Vencido</span>}
                 {sla === "warning" && <span className="text-warning font-semibold">⚠ SLA Próximo</span>}
                 <StatusBadge urgency={s.urgency} className="text-[10px]" />
-                {s.budgetTotal && <span className="text-card-foreground font-medium">€{s.budgetTotal.toLocaleString()}</span>}
+                {(s.serviceType === "Reparación_Directa" ? laborCostsMap[s.id] : s.budgetTotal) ? <span className="text-card-foreground font-medium">€{(s.serviceType === "Reparación_Directa" ? laborCostsMap[s.id] : s.budgetTotal)?.toLocaleString()}</span> : null}
                 {bStatus && <span className={cn("font-medium", bStatus === "Aprobado" || bStatus === "Finalizado" ? "text-success" : bStatus === "Rechazado" ? "text-destructive" : "text-warning")}>{bStatus}</span>}
               </div>
               <div onClick={(e) => e.stopPropagation()}>
@@ -573,7 +575,7 @@ export default function Services() {
                         return <span className="text-[10px] text-muted-foreground">Rep. directa</span>;
                       })()}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-medium text-card-foreground text-xs">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
+                    <td className="px-3 py-2.5 text-right font-medium text-card-foreground text-xs">{(s.serviceType === "Reparación_Directa" ? (laborCostsMap[s.id] ? `€${laborCostsMap[s.id].toLocaleString()}` : "—") : (s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"))}</td>
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <TooltipProvider delayDuration={200}>
                         <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />
