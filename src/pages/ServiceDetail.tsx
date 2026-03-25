@@ -316,9 +316,9 @@ export default function ServiceDetail() {
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Materiales</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Coste Compras</p>
                     <p className="text-base font-bold text-card-foreground">
-                      {(service.materials?.length ?? 0) > 0 ? service.materials!.length : "—"}
+                      {totalPurchaseCost > 0 ? `€${totalPurchaseCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}` : "—"}
                     </p>
                   </div>
                   {service.nps !== null && (
