@@ -533,7 +533,7 @@ export default function Services() {
                     </td>
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <Select value={s.status} onValueChange={(v) => handleStatusChange(s.id, v)}>
-                        <SelectTrigger className="h-6 w-auto min-w-[100px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge status={s.status} className="text-[10px]" /></SelectTrigger>
+                        <SelectTrigger className="h-6 w-auto min-w-[100px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1"><StatusBadge status={s.status} contactedAt={s.contactedAt} className="text-[10px]" /></SelectTrigger>
                         <SelectContent>{statusOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}><StatusBadge status={opt.value} /></SelectItem>)}</SelectContent>
                       </Select>
                       {isBillingTab && !closedStatuses.includes(s.status) && <span className="block text-[10px] text-destructive mt-0.5">No cerrado</span>}
