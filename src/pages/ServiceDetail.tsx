@@ -31,6 +31,7 @@ import ServiceMaterials from "@/components/service-detail/ServiceMaterials";
 import ServiceHistory from "@/components/service-detail/ServiceHistory";
 import ServiceTimeRecords from "@/components/service-detail/ServiceTimeRecords";
 import ProtocolBreadcrumb from "@/components/service-detail/ProtocolBreadcrumb";
+import { useServiceLaborCost } from "@/hooks/useServiceLaborCost";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
