@@ -11,7 +11,7 @@ import { exportCsv } from "@/lib/exportCsv";
 import { useArticles } from "@/hooks/useArticles";
 import { useVehicles } from "@/hooks/useVehicles";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
