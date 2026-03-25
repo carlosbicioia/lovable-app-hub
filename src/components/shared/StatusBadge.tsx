@@ -20,22 +20,30 @@ const urgencyConfig: Record<UrgencyLevel, { label: string; className: string }> 
 interface StatusBadgeProps {
   status?: ServiceStatus;
   urgency?: UrgencyLevel;
+  contactedAt?: string | null;
   className?: string;
 }
 
-export default function StatusBadge({ status, urgency, className }: StatusBadgeProps) {
+export default function StatusBadge({ status, urgency, contactedAt, className }: StatusBadgeProps) {
   const config = status ? statusConfig[status] : urgency ? urgencyConfig[urgency] : null;
   if (!config) return null;
+
+  // When status is Pendiente_Contacto and contacted_at is set, show green
+  const isContactedPending = status === "Pendiente_Contacto" && !!contactedAt;
+  const badgeClassName = isContactedPending
+    ? "bg-success/15 text-success border-success/30"
+    : config.className;
+  const label = isContactedPending ? "Contactado" : config.label;
 
   return (
     <span
       className={cn(
         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
-        config.className,
+        badgeClassName,
         className
       )}
     >
-      {config.label}
+      {label}
     </span>
   );
 }
