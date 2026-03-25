@@ -286,11 +286,17 @@ function OperatorList({ onSelect, onCreateNew }: { onSelect: (op: any) => void; 
                   {/* Avatar with color indicator */}
                   <div className="relative">
                     {op.photo ? (
-                      <img
-                        src={op.photo}
-                        alt={op.name}
-                        className="w-14 h-14 rounded-xl object-cover"
-                      />
+                      <>
+                        <img
+                          src={op.photo}
+                          alt={op.name}
+                          className="w-14 h-14 rounded-xl object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement?.querySelector<HTMLDivElement>("[data-fallback]")?.classList.remove("hidden"); }}
+                        />
+                        <div data-fallback className="hidden w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
+                          {op.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                      </>
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
                         {op.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
@@ -397,7 +403,17 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="relative">
-          <img src={operator.photo} alt={operator.name} className="w-16 h-16 rounded-2xl object-cover" />
+          {operator.photo ? (
+            <img
+              src={operator.photo}
+              alt={operator.name}
+              className="w-16 h-16 rounded-2xl object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
+            />
+          ) : null}
+          <div className={cn("w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xl", operator.photo ? "hidden" : "")}>
+            {operator.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+          </div>
           <div
             className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background"
             style={{ backgroundColor: `hsl(${operator.color})` }}
