@@ -100,7 +100,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                   >
                     <span className={cn(
                       "w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border shrink-0",
-                      isDiagnosisWarning
+                      isDiagnosisWarning || isBudgetWarning
                         ? "bg-warning text-warning-foreground border-warning"
                         : done
                           ? "bg-success text-success-foreground border-success"
