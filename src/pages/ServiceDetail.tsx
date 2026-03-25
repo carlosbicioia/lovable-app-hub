@@ -598,9 +598,11 @@ export default function ServiceDetail() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {/* Importe presupuestado */}
                       <div className="rounded-lg border border-border p-4">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe presupuestado</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                          {isDirectRepair ? "Importe (mano de obra)" : "Importe presupuestado"}
+                        </p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                          {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
                         </p>
                       </div>
 
