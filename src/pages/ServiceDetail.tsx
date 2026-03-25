@@ -405,13 +405,15 @@ export default function ServiceDetail() {
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Importe</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {linkedBudget && linkedBudget.lines.length > 0
-                      ? `€${linkedBudget.lines.reduce((sum, l) => {
-                          const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
-                          const subtotal = Math.round(salePrice * l.units * 100) / 100;
-                          return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
-                        }, 0).toFixed(2)}`
-                      : "—"}
+                    {isDirectRepair
+                      ? (effectiveImporte ? `€${effectiveImporte.toFixed(2)}` : "—")
+                      : linkedBudget && linkedBudget.lines.length > 0
+                        ? `€${linkedBudget.lines.reduce((sum, l) => {
+                            const salePrice = Math.round(l.costPrice * (1 + l.margin / 100) * 100) / 100;
+                            const subtotal = Math.round(salePrice * l.units * 100) / 100;
+                            return sum + subtotal + Math.round(subtotal * (l.taxRate / 100) * 100) / 100;
+                          }, 0).toFixed(2)}`
+                        : "—"}
                   </p>
                 </CardContent>
               </Card>
