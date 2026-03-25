@@ -272,7 +272,7 @@ export default function Dashboard() {
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{s.id}</td>
                     <td className="px-5 py-3 font-medium text-card-foreground">{s.clientName}</td>
                     <td className="px-5 py-3 text-muted-foreground">{s.specialty}</td>
-                    <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
+                    <td className="px-5 py-3"><StatusBadge status={s.status} contactedAt={s.contactedAt} /></td>
                     <td className="px-5 py-3"><StatusBadge urgency={s.urgency} /></td>
                     <td className="px-5 py-3 text-muted-foreground">{s.operatorName ?? "—"}</td>
                     <td className="px-5 py-3 text-right font-medium text-card-foreground">

@@ -452,7 +452,7 @@ export default function Services() {
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">{s.origin}</span>
                   {s.specialty && <span className="text-[10px] text-muted-foreground">{s.specialty}</span>}
                 </div>
-                <StatusBadge status={s.status} className="text-[10px]" />
+<StatusBadge status={s.status} contactedAt={s.contactedAt} className="text-[10px]" />
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-card-foreground">{s.clientName}</span>
