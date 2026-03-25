@@ -116,6 +116,8 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                   {step.description && <p className="text-muted-foreground mt-0.5">{step.description}</p>}
                   {isDiagnosisWarning ? (
                     <p className="mt-0.5 font-semibold text-warning">⚠ No es posible obtener multimedia</p>
+                  ) : isBudgetWarning ? (
+                    <p className="mt-0.5 font-semibold text-warning">⚠ Falta crear presupuesto</p>
                   ) : (
                     <p className={cn("mt-0.5 font-semibold", done ? "text-success" : "text-warning")}>
                       {done ? "✓ Completado" : "Pendiente"}
