@@ -304,12 +304,25 @@ export default function ServiceDetail() {
 
                 {/* Quick KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-card rounded-lg border border-border p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
-                    <p className="text-base font-bold text-card-foreground">
-                      {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
-                    </p>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-card rounded-lg border border-border p-3 cursor-help">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
+                        <p className="text-base font-bold text-card-foreground">
+                          {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    {isDirectRepair && laborCost?.breakdown && laborCost.breakdown.length > 0 && (
+                      <TooltipContent side="bottom" className="text-xs space-y-1">
+                        {laborCost.breakdown.map((b) => (
+                          <p key={b.operatorId}>
+                            {b.operatorName}: {b.hours.toFixed(1)}h × €{b.rate.toFixed(2)} = €{b.total.toFixed(2)}
+                          </p>
+                        ))}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas</p>
                     <p className="text-base font-bold text-card-foreground">
