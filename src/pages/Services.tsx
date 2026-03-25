@@ -466,7 +466,7 @@ export default function Services() {
                 {sla === "expired" && <span className="text-destructive font-semibold">⏰ SLA Vencido</span>}
                 {sla === "warning" && <span className="text-warning font-semibold">⚠ SLA Próximo</span>}
                 <StatusBadge urgency={s.urgency} className="text-[10px]" />
-                {s.budgetTotal && <span className="text-card-foreground font-medium">€{s.budgetTotal.toLocaleString()}</span>}
+                {(s.serviceType === "Reparación_Directa" ? laborCostsMap[s.id] : s.budgetTotal) ? <span className="text-card-foreground font-medium">€{(s.serviceType === "Reparación_Directa" ? laborCostsMap[s.id] : s.budgetTotal)?.toLocaleString()}</span> : null}
                 {bStatus && <span className={cn("font-medium", bStatus === "Aprobado" || bStatus === "Finalizado" ? "text-success" : bStatus === "Rechazado" ? "text-destructive" : "text-warning")}>{bStatus}</span>}
               </div>
               <div onClick={(e) => e.stopPropagation()}>
