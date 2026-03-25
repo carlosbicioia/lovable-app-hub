@@ -798,6 +798,11 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
           </Card>
         </TabsContent>
 
+        {/* ─── TIME RECORDS TAB ─── */}
+        <TabsContent value="time-records">
+          <TimeRecordsSection operatorId={operator.id} />
+        </TabsContent>
+
         {/* ─── VACATIONS TAB ─── */}
         <TabsContent value="vacations">
           <VacationsSection operatorId={operator.id} />
