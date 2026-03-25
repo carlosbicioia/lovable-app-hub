@@ -622,7 +622,7 @@ export default function ServiceCreatePage() {
         setForm={setNewClientForm}
         onSave={async () => {
           try {
-            const newId = await createClient.mutateAsync(newClientForm);
+            const newId = await createClient.mutateAsync(newClientForm as any);
             setShowNewClientDialog(false);
             setNewClientForm(emptyClientForm);
             await refetchClients();

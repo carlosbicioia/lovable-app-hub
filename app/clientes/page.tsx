@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useServiceOrigins } from "@/hooks/useServiceOrigins";
+import type { ServiceOrigin } from "@/types/urbango";
 
 const defaultPlanColor = "bg-muted text-muted-foreground border-border";
 
@@ -36,7 +37,7 @@ const clientToForm = (c: DbClient): ClientFormData => ({
   address: c.address, streetNumber: c.streetNumber, floor: c.floor, addressExtra: c.addressExtra,
   postalCode: c.postalCode, city: c.city, province: c.province,
   clusterId: c.clusterId, collaboratorId: c.collaboratorId, collaboratorName: c.collaboratorName,
-  planType: c.planType, lastServiceDate: c.lastServiceDate, origin: c.origin,
+  planType: c.planType, lastServiceDate: c.lastServiceDate, origin: c.origin as ServiceOrigin,
 });
 
 export default function Clients() {
@@ -111,7 +112,7 @@ export default function Clients() {
 
   const handleCreate = async () => {
     if (!validateForm()) return;
-    await createClient.mutateAsync(form);
+    await createClient.mutateAsync(form as any);
     setForm(emptyClient());
     setCreateOpen(false);
   };
@@ -208,8 +209,8 @@ export default function Clients() {
         </div>
       </div>
 
-      <ClientFormDialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) setIsAssistanceClient(false); }} form={form} setForm={setForm} onSave={handleCreate} collaborators={collaborators} title="Nuevo Cliente" saveLabel="Crear cliente" dniOptional={isAssistanceClient} isAssistanceAvailable={hasAssistanceOrigin} isAssistance={isAssistanceClient} onAssistanceChange={setIsAssistanceClient} />
-      <ClientFormDialog open={!!editTarget} onOpenChange={(open) => { if (!open) { setEditTarget(null); setIsAssistanceClient(false); } }} form={form} setForm={setForm} onSave={handleEdit} collaborators={collaborators} title={`Editar ${editTarget?.id ?? ""}`} saveLabel="Guardar cambios" dniOptional={isAssistanceClient} isAssistanceAvailable={hasAssistanceOrigin} isAssistance={isAssistanceClient} onAssistanceChange={setIsAssistanceClient} />
+      <ClientFormDialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) setIsAssistanceClient(false); }} form={form} setForm={setForm} onSave={handleCreate} collaborators={collaborators} title="Nuevo Cliente" saveLabel="Crear cliente" dniOptional={isAssistanceClient} />
+      <ClientFormDialog open={!!editTarget} onOpenChange={(open) => { if (!open) { setEditTarget(null); setIsAssistanceClient(false); } }} form={form} setForm={setForm} onSave={handleEdit} collaborators={collaborators} title={`Editar ${editTarget?.id ?? ""}`} saveLabel="Guardar cambios" dniOptional={isAssistanceClient} />
     </div>
   );
 }

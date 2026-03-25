@@ -38,7 +38,7 @@ export default function CalendarView() {
   const { data: allOps = [] } = useOperators();
   const { collaborators } = useCollaborators();
   const { data: branches = [] } = useBranches();
-  setOperatorsCache(allOps);
+  setOperatorsCache(allOps as any);
   const { toast } = useToast();
   const router = useRouter();
 
