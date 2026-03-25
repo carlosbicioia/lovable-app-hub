@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Service } from "@/types/urbango";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useBudgets } from "@/hooks/useBudgets";
 
 /** Step IDs that are auto-computed */
 const AUTO_COMPUTED_STEPS = new Set(["diagnosis", "operator", "budget", "servicio_realizado"]);
@@ -23,6 +24,10 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
   const isAdmin = roles.includes("admin");
   const noMediaAvailable = service.noMediaAvailable ?? false;
   const [mediaCount, setMediaCount] = useState<number | null>(null);
+  const { budgets } = useBudgets();
+  const serviceBudgets = budgets.filter(b => b.serviceId === service.id);
+  const hasBudget = serviceBudgets.length > 0;
+  const isPresupuestoType = service.serviceType === "Presupuesto";
 
   useEffect(() => {
     const fetchMediaCount = async () => {
@@ -65,8 +70,10 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
       </div>
       <div className="flex items-center gap-0.5 overflow-x-auto">
         {steps.map((step, idx) => {
-          const isAutoCompleted = step.stepId === "diagnosis" && mediaCount !== null && mediaCount > 0;
-          const done = isAutoCompleted || checkedItems.has(step.stepId);
+           const isAutoCompleted = step.stepId === "diagnosis" && mediaCount !== null && mediaCount > 0;
+            // Budget step: if service type is "Presupuesto" and no budget exists, force not-done
+            const isBudgetWithoutPresupuesto = step.stepId === "budget" && isPresupuestoType && !hasBudget;
+            const done = isBudgetWithoutPresupuesto ? false : (isAutoCompleted || checkedItems.has(step.stepId));
           const isAuto = AUTO_COMPUTED_STEPS.has(step.stepId);
           const isDiagnosisWarning = step.stepId === "diagnosis" && !isAutoCompleted && noMediaAvailable;
           // Gestor cannot toggle auto-computed steps, only admin can
