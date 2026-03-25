@@ -76,6 +76,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
             const done = isBudgetWithoutPresupuesto ? false : (isAutoCompleted || checkedItems.has(step.stepId));
           const isAuto = AUTO_COMPUTED_STEPS.has(step.stepId);
           const isDiagnosisWarning = step.stepId === "diagnosis" && !isAutoCompleted && noMediaAvailable;
+          const isBudgetWarning = isBudgetWithoutPresupuesto && !done;
           // Gestor cannot toggle auto-computed steps, only admin can
           const canToggle = !readOnly && (!isAuto || isAdmin);
 
@@ -88,7 +89,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                     disabled={!canToggle}
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap",
-                      isDiagnosisWarning
+                      isDiagnosisWarning || isBudgetWarning
                         ? "bg-warning/15 text-warning"
                         : done
                           ? "bg-success/15 text-success"
@@ -99,7 +100,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                   >
                     <span className={cn(
                       "w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold border shrink-0",
-                      isDiagnosisWarning
+                      isDiagnosisWarning || isBudgetWarning
                         ? "bg-warning text-warning-foreground border-warning"
                         : done
                           ? "bg-success text-success-foreground border-success"
@@ -115,6 +116,8 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                   {step.description && <p className="text-muted-foreground mt-0.5">{step.description}</p>}
                   {isDiagnosisWarning ? (
                     <p className="mt-0.5 font-semibold text-warning">⚠ No es posible obtener multimedia</p>
+                  ) : isBudgetWarning ? (
+                    <p className="mt-0.5 font-semibold text-warning">⚠ Falta crear presupuesto</p>
                   ) : (
                     <p className={cn("mt-0.5 font-semibold", done ? "text-success" : "text-warning")}>
                       {done ? "✓ Completado" : "Pendiente"}
