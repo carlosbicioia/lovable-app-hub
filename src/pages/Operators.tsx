@@ -3,7 +3,7 @@ import { useOperators } from "@/hooks/useOperators";
 import { useServices } from "@/hooks/useServices";
 import { useBranches } from "@/hooks/useBranches";
 import { useSpecialties, useCertifications } from "@/hooks/useIndustrialConfig";
-import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord } from "@/hooks/useTimeRecords";
+import { useTimeRecords, useCreateTimeRecord, useDeleteTimeRecord, useUpdateTimeRecord } from "@/hooks/useTimeRecords";
 import { useToast } from "@/hooks/use-toast";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
@@ -11,7 +11,7 @@ import { exportCsv } from "@/lib/exportCsv";
 import { useArticles } from "@/hooks/useArticles";
 import { useVehicles } from "@/hooks/useVehicles";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import OperatorEditForm from "@/components/operators/OperatorEditForm";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,7 @@ import {
   Palmtree,
   Hammer,
   Pencil,
+  Check,
 } from "lucide-react";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -806,9 +807,33 @@ function OperatorDetail({ operator: initialOperator, onBack }: { operator: any; 
   );
 }
 
+// Convert decimal hours to HH:MM string
+function hoursToHHMM(h: number): string {
+  const totalMinutes = Math.round(h * 60);
+  const hh = Math.floor(totalMinutes / 60);
+  const mm = totalMinutes % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+// Calculate billable hours from start/end time
+// Rule: minimum 1 hour, then 30-min increments from 2nd hour onward
+function calculateBillableHours(start: string, end: string): number | null {
+  if (!start || !end) return null;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+  let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+  if (diffMinutes <= 0) return null;
+  if (diffMinutes <= 60) return 1;
+  const extraMinutes = diffMinutes - 60;
+  const extraBlocks = Math.ceil(extraMinutes / 30);
+  return 1 + extraBlocks * 0.5;
+}
+
 function TimeRecordsSection({ operatorId }: { operatorId: string }) {
   const { data: records, isLoading } = useTimeRecords(operatorId);
   const createMutation = useCreateTimeRecord();
+  const updateMutation = useUpdateTimeRecord();
   const deleteMutation = useDeleteTimeRecord();
   const { services } = useServices();
   const { toast } = useToast();
@@ -817,24 +842,55 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
 
   // Form state
   const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
-  const [formHours, setFormHours] = useState("1");
+  const [formStartTime, setFormStartTime] = useState("09:00");
+  const [formEndTime, setFormEndTime] = useState("10:00");
   const [formServiceId, setFormServiceId] = useState("");
   const [formLocation, setFormLocation] = useState("");
   const [formNotes, setFormNotes] = useState("");
+
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
+  const [editServiceId, setEditServiceId] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   const filtered = (records ?? []).filter((r) => r.recordDate.startsWith(monthFilter));
   const totalHours = filtered.reduce((sum, r) => sum + r.hours, 0);
   const totalDays = new Set(filtered.map((r) => r.recordDate)).size;
 
   const operatorServices = useMemo(
-    () => services.filter((s) => s.operatorId === operatorId),
+    () => services.filter((s) => s.operatorId === operatorId || services.some(sv => sv.id === s.id)),
     [services, operatorId]
   );
 
+  // Fetch services where this operator is assigned (via service_operators table)
+  const { data: assignedServiceIds = [] } = useQuery({
+    queryKey: ["operator_assigned_services", operatorId],
+    enabled: !!operatorId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_operators")
+        .select("service_id")
+        .eq("operator_id", operatorId);
+      if (error) throw error;
+      return (data ?? []).map((d: any) => d.service_id as string);
+    },
+  });
+
+  const availableServices = useMemo(() => {
+    const ids = new Set(assignedServiceIds);
+    return services.filter((s) => s.operatorId === operatorId || ids.has(s.id));
+  }, [services, operatorId, assignedServiceIds]);
+
+  const calculatedHours = calculateBillableHours(formStartTime, formEndTime);
+  const editCalculatedHours = calculateBillableHours(editStartTime, editEndTime);
+
   const handleSubmit = async () => {
-    const hours = parseFloat(formHours);
-    if (!formDate || isNaN(hours) || hours <= 0 || hours > 24) {
-      toast({ title: "Datos inválidos", description: "Revisa la fecha y las horas (1-24)", variant: "destructive" });
+    if (!calculatedHours || calculatedHours <= 0) {
+      toast({ title: "Datos inválidos", description: "Revisa la hora de inicio y fin", variant: "destructive" });
       return;
     }
     try {
@@ -842,13 +898,16 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
         operatorId,
         serviceId: formServiceId || null,
         recordDate: formDate,
-        hours,
+        hours: calculatedHours,
+        startTime: formStartTime,
+        endTime: formEndTime,
         location: formLocation.trim(),
         notes: formNotes.trim() || null,
       });
       toast({ title: "Registro añadido" });
       setShowForm(false);
-      setFormHours("1");
+      setFormStartTime("09:00");
+      setFormEndTime("10:00");
       setFormServiceId("");
       setFormLocation("");
       setFormNotes("");
@@ -866,6 +925,48 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
     }
   };
 
+  const startEdit = (r: any) => {
+    setEditingId(r.id);
+    setEditDate(r.recordDate);
+    setEditStartTime(r.startTime?.slice(0, 5) || "");
+    setEditEndTime(r.endTime?.slice(0, 5) || "");
+    setEditServiceId(r.serviceId || "");
+    setEditLocation(r.location || "");
+    setEditNotes(r.notes || "");
+  };
+
+  const saveEdit = async () => {
+    if (!editCalculatedHours || editCalculatedHours <= 0) {
+      toast({ title: "Hora de inicio/fin inválidas", variant: "destructive" });
+      return;
+    }
+    try {
+      await updateMutation.mutateAsync({
+        id: editingId!,
+        operatorId,
+        data: {
+          record_date: editDate,
+          hours: editCalculatedHours,
+          start_time: editStartTime || null,
+          end_time: editEndTime || null,
+          service_id: editServiceId || null,
+          location: editLocation,
+          notes: editNotes || null,
+        },
+      });
+      toast({ title: "Registro actualizado" });
+      setEditingId(null);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const getServiceLabel = (serviceId: string | null) => {
+    if (!serviceId) return null;
+    const s = services.find((sv) => sv.id === serviceId);
+    return s ? `${serviceId} – ${s.clientName}` : serviceId;
+  };
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
@@ -873,7 +974,7 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="secondary" className="text-xs font-mono">{totalDays} días</Badge>
-            <Badge variant="secondary" className="text-xs font-mono">{totalHours.toFixed(1)}h</Badge>
+            <Badge variant="secondary" className="text-xs font-mono">{hoursToHHMM(totalHours)}</Badge>
           </div>
           <Input
             type="month"
@@ -891,14 +992,24 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
         {/* Manual entry form */}
         {showForm && (
           <div className="border border-border rounded-lg p-4 mb-4 bg-muted/30 space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Fecha *</label>
                 <Input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="h-8 text-sm" />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">Horas *</label>
-                <Input type="number" min="0.5" max="24" step="0.5" value={formHours} onChange={(e) => setFormHours(e.target.value)} className="h-8 text-sm" />
+                <label className="text-xs font-medium text-muted-foreground">Hora inicio *</label>
+                <Input type="time" value={formStartTime} onChange={(e) => setFormStartTime(e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Hora fin *</label>
+                <Input type="time" value={formEndTime} onChange={(e) => setFormEndTime(e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Horas facturables</label>
+                <div className="h-8 flex items-center text-sm font-semibold font-mono px-3 bg-muted rounded-md">
+                  {calculatedHours ? hoursToHHMM(calculatedHours) : "—"}
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Servicio</label>
@@ -908,7 +1019,7 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Sin servicio</SelectItem>
-                    {operatorServices.map((s) => (
+                    {availableServices.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.id} – {s.clientName}
                       </SelectItem>
@@ -916,17 +1027,17 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
+            </div>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Ubicación</label>
                 <Input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} placeholder="Dirección o zona" className="h-8 text-sm" />
               </div>
-            </div>
-            <div className="flex items-end gap-3">
               <div className="flex-1 space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Notas</label>
                 <Input value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Observaciones opcionales" className="h-8 text-sm" />
               </div>
-              <Button size="sm" onClick={handleSubmit} disabled={createMutation.isPending} className="gap-1.5">
+              <Button size="sm" onClick={handleSubmit} disabled={createMutation.isPending || !calculatedHours} className="gap-1.5">
                 {createMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                 Guardar
               </Button>
@@ -944,46 +1055,103 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
           <div className="text-center py-10">
             <Clock className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">Sin registros para este mes</p>
-            <p className="text-xs text-muted-foreground mt-1">Puedes añadir registros manualmente con el botón superior</p>
+            <p className="text-xs text-muted-foreground mt-1">Los registros de la app del operario aparecerán aquí automáticamente</p>
           </div>
         ) : (
           <div className="space-y-1.5">
-            {filtered.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors group">
-                <div className="w-12 text-center">
-                  <p className="text-lg font-bold text-foreground leading-none">
-                    {format(new Date(r.recordDate), "dd")}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase">
-                    {format(new Date(r.recordDate), "EEE", { locale: es })}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {r.serviceId && (
-                      <Badge variant="outline" className="text-[10px] font-mono shrink-0">{r.serviceId}</Badge>
-                    )}
-                    <span className="text-sm text-foreground truncate">{r.location || "Sin ubicación"}</span>
+            {filtered.map((r) =>
+              editingId === r.id ? (
+                <div key={r.id} className="border border-primary/30 rounded-lg p-3 bg-muted/30 space-y-2">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    <Input type="date" className="h-7 text-xs" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+                    <Input type="time" className="h-7 text-xs" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} />
+                    <Input type="time" className="h-7 text-xs" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} />
+                    <div className="h-7 flex items-center text-xs font-semibold font-mono px-2 bg-muted rounded-md">
+                      {editCalculatedHours ? hoursToHHMM(editCalculatedHours) : "—"}
+                    </div>
+                    <Select value={editServiceId} onValueChange={setEditServiceId}>
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue placeholder="Sin servicio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin servicio</SelectItem>
+                        {availableServices.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.id}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {r.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{r.notes}</p>}
-                </div>
-                <div className="text-right shrink-0 flex items-center gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{r.hours}h</p>
-                    <p className="text-[10px] text-muted-foreground">{r.source}</p>
+                  <div className="flex items-end gap-2">
+                    <Input className="h-7 text-xs flex-1" placeholder="Ubicación" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+                    <Input className="h-7 text-xs flex-1" placeholder="Notas" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} />
+                    <Button variant="ghost" size="icon" className="w-7 h-7 text-primary" onClick={saveEdit} disabled={updateMutation.isPending}>
+                      {updateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground" onClick={() => setEditingId(null)}>
+                      <X className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(r.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
                 </div>
-              </div>
-            ))}
+              ) : (
+                <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors group">
+                  <div className="w-12 text-center">
+                    <p className="text-lg font-bold text-foreground leading-none">
+                      {format(new Date(r.recordDate), "dd")}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      {format(new Date(r.recordDate), "EEE", { locale: es })}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      {r.serviceId && (
+                        <Badge variant="outline" className="text-[10px] font-mono shrink-0">{r.serviceId}</Badge>
+                      )}
+                      <span className="text-sm text-foreground truncate">{r.location || "Sin ubicación"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {r.startTime && r.endTime && (
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {r.startTime.slice(0, 5)} – {r.endTime.slice(0, 5)}
+                        </span>
+                      )}
+                      {r.notes && <p className="text-xs text-muted-foreground truncate">· {r.notes}</p>}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 flex items-center gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground font-mono">{hoursToHHMM(r.hours)}</p>
+                      <p className="text-[10px] text-muted-foreground">{r.source}</p>
+                    </div>
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        onClick={() => startEdit(r)}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDelete(r.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+
+            {/* Totals bar */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border mt-2">
+              <span className="text-xs font-semibold text-muted-foreground">Total del mes</span>
+              <span className="text-sm font-bold font-mono text-foreground">{hoursToHHMM(totalHours)}</span>
+            </div>
           </div>
         )}
       </CardContent>
