@@ -8,16 +8,22 @@ import VoiceAssistantModal from "@/components/voice/VoiceAssistantModal";
 import { useVoiceAssistant } from "@/hooks/useVoiceAssistant";
 import { useEffect } from "react";
 
-// Routes that should NOT use the dashboard shell (no sidebar/topbar)
-const NO_SHELL_PREFIXES = ["/login", "/reset-password", "/colaborador", "/tv"];
+// Auth routes: full-screen centered, no sidebar
+const AUTH_PREFIXES = ["/login", "/reset-password"];
 
-function isDashboardRoute(pathname: string) {
-  return !NO_SHELL_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+// Other routes that skip sidebar entirely (TV, collaborator portal)
+const NO_SHELL_PREFIXES = ["/colaborador", "/tv"];
+
+function getRouteType(pathname: string): "auth" | "bare" | "dashboard" {
+  if (AUTH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return "auth";
+  if (NO_SHELL_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return "bare";
+  return "dashboard";
 }
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const voice = useVoiceAssistant();
+  const routeType = getRouteType(pathname);
 
   useEffect(() => {
     const handler = () => voice.startConversation();
@@ -25,10 +31,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     return () => window.removeEventListener("open-voice-assistant", handler);
   }, [voice.startConversation]);
 
-  if (!isDashboardRoute(pathname)) {
+  // Auth pages: centered full-screen, no sidebar, no topbar
+  if (routeType === "auth") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        {children}
+      </div>
+    );
+  }
+
+  // TV / collaborator: bare, no chrome
+  if (routeType === "bare") {
     return <>{children}</>;
   }
 
+  // Dashboard pages: sidebar + topbar
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar />
