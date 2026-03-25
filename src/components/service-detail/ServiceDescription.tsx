@@ -62,12 +62,20 @@ export default function ServiceDescription({ service, onUpdate }: Props) {
     }
 
     if (service.status === "Pendiente_Contacto") {
-      updates.status = "Agendado";
       updates.contacted_at = new Date().toISOString();
     }
 
-    await onUpdate(updates);
-    setEditing(false);
+    try {
+      const result = await onUpdate(updates);
+      if (result && 'error' in result && result.error) {
+        toast.error("Error al guardar la fecha de cita");
+        return;
+      }
+      toast.success("Fecha de cita actualizada");
+      setEditing(false);
+    } catch (e) {
+      toast.error("Error al guardar la fecha de cita");
+    }
   };
 
   const formatRange = () => {
