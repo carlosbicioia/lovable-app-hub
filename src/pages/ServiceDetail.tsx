@@ -415,9 +415,9 @@ export default function ServiceDetail() {
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Materiales</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste Compras</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {materialsCount > 0 ? materialsCount : "—"}
+                    {totalPurchaseCost > 0 ? `€${totalPurchaseCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}` : "—"}
                   </p>
                 </CardContent>
               </Card>
