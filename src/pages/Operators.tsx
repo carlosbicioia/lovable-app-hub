@@ -45,6 +45,7 @@ import {
   Palmtree,
   Hammer,
   Pencil,
+  Check,
 } from "lucide-react";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
