@@ -221,7 +221,7 @@ export default function CollaboratorPortal() {
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-card-foreground">{s.id}</span>
-                        <StatusBadge status={s.status} />
+                        <StatusBadge status={s.status} contactedAt={s.contactedAt} />
                         <StatusBadge urgency={s.urgency} />
                       </div>
                       <p className="text-sm text-card-foreground">{s.clientName}</p>

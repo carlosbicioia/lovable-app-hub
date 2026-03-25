@@ -266,6 +266,10 @@ export default function ServiceInfoCards({ service }: Props) {
             const isPast = idx < currentIdx;
             const isCurrent = idx === currentIdx;
             const isFuture = idx > currentIdx;
+            // Special case: Pendiente_Contacto shows as completed (green) when contacted_at is set
+            const isContactedPending = step.key === "Pendiente_Contacto" && isCurrent && !!service.contactedAt;
+            const showAsCompleted = isPast || isContactedPending;
+            const showAsCurrent = isCurrent && !isContactedPending;
             return (
               <div key={step.key} className="flex items-center">
                 <Tooltip>
@@ -273,33 +277,33 @@ export default function ServiceInfoCards({ service }: Props) {
                     <div
                       className={cn(
                         "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap",
-                        isCurrent && "bg-primary text-primary-foreground shadow-md",
-                        isPast && "bg-success/15 text-success",
+                        showAsCurrent && "bg-primary text-primary-foreground shadow-md",
+                        showAsCompleted && "bg-success/15 text-success",
                         isFuture && "bg-muted text-muted-foreground",
                       )}
                     >
                       <span className={cn(
                         "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border",
-                        isCurrent && "bg-primary-foreground text-primary border-primary-foreground/30",
-                        isPast && "bg-success text-success-foreground border-success",
+                        showAsCurrent && "bg-primary-foreground text-primary border-primary-foreground/30",
+                        showAsCompleted && "bg-success text-success-foreground border-success",
                         isFuture && "bg-muted border-border text-muted-foreground"
                       )}>
-                        {isPast ? "✓" : idx + 1}
+                        {showAsCompleted ? "✓" : idx + 1}
                       </span>
-                      <span className="hidden sm:inline">{step.label}</span>
-                      <span className="sm:hidden">{step.short}</span>
+                      <span className="hidden sm:inline">{isContactedPending ? "Contactado" : step.label}</span>
+                      <span className="sm:hidden">{isContactedPending ? "✓C" : step.short}</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs max-w-[220px]">
                     <p className="font-medium">{step.label}</p>
                     <p className="text-muted-foreground mt-0.5">{step.description}</p>
-                    <p className={cn("mt-0.5 font-semibold", isCurrent ? "text-primary" : isPast ? "text-success" : "text-muted-foreground")}>
-                      {isCurrent ? "● Estado actual" : isPast ? "✓ Completado" : "Pendiente"}
+                    <p className={cn("mt-0.5 font-semibold", showAsCurrent ? "text-primary" : showAsCompleted ? "text-success" : "text-muted-foreground")}>
+                      {isContactedPending ? "✓ Contactado" : showAsCurrent ? "● Estado actual" : isPast ? "✓ Completado" : "Pendiente"}
                     </p>
                   </TooltipContent>
                 </Tooltip>
                 {idx < STATUS_PIPELINE.length - 1 && (
-                  <ChevronRight className={cn("w-3.5 h-3.5 mx-0.5 shrink-0", isPast ? "text-success" : "text-border")} />
+                  <ChevronRight className={cn("w-3.5 h-3.5 mx-0.5 shrink-0", showAsCompleted ? "text-success" : "text-border")} />
                 )}
               </div>
             );
