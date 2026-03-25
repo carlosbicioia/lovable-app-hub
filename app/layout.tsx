@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
 import DashboardShell from "./dashboard-shell";
-import "@/src/index.css";
+import "@/index.css";
 
 export const metadata: Metadata = {
   title: "UrbanGO",
