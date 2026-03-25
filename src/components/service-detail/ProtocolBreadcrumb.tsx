@@ -89,7 +89,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
                     disabled={!canToggle}
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap",
-                      isDiagnosisWarning
+                      isDiagnosisWarning || isBudgetWarning
                         ? "bg-warning/15 text-warning"
                         : done
                           ? "bg-success/15 text-success"
