@@ -893,6 +893,32 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
   const calculatedHours = calculateBillableHours(formStartTime, formEndTime);
   const editCalculatedHours = calculateBillableHours(editStartTime, editEndTime);
 
+  // Auto-fill location and times when a service is selected in the creation form
+  const handleServiceSelect = (serviceId: string) => {
+    setFormServiceId(serviceId);
+    if (!serviceId) return;
+    const svc = services.find((s) => s.id === serviceId);
+    if (!svc) return;
+    // Auto-fill location from service address
+    const addressParts = [svc.address, svc.streetNumber, svc.floor, svc.postalCode].filter(Boolean);
+    if (addressParts.length > 0) setFormLocation(addressParts.join(", "));
+    // Auto-fill start/end from scheduled times
+    if (svc.scheduledAt) {
+      const start = new Date(svc.scheduledAt);
+      setFormStartTime(format(start, "HH:mm"));
+      if (svc.scheduledEndAt) {
+        const end = new Date(svc.scheduledEndAt);
+        setFormEndTime(format(end, "HH:mm"));
+      } else {
+        // Default 1h after start
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        setFormEndTime(format(end, "HH:mm"));
+      }
+      // Auto-fill date from scheduled date
+      setFormDate(format(start, "yyyy-MM-dd"));
+    }
+  };
+
   const handleSubmit = async () => {
     if (!calculatedHours || calculatedHours <= 0) {
       toast({ title: "Datos inválidos", description: "Revisa la hora de inicio y fin", variant: "destructive" });
@@ -1018,7 +1044,7 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Servicio</label>
-                <Select value={formServiceId || "__none__"} onValueChange={(v) => setFormServiceId(v === "__none__" ? "" : v)}>
+                <Select value={formServiceId || "__none__"} onValueChange={(v) => handleServiceSelect(v === "__none__" ? "" : v)}>
                   <SelectTrigger className="h-8 text-sm">
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
