@@ -273,8 +273,10 @@ export default function ServiceInfoCards({ service }: Props) {
             // Special case: Asignado shows as completed (green) when any technician is assigned
             const hasAssignedOperator = !!service.operatorId || (service.operators?.length ?? 0) > 0;
             const isOperatorAssigned = step.key === "Asignado" && (isCurrent || isFuture) && hasAssignedOperator;
-            const showAsCompleted = isPast || isContactedPending || isScheduledDone || isOperatorAssigned;
-            const showAsCurrent = isCurrent && !isContactedPending && !isScheduledDone && !isOperatorAssigned;
+            // Special case: En_Curso shows as completed (green) when service is in that status or beyond
+            const isEnCursoDone = step.key === "En_Curso" && (isCurrent || isPast);
+            const showAsCompleted = isPast || isContactedPending || isScheduledDone || isOperatorAssigned || isEnCursoDone;
+            const showAsCurrent = isCurrent && !isContactedPending && !isScheduledDone && !isOperatorAssigned && !isEnCursoDone;
             return (
               <div key={step.key} className="flex items-center">
                 <Tooltip>
