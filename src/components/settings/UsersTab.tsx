@@ -35,9 +35,9 @@ export default function UsersTab() {
 
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", role: "operario", password: "", collaborator_id: "" });
-  const [editingUser, setEditingUser] = useState<{ id: string; auth_user_id: string | null; full_name: string; email: string; role: string | null; collaborator_id: string | null } | null>(null);
+  const [editingUser, setEditingUser] = useState<{ id: string; full_name: string; email: string; role: string | null; collaborator_id: string | null } | null>(null);
   const [editForm, setEditForm] = useState({ full_name: "", role: "", collaborator_id: "" });
-  const [resetPwUser, setResetPwUser] = useState<{ id: string; auth_user_id: string; name: string; email: string } | null>(null);
+  const [resetPwUser, setResetPwUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
   const handleCreateUser = () => {
@@ -97,11 +97,10 @@ export default function UsersTab() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      {u.auth_user_id ? (
                       <Select
                         value={u.role ?? "sin_rol"}
                         disabled={u.banned}
-                        onValueChange={(v) => { if (v === "sin_rol" || !u.auth_user_id) return; updateRole.mutate({ userId: u.auth_user_id, role: v }); }}
+                        onValueChange={(v) => { if (v === "sin_rol") return; updateRole.mutate({ userId: u.id, role: v }); }}
                       >
                         <SelectTrigger className={cn(
                           "h-7 w-[140px] text-xs font-medium",
@@ -124,33 +123,28 @@ export default function UsersTab() {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded w-[140px] text-center">{u.role ?? "Sin rol"}</span>
-                      )}
                       {u.collaborator_id && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{u.collaborator_id}</span>}
-                      {u.auth_user_id === currentUser?.id ? (
+                      {u.id === currentUser?.id ? (
                         <span className="text-[10px] text-muted-foreground italic px-2">Tú</span>
-                      ) : u.auth_user_id ? (
+                      ) : (
                         <>
-                          <Switch checked={!u.banned} disabled={manageUser.isPending} onCheckedChange={(checked) => manageUser.mutate({ userId: u.auth_user_id!, action: checked ? "unban" : "ban" })} className="scale-75" />
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Restablecer contraseña" onClick={() => { setResetPwUser({ id: u.id, auth_user_id: u.auth_user_id!, name: u.full_name, email: u.email }); setNewPassword(""); }}>
+                          <Switch checked={!u.banned} disabled={manageUser.isPending} onCheckedChange={(checked) => manageUser.mutate({ userId: u.id, action: checked ? "unban" : "ban" })} className="scale-75" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Restablecer contraseña" onClick={() => { setResetPwUser({ id: u.id, name: u.full_name, email: u.email }); setNewPassword(""); }}>
                             <KeyRound className="w-3.5 h-3.5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
-                            setEditingUser({ id: u.id, auth_user_id: u.auth_user_id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
+                            setEditingUser({ id: u.id, full_name: u.full_name, email: u.email, role: u.role, collaborator_id: u.collaborator_id });
                             setEditForm({ full_name: u.full_name, role: u.role ?? "operario", collaborator_id: u.collaborator_id ?? "" });
                           }}>
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => {
                             if (!confirm(`¿Eliminar permanentemente a ${u.full_name || u.email}? Esta acción no se puede deshacer.`)) return;
-                            manageUser.mutate({ userId: u.auth_user_id!, action: "delete" });
+                            manageUser.mutate({ userId: u.id, action: "delete" });
                           }} disabled={manageUser.isPending}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground italic px-2">Sin acceso</span>
                       )}
                     </div>
                   </div>
@@ -266,12 +260,12 @@ export default function UsersTab() {
             <Button
               variant="destructive"
               size="sm"
-              disabled={manageUser.isPending || !editingUser?.auth_user_id}
               onClick={() => {
-                if (!editingUser?.auth_user_id) return;
+                if (!editingUser) return;
                 if (!confirm(`¿Eliminar permanentemente a ${editingUser.full_name || editingUser.email}? Esta acción no se puede deshacer.`)) return;
-                manageUser.mutate({ userId: editingUser.auth_user_id, action: "delete" }, { onSuccess: () => setEditingUser(null) });
+                manageUser.mutate({ userId: editingUser.id, action: "delete" }, { onSuccess: () => setEditingUser(null) });
               }}
+              disabled={manageUser.isPending}
             >
               {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
               Eliminar
@@ -282,22 +276,18 @@ export default function UsersTab() {
                 disabled={!editForm.full_name}
                 onClick={async () => {
                   if (!editingUser) return;
-                  // Update app_users name
-                  await supabase.from("app_users").update({ name: editForm.full_name } as any).eq("id", editingUser.id);
-                  // Update profile if auth user exists
-                  if (editingUser.auth_user_id) {
-                    await supabase.from("profiles").update({ full_name: editForm.full_name }).eq("id", editingUser.auth_user_id);
-                  }
+                  const { error: profileErr } = await supabase.from("profiles").update({ full_name: editForm.full_name }).eq("id", editingUser.id);
+                  if (profileErr) { toast.error("Error al actualizar perfil"); return; }
                   const roleChanged = editForm.role !== (editingUser.role ?? "");
                   const collabChanged = editForm.collaborator_id !== (editingUser.collaborator_id ?? "");
-                  if ((roleChanged || collabChanged) && editingUser.auth_user_id) {
-                    const { data: existing } = await supabase.from("user_roles").select("id").eq("user_id", editingUser.auth_user_id).limit(1);
+                  if (roleChanged || collabChanged) {
+                    const { data: existing } = await supabase.from("user_roles").select("id").eq("user_id", editingUser.id).limit(1);
                     const updateData: Record<string, unknown> = { role: editForm.role };
                     if (editForm.role === "colaborador") { updateData.collaborator_id = editForm.collaborator_id || null; } else { updateData.collaborator_id = null; }
                     if (existing && existing.length > 0) {
-                      await supabase.from("user_roles").update(updateData as any).eq("user_id", editingUser.auth_user_id);
+                      await supabase.from("user_roles").update(updateData as any).eq("user_id", editingUser.id);
                     } else {
-                      await supabase.from("user_roles").insert({ user_id: editingUser.auth_user_id, ...updateData } as any);
+                      await supabase.from("user_roles").insert({ user_id: editingUser.id, ...updateData } as any);
                     }
                   }
                   toast.success("Usuario actualizado");
@@ -326,7 +316,7 @@ export default function UsersTab() {
             <Button variant="outline" onClick={() => setResetPwUser(null)}>Cancelar</Button>
             <Button
               disabled={newPassword.length < 8 || manageUser.isPending}
-              onClick={() => { manageUser.mutate({ userId: resetPwUser!.auth_user_id, action: "reset_password", new_password: newPassword }, { onSuccess: () => setResetPwUser(null) }); }}
+              onClick={() => { manageUser.mutate({ userId: resetPwUser!.id, action: "reset_password", new_password: newPassword }, { onSuccess: () => setResetPwUser(null) }); }}
             >
               {manageUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Actualizar contraseña"}
             </Button>
