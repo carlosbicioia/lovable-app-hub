@@ -1044,7 +1044,7 @@ function TimeRecordsSection({ operatorId }: { operatorId: string }) {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Servicio</label>
-                <Select value={formServiceId || "__none__"} onValueChange={(v) => setFormServiceId(v === "__none__" ? "" : v)}>
+                <Select value={formServiceId || "__none__"} onValueChange={(v) => handleServiceSelect(v === "__none__" ? "" : v)}>
                   <SelectTrigger className="h-8 text-sm">
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
