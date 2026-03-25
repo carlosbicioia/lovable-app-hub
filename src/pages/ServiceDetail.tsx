@@ -68,39 +68,26 @@ export default function ServiceDetail() {
   });
 
   // Real-time total purchase cost: PO totals + delivery notes without PO + invoices without PO
-  const { data: totalPurchaseCost = 0 } = useQuery({
+  const { data: purchaseCostBreakdown = { po: 0, dn: 0, inv: 0, total: 0 } } = useQuery({
     queryKey: ["service_total_purchase_cost", id],
     enabled: !!id,
     queryFn: async () => {
-      // 1. Sum of purchase order totals
-      const { data: poData, error: e1 } = await supabase
-        .from("purchase_orders")
-        .select("total_cost")
-        .eq("service_id", id!);
+      const [{ data: poData, error: e1 }, { data: dnData, error: e2 }, { data: invLines, error: e3 }] = await Promise.all([
+        supabase.from("purchase_orders").select("total_cost").eq("service_id", id!),
+        supabase.from("delivery_notes").select("total_cost, purchase_order_id").eq("service_id", id!).is("purchase_order_id", null),
+        supabase.from("purchase_invoice_lines").select("total, purchase_order_id").eq("service_id", id!).is("purchase_order_id", null),
+      ]);
       if (e1) throw e1;
-      const poTotal = (poData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
-
-      // 2. Sum of delivery notes NOT linked to a PO
-      const { data: dnData, error: e2 } = await supabase
-        .from("delivery_notes")
-        .select("total_cost, purchase_order_id")
-        .eq("service_id", id!)
-        .is("purchase_order_id", null);
       if (e2) throw e2;
-      const dnTotal = (dnData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
-
-      // 3. Sum of purchase invoice lines for this service NOT linked to a PO
-      const { data: invLines, error: e3 } = await supabase
-        .from("purchase_invoice_lines")
-        .select("total, purchase_order_id")
-        .eq("service_id", id!)
-        .is("purchase_order_id", null);
       if (e3) throw e3;
-      const invTotal = (invLines ?? []).reduce((s, r) => s + Number(r.total ?? 0), 0);
-
-      return poTotal + dnTotal + invTotal;
+      const po = (poData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
+      const dn = (dnData ?? []).reduce((s, r) => s + Number(r.total_cost ?? 0), 0);
+      const inv = (invLines ?? []).reduce((s, r) => s + Number(r.total ?? 0), 0);
+      return { po, dn, inv, total: po + dn + inv };
     },
   });
+  const totalPurchaseCost = purchaseCostBreakdown.total;
+  const fmtCost = (v: number) => `€${v.toLocaleString("es-ES", { minimumFractionDigits: 2 })}`;
 
   const service = services.find((s) => s.id === id);
   const linkedBudget = budgets.find((b) => b.serviceId === id);
