@@ -304,12 +304,25 @@ export default function ServiceDetail() {
 
                 {/* Quick KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-card rounded-lg border border-border p-3">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
-                    <p className="text-base font-bold text-card-foreground">
-                      {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
-                    </p>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="bg-card rounded-lg border border-border p-3 cursor-help">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
+                        <p className="text-base font-bold text-card-foreground">
+                          {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    {isDirectRepair && laborCost?.breakdown && laborCost.breakdown.length > 0 && (
+                      <TooltipContent side="bottom" className="text-xs space-y-1">
+                        {laborCost.breakdown.map((b) => (
+                          <p key={b.operatorId}>
+                            {b.operatorName}: {b.hours.toFixed(1)}h × €{b.rate.toFixed(2)} = €{b.total.toFixed(2)}
+                          </p>
+                        ))}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Horas</p>
                     <p className="text-base font-bold text-card-foreground">
@@ -678,6 +691,44 @@ export default function ServiceDetail() {
                         </div>
                       )}
                     </div>
+
+                    {/* Labor breakdown table for Reparación Directa */}
+                    {isDirectRepair && laborCost?.breakdown && laborCost.breakdown.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          Desglose mano de obra
+                        </h4>
+                        <div className="rounded-lg border border-border overflow-hidden">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-muted/50 text-muted-foreground">
+                                <th className="text-left px-3 py-2 font-medium">Operario</th>
+                                <th className="text-right px-3 py-2 font-medium">Horas</th>
+                                <th className="text-right px-3 py-2 font-medium">Tarifa/h</th>
+                                <th className="text-right px-3 py-2 font-medium">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {laborCost.breakdown.map((b) => (
+                                <tr key={b.operatorId} className="border-t border-border/50">
+                                  <td className="px-3 py-2 text-foreground font-medium">{b.operatorName}</td>
+                                  <td className="px-3 py-2 text-right text-muted-foreground">{b.hours.toFixed(1)}h</td>
+                                  <td className="px-3 py-2 text-right text-muted-foreground">€{b.rate.toFixed(2)}</td>
+                                  <td className="px-3 py-2 text-right font-semibold text-foreground">€{b.total.toFixed(2)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              <tr className="border-t border-border bg-muted/30">
+                                <td className="px-3 py-2 font-semibold text-foreground" colSpan={3}>Total mano de obra</td>
+                                <td className="px-3 py-2 text-right font-bold text-foreground">€{laborCost.total.toFixed(2)}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
