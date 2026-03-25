@@ -636,11 +636,11 @@ export default function ServiceDetail() {
                       <div className="rounded-lg border border-border p-4">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Coste / hora</p>
                         <p className="text-2xl font-bold text-foreground">
-                          {service.budgetTotal && service.realHours
-                            ? `€${(service.budgetTotal / service.realHours).toFixed(2)}`
+                          {effectiveImporte && totalHours > 0
+                            ? `€${(effectiveImporte / totalHours).toFixed(2)}`
                             : "—"}
                         </p>
-                        {service.budgetTotal && service.realHours && (
+                        {effectiveImporte && totalHours > 0 && (
                           <p className="text-[10px] text-muted-foreground mt-0.5">Importe / horas reales</p>
                         )}
                       </div>
