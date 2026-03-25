@@ -575,7 +575,7 @@ export default function Services() {
                         return <span className="text-[10px] text-muted-foreground">Rep. directa</span>;
                       })()}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-medium text-card-foreground text-xs">{s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"}</td>
+                    <td className="px-3 py-2.5 text-right font-medium text-card-foreground text-xs">{(s.serviceType === "Reparación_Directa" ? (laborCostsMap[s.id] ? `€${laborCostsMap[s.id].toLocaleString()}` : "—") : (s.budgetTotal ? `€${s.budgetTotal.toLocaleString()}` : "—"))}</td>
                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <TooltipProvider delayDuration={200}>
                         <ProtocolDots steps={protocolSteps} checkedIds={protocolChecksMap[s.id] ?? new Set()} onToggle={(stepId) => toggleProtocolCheck(s.id, stepId)} />
