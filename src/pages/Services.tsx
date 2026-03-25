@@ -1,4 +1,5 @@
 import { useServices } from "@/hooks/useServices";
+import { useBulkServiceLaborCosts } from "@/hooks/useBulkServiceLaborCosts";
 import { useAppUsers } from "@/hooks/useAppUsers";
 import { useBatchProtocolChecks } from "@/hooks/useBatchProtocolChecks";
 import { useEnabledProtocolSteps } from "@/hooks/useProtocolSteps";
