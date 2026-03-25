@@ -24,6 +24,10 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
   const isAdmin = roles.includes("admin");
   const noMediaAvailable = service.noMediaAvailable ?? false;
   const [mediaCount, setMediaCount] = useState<number | null>(null);
+  const { budgets } = useBudgets();
+  const serviceBudgets = budgets.filter(b => b.serviceId === service.id);
+  const hasBudget = serviceBudgets.length > 0;
+  const isPresupuestoType = service.serviceType === "Presupuesto";
 
   useEffect(() => {
     const fetchMediaCount = async () => {
