@@ -76,6 +76,7 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
             const done = isBudgetWithoutPresupuesto ? false : (isAutoCompleted || checkedItems.has(step.stepId));
           const isAuto = AUTO_COMPUTED_STEPS.has(step.stepId);
           const isDiagnosisWarning = step.stepId === "diagnosis" && !isAutoCompleted && noMediaAvailable;
+          const isBudgetWarning = isBudgetWithoutPresupuesto && !done;
           // Gestor cannot toggle auto-computed steps, only admin can
           const canToggle = !readOnly && (!isAuto || isAdmin);
 
