@@ -70,8 +70,10 @@ export default function ProtocolBreadcrumb({ service, readOnly }: Props) {
       </div>
       <div className="flex items-center gap-0.5 overflow-x-auto">
         {steps.map((step, idx) => {
-          const isAutoCompleted = step.stepId === "diagnosis" && mediaCount !== null && mediaCount > 0;
-          const done = isAutoCompleted || checkedItems.has(step.stepId);
+           const isAutoCompleted = step.stepId === "diagnosis" && mediaCount !== null && mediaCount > 0;
+            // Budget step: if service type is "Presupuesto" and no budget exists, force not-done
+            const isBudgetWithoutPresupuesto = step.stepId === "budget" && isPresupuestoType && !hasBudget;
+            const done = isBudgetWithoutPresupuesto ? false : (isAutoCompleted || checkedItems.has(step.stepId));
           const isAuto = AUTO_COMPUTED_STEPS.has(step.stepId);
           const isDiagnosisWarning = step.stepId === "diagnosis" && !isAutoCompleted && noMediaAvailable;
           // Gestor cannot toggle auto-computed steps, only admin can
