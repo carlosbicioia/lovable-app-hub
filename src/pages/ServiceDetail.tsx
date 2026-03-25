@@ -307,7 +307,7 @@ export default function ServiceDetail() {
                   <div className="bg-card rounded-lg border border-border p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Importe</p>
                     <p className="text-base font-bold text-card-foreground">
-                      {service.budgetTotal ? `€${service.budgetTotal.toLocaleString()}` : "—"}
+                      {effectiveImporte ? `€${effectiveImporte.toLocaleString()}` : "—"}
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
