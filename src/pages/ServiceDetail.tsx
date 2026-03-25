@@ -95,6 +95,19 @@ export default function ServiceDetail() {
   const linkedOrders = allPurchaseOrders;
   const isFinalized = service?.status === "Finalizado" || service?.status === "Liquidado";
   const isUrgent = service?.urgency === "24h" || service?.urgency === "Inmediato";
+  const isDirectRepair = service?.serviceType === "Reparación_Directa";
+
+  // Labor cost calculated from time records × operator rates (for Reparación Directa)
+  const { data: laborCost } = useServiceLaborCost(id, {
+    urgency: service?.urgency,
+    origin: service?.origin,
+    enabled: !!service && isDirectRepair,
+  });
+
+  // Effective "importe" — for direct repairs use labor cost, otherwise budget total
+  const effectiveImporte = isDirectRepair
+    ? (laborCost?.total ?? 0) > 0 ? laborCost!.total : null
+    : service?.budgetTotal ?? null;
 
   if (servicesLoading) {
     return (
