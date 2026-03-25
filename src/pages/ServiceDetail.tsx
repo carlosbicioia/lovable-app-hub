@@ -317,7 +317,6 @@ export default function ServiceDetail() {
                       <p>Facturas (sin OC): {fmtCost(purchaseCostBreakdown.inv)}</p>
                     </TooltipContent>
                   </Tooltip>
-                  </div>
                   {service.nps !== null && (
                     <div className="bg-card rounded-lg border border-border p-3">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">NPS</p>
