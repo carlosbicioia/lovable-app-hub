@@ -303,7 +303,7 @@ export default function ServiceInfoCards({ service }: Props) {
                   </TooltipContent>
                 </Tooltip>
                 {idx < STATUS_PIPELINE.length - 1 && (
-                  <ChevronRight className={cn("w-3.5 h-3.5 mx-0.5 shrink-0", isPast ? "text-success" : "text-border")} />
+                  <ChevronRight className={cn("w-3.5 h-3.5 mx-0.5 shrink-0", showAsCompleted ? "text-success" : "text-border")} />
                 )}
               </div>
             );
