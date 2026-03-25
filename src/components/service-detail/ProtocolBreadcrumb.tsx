@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Service } from "@/types/urbango";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useBudgets } from "@/hooks/useBudgets";
 
 /** Step IDs that are auto-computed */
 const AUTO_COMPUTED_STEPS = new Set(["diagnosis", "operator", "budget", "servicio_realizado"]);
