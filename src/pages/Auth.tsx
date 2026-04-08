@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function Auth() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "forgot">("login");
   const [email, setEmail] = useState("");
@@ -31,7 +33,7 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Se ha enviado un enlace de recuperación a tu email");
+      toast.success(t("auth.resetLinkSent"));
     }
     setLoading(false);
   };
@@ -43,18 +45,18 @@ export default function Auth() {
           <div className="mx-auto w-12 h-12 rounded-xl bg-primary flex items-center justify-center mb-3">
             <span className="text-primary-foreground font-display font-bold text-lg">U</span>
           </div>
-          <CardTitle className="text-xl font-display">UrbanGO</CardTitle>
-          <CardDescription>Plataforma de gestión de servicios</CardDescription>
+          <CardTitle className="text-xl font-display">{t("auth.title")}</CardTitle>
+          <CardDescription>{t("auth.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           {mode === "login" ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t("auth.email")}</Label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" required />
               </div>
               <div className="space-y-2">
-                <Label>Contraseña</Label>
+                <Label>{t("auth.password")}</Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -76,14 +78,14 @@ export default function Auth() {
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Iniciar sesión
+                {t("auth.login")}
               </Button>
               <button
                 type="button"
                 onClick={() => setMode("forgot")}
                 className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                ¿Has olvidado tu contraseña?
+                {t("auth.forgotPassword")}
               </button>
             </form>
           ) : (
@@ -93,18 +95,18 @@ export default function Auth() {
                 onClick={() => setMode("login")}
                 className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Volver al login
+                <ArrowLeft className="w-3.5 h-3.5" /> {t("auth.backToLogin")}
               </button>
               <p className="text-sm text-muted-foreground">
-                Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
+                {t("auth.forgotInstructions")}
               </p>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t("auth.email")}</Label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" required />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Enviar enlace de recuperación
+                {t("auth.sendResetLink")}
               </Button>
             </form>
           )}
