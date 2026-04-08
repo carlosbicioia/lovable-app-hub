@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getSignedUrl } from "@/lib/storageUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useServices } from "@/hooks/useServices";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
