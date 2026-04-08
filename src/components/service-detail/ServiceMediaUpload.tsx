@@ -29,7 +29,7 @@ interface Props {
   readOnly?: boolean;
 }
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 
 export default function ServiceMediaUpload({ service, readOnly }: Props) {
   const serviceId = service.id;
