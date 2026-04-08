@@ -118,8 +118,8 @@ export default function DeliveryNoteCreate() {
       toast.error("Error al subir el PDF");
       return null;
     }
-    const { data: urlData } = supabase.storage.from("delivery-notes").getPublicUrl(path);
-    return urlData.publicUrl;
+    // Store the file path, not a public URL (bucket is private)
+    return path;
   };
 
   const handleSubmit = async () => {

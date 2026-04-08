@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Loader2, Trash2, ExternalLink } from "lucide-react";
+import { getStorageUrl } from "@/lib/storageUtils";
 
 interface PdfUploadProps {
   /** Current PDF URL if already uploaded */
@@ -42,8 +43,8 @@ export default function PdfUpload({
       });
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-      onUploaded(urlData.publicUrl);
+      const url = await getStorageUrl(bucket, path);
+      onUploaded(url);
       toast({ title: "PDF subido correctamente" });
     } catch (e: any) {
       toast({ title: "Error al subir PDF", description: e.message, variant: "destructive" });

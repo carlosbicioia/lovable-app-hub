@@ -42,9 +42,6 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const getPublicUrl = (filePath: string) =>
-    `${SUPABASE_URL}/storage/v1/object/public/service-media/${filePath}`;
-
   const fetchMedia = async () => {
     const { data } = await supabase
       .from("service_media")
@@ -53,12 +50,13 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
       .order("created_at", { ascending: false });
 
     if (data) {
-      setMedia(
-        data.map((m: any) => ({
+      const withUrls = await Promise.all(
+        data.map(async (m: any) => ({
           ...m,
-          publicUrl: getPublicUrl(m.file_path),
+          publicUrl: (await getSignedUrl("service-media", m.file_path)) || "",
         }))
       );
+      setMedia(withUrls);
     }
     setLoading(false);
   };
