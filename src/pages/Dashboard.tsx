@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, Wrench, AlertTriangle, TrendingUp, Clock, Handshake, Star, Euro, ShoppingCart, UserPlus, FileText, UserCheck } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, eachDayOfInterval, eachWeekOfInterval, addDays, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import KpiCard from "@/components/shared/KpiCard";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useServices } from "@/hooks/useServices";
@@ -14,8 +15,11 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DatePresetSelect from "@/components/shared/DatePresetSelect";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useTranslation } from "react-i18next";
 
 export default function Dashboard() {
+  const { t, i18n } = useTranslation();
+  const dateFnsLocale = i18n.language.startsWith("en") ? enUS : es;
   const navigate = useNavigate();
   const { services, loading } = useServices();
   const { collaborators } = useCollaborators();
@@ -45,7 +49,6 @@ export default function Dashboard() {
     });
   }, [services, dateFrom, dateTo]);
 
-  // Global KPIs (not filtered by date range)
   const totalServices = services.length;
   const pendingContact = services.filter((s) => s.status === "Pendiente_Contacto").length;
   const assigned = services.filter((s) => s.status === "Asignado").length;
@@ -64,7 +67,6 @@ export default function Dashboard() {
   const uniqueClients = clients.length;
   const uniqueCollabs = collaborators.length;
 
-  // Chart data: group by day or week depending on range span
   const chartData = useMemo(() => {
     if (!dateFrom) return [];
     const from = dateFrom;
@@ -84,7 +86,7 @@ export default function Dashboard() {
           } catch { return false; }
         });
         acc += weekServices.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
-        return { label: format(weekStart, "d MMM", { locale: es }), servicios: weekServices.length, facturación: acc };
+        return { label: format(weekStart, "d MMM", { locale: dateFnsLocale }), servicios: weekServices.length, facturación: acc };
       });
     }
 
@@ -97,9 +99,9 @@ export default function Dashboard() {
         catch { return false; }
       });
       acc += dayServices.reduce((sum, s) => sum + (s.budgetTotal ?? 0), 0);
-      return { label: format(day, "d MMM", { locale: es }), servicios: dayServices.length, facturación: acc };
+      return { label: format(day, "d MMM", { locale: dateFnsLocale }), servicios: dayServices.length, facturación: acc };
     });
-  }, [filtered, dateFrom, dateTo]);
+  }, [filtered, dateFrom, dateTo, dateFnsLocale]);
 
   if (loading) {
     return (
@@ -113,8 +115,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Panel de Control</h1>
-          <p className="text-muted-foreground text-sm mt-1">Resumen operativo de UrbanGO</p>
+          <h1 className="text-2xl font-display font-bold text-foreground">{t("dashboard.title")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("dashboard.subtitle")}</p>
         </div>
 
         <DatePresetSelect
@@ -126,25 +128,25 @@ export default function Dashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard title="Servicios" value={totalServices} subtitle="Totales dados de alta" icon={Wrench} variant="primary" onClick={() => navigate("/servicios")} />
-        <KpiCard title="Pte. Contacto" value={pendingContact} subtitle="Sin contactar aún" icon={Clock} variant="warning" onClick={() => navigate("/servicios?status=Pendiente_Contacto")} />
-        <KpiCard title="Asignado" value={assigned} subtitle="Con técnico, sin cita" icon={UserCheck} variant="default" onClick={() => navigate("/servicios?status=Asignado")} />
-        <KpiCard title="En Curso" value={inProgress} subtitle="Técnicos trabajando" icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
-        <KpiCard title="Urgencias" value={urgent} subtitle="No cerradas" icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />
+        <KpiCard title={t("dashboard.services")} value={totalServices} subtitle={t("dashboard.totalRegistered")} icon={Wrench} variant="primary" onClick={() => navigate("/servicios")} />
+        <KpiCard title={t("dashboard.pendingContact")} value={pendingContact} subtitle={t("dashboard.notContactedYet")} icon={Clock} variant="warning" onClick={() => navigate("/servicios?status=Pendiente_Contacto")} />
+        <KpiCard title={t("dashboard.assigned")} value={assigned} subtitle={t("dashboard.withTechNoDate")} icon={UserCheck} variant="default" onClick={() => navigate("/servicios?status=Asignado")} />
+        <KpiCard title={t("dashboard.inProgress")} value={inProgress} subtitle={t("dashboard.techsWorking")} icon={TrendingUp} variant="info" onClick={() => navigate("/servicios?status=En_Curso")} />
+        <KpiCard title={t("dashboard.urgencies")} value={urgent} subtitle={t("dashboard.notClosed")} icon={AlertTriangle} variant="warning" onClick={() => navigate("/servicios?urgency=urgent")} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard title="Clientes" value={uniqueClients} icon={Users} variant="default" onClick={() => navigate("/clientes")} />
-        <KpiCard title="Colaboradores" value={uniqueCollabs} icon={Handshake} variant="success" onClick={() => navigate("/colaboradores")} />
-        <KpiCard title="NPS Medio" value={avgNps} icon={Star} variant="primary" />
+        <KpiCard title={t("dashboard.clients")} value={uniqueClients} icon={Users} variant="default" onClick={() => navigate("/clientes")} />
+        <KpiCard title={t("dashboard.collaborators")} value={uniqueCollabs} icon={Handshake} variant="success" onClick={() => navigate("/colaboradores")} />
+        <KpiCard title={t("dashboard.avgNps")} value={avgNps} icon={Star} variant="primary" />
         <KpiCard
-          title="Facturación"
+          title={t("dashboard.billing")}
           value={totalBudget > 0 ? `€${(totalBudget / 1000).toFixed(1)}k` : "€0"}
           icon={Euro}
           variant="success"
         />
         <KpiCard
-          title="Pte. Facturar"
+          title={t("dashboard.pendingBilling")}
           value={pendingInvoiceCount}
           subtitle={pendingInvoiceTotal > 0 ? `€${pendingInvoiceTotal.toLocaleString()}` : "€0"}
           icon={FileText}
@@ -156,7 +158,7 @@ export default function Dashboard() {
       {/* Evolution chart */}
       {chartData.length > 1 && (
         <div className="bg-card rounded-xl border border-border shadow-sm p-5">
-          <h2 className="font-display font-semibold text-card-foreground mb-4">Evolución de Servicios y Facturación</h2>
+          <h2 className="font-display font-semibold text-card-foreground mb-4">{t("dashboard.chartTitle")}</h2>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <defs>
@@ -182,7 +184,7 @@ export default function Dashboard() {
                 }}
                 labelStyle={{ color: "hsl(var(--card-foreground))" }}
                 formatter={(value: number, name: string) =>
-                  name === "Facturación" ? [`€${value.toLocaleString()}`, name] : [value, name]
+                  name === t("dashboard.billingLabel") ? [`€${value.toLocaleString()}`, name] : [value, name]
                 }
               />
               <Area
@@ -192,7 +194,7 @@ export default function Dashboard() {
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#colorServicios)"
-                name="Servicios"
+                name={t("dashboard.servicesLabel")}
               />
               <Area
                 yAxisId="right"
@@ -201,7 +203,7 @@ export default function Dashboard() {
                 stroke="hsl(var(--success))"
                 strokeWidth={2}
                 fill="url(#colorFacturacion)"
-                name="Facturación"
+                name={t("dashboard.billingLabel")}
                 strokeDasharray="5 3"
               />
             </AreaChart>
@@ -215,9 +217,9 @@ export default function Dashboard() {
           <div className="p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display font-semibold text-card-foreground flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-primary" />
-              Compras que requieren atención
+              {t("dashboard.purchaseAlerts")}
             </h2>
-            <span className="text-xs text-muted-foreground">{alertOrders.length} orden(es)</span>
+            <span className="text-xs text-muted-foreground">{t("dashboard.orderCount", { count: alertOrders.length })}</span>
           </div>
           <div className="divide-y divide-border">
             {alertOrders.map((o) => (
@@ -243,27 +245,27 @@ export default function Dashboard() {
       {/* Recent services table */}
       <div className="bg-card rounded-xl border border-border shadow-sm">
         <div className="p-5 border-b border-border flex items-center justify-between">
-          <h2 className="font-display font-semibold text-card-foreground">Servicios del Periodo</h2>
-          <span className="text-xs text-muted-foreground">{filtered.length} resultado(s)</span>
+          <h2 className="font-display font-semibold text-card-foreground">{t("dashboard.periodServices")}</h2>
+          <span className="text-xs text-muted-foreground">{t("dashboard.resultCount", { count: filtered.length })}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">ID</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Cliente</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Especialidad</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Estado</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Urgencia</th>
-                <th className="text-left px-5 py-3 text-muted-foreground font-medium">Técnico</th>
-                <th className="text-right px-5 py-3 text-muted-foreground font-medium">Importe</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.id")}</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.client")}</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.specialty")}</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.status")}</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.urgency")}</th>
+                <th className="text-left px-5 py-3 text-muted-foreground font-medium">{t("table.technician")}</th>
+                <th className="text-right px-5 py-3 text-muted-foreground font-medium">{t("table.amount")}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-10 text-center text-muted-foreground">
-                    No hay servicios en el periodo seleccionado
+                    {t("dashboard.noServicesInPeriod")}
                   </td>
                 </tr>
               ) : (
