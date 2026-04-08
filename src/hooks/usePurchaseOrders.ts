@@ -66,6 +66,7 @@ function mapRow(row: any, lines: any[]): PurchaseOrder {
 export function usePurchaseOrders(serviceId?: string) {
   return useQuery({
     queryKey: ["purchase_orders", serviceId ?? "all"],
+    staleTime: 2 * 60_000,
     queryFn: async () => {
       let q = supabase.from("purchase_orders").select("*").order("created_at", { ascending: false });
       if (serviceId) q = q.eq("service_id", serviceId);

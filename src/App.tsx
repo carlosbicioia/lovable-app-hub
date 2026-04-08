@@ -22,7 +22,16 @@ import {
   Auth, CollaboratorPortal, TvDashboard, ResetPassword, NotFound,
 } from "@/routes";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,        // 1 min — avoid refetch storms on navigation
+      gcTime: 5 * 60_000,       // 5 min garbage-collection window
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function PageLoader() {
   return (
