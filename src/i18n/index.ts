@@ -4,6 +4,12 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import es from "./locales/es.json";
 import en from "./locales/en.json";
 
+// Clear stale cached language so detector re-evaluates from browser
+const cachedLng = localStorage.getItem("i18nextLng");
+if (cachedLng && !["es", "en"].includes(cachedLng)) {
+  localStorage.removeItem("i18nextLng");
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -15,7 +21,7 @@ i18n
     fallbackLng: "es",
     interpolation: { escapeValue: false },
     detection: {
-      order: ["localStorage", "navigator", "htmlTag"],
+      order: ["navigator", "htmlTag"],
       caches: ["localStorage"],
       convertDetectedLanguage: (lng: string) => lng.split("-")[0],
     },
