@@ -7,8 +7,10 @@ import NotificationsPopover from "@/components/layout/NotificationsPopover";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 export default function TopBar() {
+  const { t } = useTranslation();
   const [chatOpen, setChatOpen] = useState(false);
   const { totalUnread } = useChat();
   const { user, signOut } = useAuth();
@@ -31,7 +33,7 @@ export default function TopBar() {
       });
   }, [user]);
 
-  const displayName = profileName || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const displayName = profileName || user?.user_metadata?.full_name || user?.email?.split("@")[0] || t("topbar.user");
   const avatarUrl = profileAvatar || user?.user_metadata?.avatar_url || null;
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -39,7 +41,6 @@ export default function TopBar() {
     <>
       <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-3">
-          {/* Hamburger — mobile only */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("toggle-sidebar"))}
             className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
@@ -49,7 +50,7 @@ export default function TopBar() {
           <div className="relative w-48 sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar clientes, servicios..."
+              placeholder={t("topbar.search")}
               className="pl-9 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
             />
           </div>
@@ -71,7 +72,7 @@ export default function TopBar() {
             to="/tv"
             target="_blank"
             className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
-            title="Modo cine (TV Dashboard)"
+            title={t("topbar.tvMode")}
           >
             <MonitorPlay className="w-5 h-5" />
           </Link>
@@ -91,7 +92,7 @@ export default function TopBar() {
           <button
             onClick={signOut}
             className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-destructive hidden sm:block"
-            title="Cerrar sesión"
+            title={t("topbar.logout")}
           >
             <LogOut className="w-4 h-4" />
           </button>
