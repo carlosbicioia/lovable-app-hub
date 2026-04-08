@@ -24,6 +24,7 @@ import {
   ArrowLeft, Loader2, ShoppingCart, Send, CheckCircle2, Package,
   Plus, Trash2, Pencil, Save, X, Download, FileText, Wrench,
 } from "lucide-react";
+import SignedPdfLink from "@/components/shared/SignedPdfLink";
 
 const statusFlow: { status: PurchaseOrderStatus; label: string; icon: React.ReactNode }[] = [
   { status: "Borrador", label: "Borrador", icon: <ShoppingCart className="w-4 h-4" /> },
