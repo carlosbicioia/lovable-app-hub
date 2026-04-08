@@ -2278,6 +2278,18 @@ export type Database = {
     }
     Functions: {
       auto_start_scheduled_services: { Args: never; Returns: number }
+      get_operator_client_ids: {
+        Args: { _operator_id: string }
+        Returns: string[]
+      }
+      get_operator_service_ids: {
+        Args: { _operator_id: string }
+        Returns: string[]
+      }
+      get_service_collaborator_id: {
+        Args: { _service_id: string }
+        Returns: string
+      }
       get_user_collaborator_id: { Args: { _user_id: string }; Returns: string }
       get_user_operator_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
