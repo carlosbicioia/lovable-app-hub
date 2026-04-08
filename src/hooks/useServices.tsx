@@ -104,7 +104,7 @@ function mapDbToService(row: any, opsMap: Map<string, ServiceOperatorRef[]>): Se
 
 async function fetchServicesWithOperators(): Promise<Service[]> {
   // Fire auto-start in background — don't block the main fetch
-  supabase.rpc("auto_start_scheduled_services").then(() => {}).catch(() => {});
+  Promise.resolve(supabase.rpc("auto_start_scheduled_services")).catch(() => {});
 
   const [data, soData] = await Promise.all([
     fetchAllServices(),
