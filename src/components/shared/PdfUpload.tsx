@@ -1,23 +1,30 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Loader2, Trash2, ExternalLink } from "lucide-react";
-import { getStorageUrl } from "@/lib/storageUtils";
+import { getSignedUrl } from "@/lib/storageUtils";
 
 interface PdfUploadProps {
-  /** Current PDF URL if already uploaded */
+  /** Current PDF path or URL if already uploaded */
   currentPdfUrl: string | null;
   /** Storage folder inside the bucket e.g. "orders", "delivery-notes", "invoices" */
   folder: string;
-  /** Called after successful upload with the public URL */
-  onUploaded: (publicUrl: string) => void;
+  /** Called after successful upload with the file path */
+  onUploaded: (path: string) => void;
   /** Called when user removes the PDF */
   onRemoved?: () => void;
   /** Bucket name, defaults to "purchase-docs" */
   bucket?: string;
   compact?: boolean;
 }
+
+/** Check if value is a full URL (legacy) or a storage path */
+function isFullUrl(val: string) {
+  return val.startsWith("http://") || val.startsWith("https://");
+}
+
+const PRIVATE_BUCKETS = ["service-media", "purchase-docs", "delivery-notes"];
 
 export default function PdfUpload({
   currentPdfUrl,
@@ -30,6 +37,35 @@ export default function PdfUpload({
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  // Resolve the display URL (signed for private buckets, direct for legacy URLs)
+  useEffect(() => {
+    if (!currentPdfUrl) {
+      setResolvedUrl(null);
+      return;
+    }
+    if (isFullUrl(currentPdfUrl)) {
+      // Legacy full URL - use as-is (may stop working if bucket was made private)
+      // Try to extract path and generate signed URL for private buckets
+      if (PRIVATE_BUCKETS.includes(bucket)) {
+        const pathMatch = currentPdfUrl.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+?)(\?|$)/);
+        if (pathMatch) {
+          getSignedUrl(bucket, pathMatch[1]).then((url) => setResolvedUrl(url || currentPdfUrl));
+          return;
+        }
+      }
+      setResolvedUrl(currentPdfUrl);
+    } else {
+      // New-style path - generate signed URL
+      if (PRIVATE_BUCKETS.includes(bucket)) {
+        getSignedUrl(bucket, currentPdfUrl).then((url) => setResolvedUrl(url || ""));
+      } else {
+        const { data } = supabase.storage.from(bucket).getPublicUrl(currentPdfUrl);
+        setResolvedUrl(data.publicUrl);
+      }
+    }
+  }, [currentPdfUrl, bucket]);
 
   const handleFile = async (file: File) => {
     setUploading(true);
@@ -43,8 +79,7 @@ export default function PdfUpload({
       });
       if (error) throw error;
 
-      const url = await getStorageUrl(bucket, path);
-      onUploaded(url);
+      onUploaded(path);
       toast({ title: "PDF subido correctamente" });
     } catch (e: any) {
       toast({ title: "Error al subir PDF", description: e.message, variant: "destructive" });
@@ -52,6 +87,8 @@ export default function PdfUpload({
       setUploading(false);
     }
   };
+
+  const displayUrl = resolvedUrl;
 
   if (compact) {
     return (
@@ -69,7 +106,7 @@ export default function PdfUpload({
         {currentPdfUrl ? (
           <>
             <a
-              href={currentPdfUrl}
+              href={displayUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline text-xs flex items-center gap-1"
@@ -119,7 +156,7 @@ export default function PdfUpload({
       ) : currentPdfUrl ? (
         <div className="flex flex-col items-center gap-2">
           <FileText className="w-8 h-8 text-primary" />
-          <a href={currentPdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm" onClick={(e) => e.stopPropagation()}>
+          <a href={displayUrl || "#"} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm" onClick={(e) => e.stopPropagation()}>
             Ver PDF <ExternalLink className="w-3 h-3 inline" />
           </a>
           <p className="text-xs text-muted-foreground">Haz clic para reemplazar</p>
