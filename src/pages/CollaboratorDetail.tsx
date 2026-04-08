@@ -651,8 +651,8 @@ export default function CollaboratorDetail() {
                       toast({ title: "Error", description: "No se pudo subir el logo", variant: "destructive" });
                       return;
                     }
-                    const { data: urlData } = supabase.storage.from("service-media").getPublicUrl(path);
-                    setLogoUrl(urlData.publicUrl);
+                    const { data: signedData } = await supabase.storage.from("service-media").createSignedUrl(path, 3600);
+                    setLogoUrl(signedData?.signedUrl || "");
                     toast({ title: "Logo subido" });
                   }}
                 />

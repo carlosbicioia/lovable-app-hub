@@ -204,8 +204,8 @@ export default function InvoiceCreate() {
         toast({ title: "Error subiendo PDF", description: uploadErr.message, variant: "destructive" });
         return;
       }
-      const { data: urlData } = supabase.storage.from("purchase-docs").getPublicUrl(path);
-      uploadedPdfPath = urlData.publicUrl;
+      // Store the file path, not a public URL (bucket is private)
+      uploadedPdfPath = path;
     }
 
     createInvoice.mutate(

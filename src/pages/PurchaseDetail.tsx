@@ -24,6 +24,7 @@ import {
   ArrowLeft, Loader2, ShoppingCart, Send, CheckCircle2, Package,
   Plus, Trash2, Pencil, Save, X, Download, FileText, Wrench,
 } from "lucide-react";
+import SignedPdfLink from "@/components/shared/SignedPdfLink";
 
 const statusFlow: { status: PurchaseOrderStatus; label: string; icon: React.ReactNode }[] = [
   { status: "Borrador", label: "Borrador", icon: <ShoppingCart className="w-4 h-4" /> },
@@ -320,9 +321,7 @@ export default function PurchaseDetail() {
           {order.pdfPath && (
             <div className="mt-4 flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
-              <a href={order.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
-                Ver PDF generado
-              </a>
+              <SignedPdfLink path={order.pdfPath} bucket="purchase-docs" label="Ver PDF generado" className="text-primary hover:underline text-sm" />
             </div>
           )}
         </CardContent>

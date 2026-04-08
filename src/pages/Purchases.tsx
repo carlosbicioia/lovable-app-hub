@@ -27,6 +27,7 @@ import { format as formatDate } from "date-fns";
 import { useBulkSelect } from "@/hooks/useBulkSelect";
 import BulkActionBar from "@/components/shared/BulkActionBar";
 import { exportCsv } from "@/lib/exportCsv";
+import SignedPdfLink from "@/components/shared/SignedPdfLink";
 
 const ocStatusConfig: Record<PurchaseOrderStatus, { label: string; cls: string }> = {
   Borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -499,9 +500,7 @@ export default function Purchases() {
                         <td className="px-5 py-3 text-muted-foreground text-xs">{format(new Date(dn.createdAt), "dd MMM yyyy", { locale: es })}</td>
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">€{dn.totalCost.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
                         <td className="px-5 py-3 text-center">
-                          {dn.pdfPath ? (
-                            <a href={dn.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs" onClick={(e) => e.stopPropagation()}>Ver PDF</a>
-                          ) : "—"}
+                          <SignedPdfLink path={dn.pdfPath} bucket="delivery-notes" />
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
@@ -575,9 +574,7 @@ export default function Purchases() {
                         <td className="px-5 py-3 text-right font-medium text-card-foreground">€{inv.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
                         <td className="px-5 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{inv.notes || "—"}</td>
                         <td className="px-5 py-3 text-center">
-                          {inv.pdfPath ? (
-                            <a href={inv.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs" onClick={(e) => e.stopPropagation()}>Ver PDF</a>
-                          ) : "—"}
+                          <SignedPdfLink path={inv.pdfPath} bucket="purchase-docs" />
                         </td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">

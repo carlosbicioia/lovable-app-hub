@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getSignedUrl } from "@/lib/storageUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useServices } from "@/hooks/useServices";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -28,7 +29,7 @@ interface Props {
   readOnly?: boolean;
 }
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 
 export default function ServiceMediaUpload({ service, readOnly }: Props) {
   const serviceId = service.id;
@@ -42,9 +43,6 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const getPublicUrl = (filePath: string) =>
-    `${SUPABASE_URL}/storage/v1/object/public/service-media/${filePath}`;
-
   const fetchMedia = async () => {
     const { data } = await supabase
       .from("service_media")
@@ -53,12 +51,13 @@ export default function ServiceMediaUpload({ service, readOnly }: Props) {
       .order("created_at", { ascending: false });
 
     if (data) {
-      setMedia(
-        data.map((m: any) => ({
+      const withUrls = await Promise.all(
+        data.map(async (m: any) => ({
           ...m,
-          publicUrl: getPublicUrl(m.file_path),
+          publicUrl: (await getSignedUrl("service-media", m.file_path)) || "",
         }))
       );
+      setMedia(withUrls);
     }
     setLoading(false);
   };
