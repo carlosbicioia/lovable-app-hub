@@ -320,9 +320,7 @@ export default function PurchaseDetail() {
           {order.pdfPath && (
             <div className="mt-4 flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
-              <a href={order.pdfPath} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
-                Ver PDF generado
-              </a>
+              <SignedPdfLink path={order.pdfPath} bucket="purchase-docs" label="Ver PDF generado" className="text-primary hover:underline text-sm" />
             </div>
           )}
         </CardContent>
