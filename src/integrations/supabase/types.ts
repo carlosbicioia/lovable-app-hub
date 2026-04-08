@@ -2279,6 +2279,7 @@ export type Database = {
     Functions: {
       auto_start_scheduled_services: { Args: never; Returns: number }
       get_user_collaborator_id: { Args: { _user_id: string }; Returns: string }
+      get_user_operator_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
