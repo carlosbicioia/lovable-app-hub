@@ -15,8 +15,9 @@ i18n
     fallbackLng: "es",
     interpolation: { escapeValue: false },
     detection: {
-      order: ["navigator", "htmlTag"],
+      order: ["localStorage", "navigator", "htmlTag"],
       caches: ["localStorage"],
+      convertDetectedLanguage: (lng: string) => lng.split("-")[0],
     },
   });
 
