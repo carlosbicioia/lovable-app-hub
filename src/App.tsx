@@ -9,6 +9,7 @@ import { BudgetProvider } from "@/hooks/useBudgets";
 import AppLayout from "@/components/layout/AppLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { Loader2 } from "lucide-react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import {
   Dashboard, AdvancedDashboard, Clients, Collaborators, CollaboratorDetail,
@@ -153,7 +154,9 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <BudgetProvider>
-              <AppRoutes />
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
             </BudgetProvider>
           </AuthProvider>
         </BrowserRouter>
