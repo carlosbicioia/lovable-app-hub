@@ -24,7 +24,7 @@
     "user": "User"
   },
   "auth": {
-    "title": "UrbanGO",
+    "title": "UrbanGoBO",
     "subtitle": "Service management platform",
     "email": "Email",
     "password": "Password",
@@ -37,7 +37,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "UrbanGO operational overview",
+    "subtitle": "UrbanGoBO operational overview",
     "services": "Services",
     "totalRegistered": "Total registered",
     "pendingContact": "Pending Contact",

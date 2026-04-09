@@ -511,7 +511,7 @@ export default function Purchases() {
                                   type: "Albarán",
                                   id: dn.code || dn.id.slice(0, 8),
                                   date: formatDate(new Date(dn.createdAt), "dd/MM/yyyy"),
-                                  company: { companyName: co?.company_name || "UrbanGO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
+                                  company: { companyName: co?.company_name || "UrbanGoBO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
                                   recipientName: dn.supplierName,
                                   infoFields: [{ label: "Servicio", value: dn.serviceId }, { label: "Operario", value: dn.operatorName || "—" }, { label: "Estado", value: dn.status }],
                                   lines: dn.lines.map((l) => ({ description: l.articleName + (l.description ? ` — ${l.description}` : ""), units: l.units, unitPrice: l.costPrice, total: l.units * l.costPrice })),
@@ -587,7 +587,7 @@ export default function Purchases() {
                                 generateDocumentPdf({
                                   type: "Factura de Compra", id: inv.invoiceNumber || inv.id.slice(0, 8),
                                   date: inv.invoiceDate ? formatDate(new Date(inv.invoiceDate), "dd/MM/yyyy") : formatDate(new Date(inv.createdAt), "dd/MM/yyyy"),
-                                  company: { companyName: co?.company_name || "UrbanGO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
+                                  company: { companyName: co?.company_name || "UrbanGoBO", logoUrl: co?.logo_url, taxId: co?.tax_id, address: co?.address, documentFooter: co?.document_footer },
                                   recipientName: inv.supplierName,
                                   infoFields: [...(inv.dueDate ? [{ label: "Vencimiento", value: formatDate(new Date(inv.dueDate), "dd/MM/yyyy") }] : []), { label: "Estado", value: inv.status }],
                                   lines: invLines.map((l) => ({ description: l.description, units: l.units, unitPrice: l.unitPrice, taxRate: l.taxRate, total: l.total })),

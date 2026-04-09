@@ -91,7 +91,7 @@ export default function BudgetDetail() {
             id: budget.id,
             date: format(new Date(budget.createdAt), "dd/MM/yyyy", { locale: es }),
             company: {
-              companyName: companySettings?.company_name || "UrbanGO",
+              companyName: companySettings?.company_name || "UrbanGoBO",
               logoUrl: companySettings?.logo_url,
               taxId: companySettings?.tax_id,
               address: companySettings?.address,

@@ -24,7 +24,7 @@
     "user": "Usuario"
   },
   "auth": {
-    "title": "UrbanGO",
+    "title": "UrbanGoBO",
     "subtitle": "Plataforma de gestión de servicios",
     "email": "Email",
     "password": "Contraseña",
@@ -37,7 +37,7 @@
   },
   "dashboard": {
     "title": "Panel de Control",
-    "subtitle": "Resumen operativo de UrbanGO",
+    "subtitle": "Resumen operativo de UrbanGoBO",
     "services": "Servicios",
     "totalRegistered": "Totales dados de alta",
     "pendingContact": "Pte. Contacto",

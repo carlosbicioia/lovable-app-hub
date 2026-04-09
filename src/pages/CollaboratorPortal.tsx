@@ -137,7 +137,7 @@ export default function CollaboratorPortal() {
               <span className="text-primary-foreground font-display font-bold text-sm">U</span>
             </div>
             <div>
-              <p className="font-display font-bold text-foreground">UrbanGO</p>
+              <p className="font-display font-bold text-foreground">UrbanGoBO</p>
               <p className="text-xs text-muted-foreground">Portal Colaborador · {collaboratorId}</p>
             </div>
           </div>

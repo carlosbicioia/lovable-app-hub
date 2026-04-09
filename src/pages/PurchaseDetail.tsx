@@ -153,7 +153,7 @@ export default function PurchaseDetail() {
         <div class="header">
           <div style="display:flex;align-items:center;gap:12px">
             ${(settings as any)?.logo_url ? `<img src="${(settings as any).logo_url}" alt="Logo" style="max-height:48px;max-width:120px;object-fit:contain" />` : ""}
-            <div><h1>${(settings as any)?.company_name || "UrbanGO"}</h1><h2>Orden de Compra</h2></div>
+            <div><h1>${(settings as any)?.company_name || "UrbanGoBO"}</h1><h2>Orden de Compra</h2></div>
           </div>
           <div style="text-align:right"><h1>${order.id}</h1><h2>${format(new Date(order.createdAt), "dd/MM/yyyy")}</h2></div>
         </div>

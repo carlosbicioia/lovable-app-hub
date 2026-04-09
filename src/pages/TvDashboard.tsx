@@ -230,7 +230,7 @@ export default function TvDashboard() {
 
       {/* Footer */}
       <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto">
-        <span>UrbanGO — Panel TV</span>
+        <span>UrbanGoBO — Panel TV</span>
         <span>Última actualización: {format(now, "HH:mm:ss")}</span>
       </div>
     </div>

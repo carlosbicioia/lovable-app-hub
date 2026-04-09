@@ -377,7 +377,7 @@ export function useVoiceAssistant() {
         body: { messages: [] },
       });
       if (error) throw error;
-      const content = data?.content || "Hola, soy Álex, el asistente de UrbanGO. Dime en qué trabajamos.";
+      const content = data?.content || "Hola, soy Álex, el asistente de UrbanGoBO. Dime en qué trabajamos.";
       const displayText = cleanDisplayText(content);
       setMessages([{ role: "assistant", content: displayText }]);
       setAlexText(displayText);
@@ -387,7 +387,7 @@ export function useVoiceAssistant() {
     } catch (err) {
       console.error("[Alex] Error starting conversation:", err);
       setIsProcessing(false);
-      const fallback = "Hola, soy Álex, el asistente de UrbanGO. Dime en qué trabajamos.";
+      const fallback = "Hola, soy Álex, el asistente de UrbanGoBO. Dime en qué trabajamos.";
       setAlexText(fallback);
       setMessages([{ role: "assistant", content: fallback }]);
       await speak(fallback);
