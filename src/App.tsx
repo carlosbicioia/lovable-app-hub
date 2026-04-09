@@ -148,19 +148,19 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <BudgetProvider>
-              <ErrorBoundary>
+      <ErrorBoundary>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <BudgetProvider>
                 <AppRoutes />
-              </ErrorBoundary>
-            </BudgetProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+              </BudgetProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 };
